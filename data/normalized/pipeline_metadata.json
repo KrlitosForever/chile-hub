@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-30T20:35:29.457773+00:00",
+  "generated_at_utc": "2026-05-30T23:19:29.538854+00:00",
   "datasets": {
     "regiones": {
       "dataset": "regiones",
@@ -7,7 +7,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-05-30T20:11:47.000584+00:00",
+      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
       "record_count": 16,
       "fields": [
         "codigo_region",
@@ -24,7 +24,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-05-30T20:11:47.000584+00:00",
+      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
       "record_count": 56,
       "fields": [
         "codigo_region",
@@ -43,7 +43,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-05-30T20:11:47.000584+00:00",
+      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
       "record_count": 346,
       "fields": [
         "codigo_region",
@@ -69,7 +69,7 @@
       "source_url": "https://mindicador.cl/api",
       "source_mode": "live",
       "source_detail": "public_api",
-      "refreshed_at_utc": "2026-05-30T20:01:17.545148+00:00",
+      "refreshed_at_utc": "2026-05-30T23:19:28.799272+00:00",
       "record_count": 5,
       "fields": [
         "fecha",

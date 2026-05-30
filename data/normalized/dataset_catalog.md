@@ -1,6 +1,6 @@
 # chile-hub dataset catalog
 
-- `generated_at_utc`: `2026-05-30T20:35:29.457773+00:00`
+- `generated_at_utc`: `2026-05-30T23:19:29.538854+00:00`
 - `dataset_count`: `4`
 
 | Dataset | Source | Mode | Records | Confidence | Join Keys | Validation |

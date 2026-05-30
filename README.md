@@ -195,23 +195,49 @@ sqlite3 data/normalized/chile_data.db
 
 ## Cómo correr el pipeline
 
-Instala dependencias:
+Bootstrap recomendado:
 
 ```bash
-pip install -r requirements.txt
+make bootstrap
+make doctor
 ```
 
-Ejecuta extractores:
+Si prefieres hacerlo a mano:
 
 ```bash
-python src/extractors/subdere_extractor.py
-python src/extractors/bcentral_extractor.py
+python3 -m venv .venv
+./.venv/bin/python -m pip install --upgrade pip
+./.venv/bin/python -m pip install -r requirements.txt
 ```
 
-Compila los outputs:
+El `Makefile` usa `./.venv/bin/python` automáticamente cuando existe, así que desde ese punto la ruta más simple es:
 
 ```bash
-python src/build_dev_db.py
+make refresh
+```
+
+Eso ejecuta:
+
+- extractores
+- build de outputs
+- verificación de artefactos
+- smoke tests del helper
+
+Si quieres correr pasos sueltos:
+
+```bash
+make extract
+make build
+make verify
+make test
+```
+
+O si prefieres comandos directos:
+
+```bash
+./.venv/bin/python src/extractors/subdere_extractor.py
+./.venv/bin/python src/extractors/bcentral_extractor.py
+./.venv/bin/python src/build_dev_db.py
 ```
 
 Revisa metadata y validaciones:
@@ -235,21 +261,21 @@ cat data/normalized/artifact_manifest.json
 O usa el verificador local:
 
 ```bash
-python scripts/verify_pipeline.py
+./.venv/bin/python scripts/verify_pipeline.py
 ```
 
 Smoke tests del helper y contratos del catálogo:
 
 ```bash
-python -m unittest discover -s tests
+./.venv/bin/python -m unittest discover -s tests
 ```
 
 Secuencia mínima recomendada para validar el hub localmente:
 
 ```bash
-python src/build_dev_db.py
-python scripts/verify_pipeline.py
-python -m unittest discover -s tests
+make build
+make verify
+make test
 ```
 
 Atajos del proyecto:
@@ -266,7 +292,7 @@ make hub-list
 Y para un resumen humano del último estado:
 
 ```bash
-python scripts/pipeline_status.py
+make status
 ```
 
 Ese comando también genera `data/normalized/pipeline_status.md`.
