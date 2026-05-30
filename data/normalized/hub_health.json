@@ -1,0 +1,47 @@
+{
+  "generated_at_utc": "2026-05-30T23:57:00.403864+00:00",
+  "overall_status": "ok",
+  "dataset_count": 4,
+  "ok_count": 4,
+  "warn_count": 0,
+  "error_count": 0,
+  "live_count": 4,
+  "fallback_count": 0,
+  "stale_count": 0,
+  "unknown_freshness_count": 0,
+  "warning_count": 0,
+  "datasets": [
+    {
+      "dataset": "comunas",
+      "severity": "ok",
+      "source_mode": "live",
+      "freshness_status": "fresh",
+      "validation_status": "ok",
+      "warning_count": 0
+    },
+    {
+      "dataset": "indicadores",
+      "severity": "ok",
+      "source_mode": "live",
+      "freshness_status": "fresh",
+      "validation_status": "ok",
+      "warning_count": 0
+    },
+    {
+      "dataset": "provincias",
+      "severity": "ok",
+      "source_mode": "live",
+      "freshness_status": "fresh",
+      "validation_status": "ok",
+      "warning_count": 0
+    },
+    {
+      "dataset": "regiones",
+      "severity": "ok",
+      "source_mode": "live",
+      "freshness_status": "fresh",
+      "validation_status": "ok",
+      "warning_count": 0
+    }
+  ]
+}

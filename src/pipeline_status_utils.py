@@ -7,6 +7,7 @@ NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
 PIPELINE_METADATA_PATH = NORMALIZED_DIR / "pipeline_metadata.json"
 STATUS_MARKDOWN_PATH = NORMALIZED_DIR / "pipeline_status.md"
 DATASET_CATALOG_MARKDOWN_PATH = NORMALIZED_DIR / "dataset_catalog.md"
+HUB_HEALTH_MARKDOWN_PATH = NORMALIZED_DIR / "hub_health.md"
 
 
 def load_metadata(path=PIPELINE_METADATA_PATH):
@@ -29,6 +30,61 @@ def format_freshness(freshness):
     if age_hours is None or max_age_hours is None:
         return status
     return f"{status} ({age_hours}h / {max_age_hours}h)"
+
+
+def build_hub_health(metadata):
+    datasets = metadata.get("datasets", {})
+    validations = metadata.get("validations", {})
+    entries = []
+
+    for dataset_name in sorted(datasets.keys()):
+        dataset = datasets[dataset_name]
+        validation = validations.get(dataset_name, {})
+        warning_count = len(validation.get("warnings", []))
+        freshness_status = dataset.get("freshness", {}).get("status", "unknown")
+        source_mode = dataset.get("source_mode", "unknown")
+        validation_status = validation.get("status", "unknown")
+
+        severity = "ok"
+        if validation_status != "ok":
+            severity = "error"
+        elif freshness_status in {"stale", "unknown"}:
+            severity = "warn"
+        elif source_mode == "fallback" or warning_count > 0:
+            severity = "warn"
+
+        entries.append(
+            {
+                "dataset": dataset_name,
+                "severity": severity,
+                "source_mode": source_mode,
+                "freshness_status": freshness_status,
+                "validation_status": validation_status,
+                "warning_count": warning_count,
+            }
+        )
+
+    error_count = sum(1 for entry in entries if entry["severity"] == "error")
+    warn_count = sum(1 for entry in entries if entry["severity"] == "warn")
+    ok_count = sum(1 for entry in entries if entry["severity"] == "ok")
+    overall_status = "error" if error_count else "warn" if warn_count else "ok"
+
+    return {
+        "generated_at_utc": metadata.get("generated_at_utc"),
+        "overall_status": overall_status,
+        "dataset_count": len(entries),
+        "ok_count": ok_count,
+        "warn_count": warn_count,
+        "error_count": error_count,
+        "live_count": sum(1 for entry in entries if entry["source_mode"] == "live"),
+        "fallback_count": sum(1 for entry in entries if entry["source_mode"] == "fallback"),
+        "stale_count": sum(1 for entry in entries if entry["freshness_status"] == "stale"),
+        "unknown_freshness_count": sum(
+            1 for entry in entries if entry["freshness_status"] == "unknown"
+        ),
+        "warning_count": sum(entry["warning_count"] for entry in entries),
+        "datasets": entries,
+    }
 
 
 def build_status_text(metadata):
@@ -130,6 +186,44 @@ def build_status_markdown(metadata):
 
 def write_status_markdown_file(metadata, path=STATUS_MARKDOWN_PATH):
     Path(path).write_text(build_status_markdown(metadata), encoding="utf-8")
+
+
+def build_hub_health_markdown(health):
+    lines = [
+        "# chile-hub health summary",
+        "",
+        f"- `generated_at_utc`: `{health.get('generated_at_utc', 'unknown')}`",
+        f"- `overall_status`: `{health.get('overall_status', 'unknown')}`",
+        f"- `dataset_count`: `{health.get('dataset_count', 0)}`",
+        f"- `ok_count`: `{health.get('ok_count', 0)}`",
+        f"- `warn_count`: `{health.get('warn_count', 0)}`",
+        f"- `error_count`: `{health.get('error_count', 0)}`",
+        f"- `live_count`: `{health.get('live_count', 0)}`",
+        f"- `fallback_count`: `{health.get('fallback_count', 0)}`",
+        f"- `stale_count`: `{health.get('stale_count', 0)}`",
+        f"- `warning_count`: `{health.get('warning_count', 0)}`",
+        "",
+        "| Dataset | Severity | Mode | Freshness | Validation | Warnings |",
+        "| :--- | :--- | :--- | :--- | :--- | ---: |",
+    ]
+
+    for entry in health.get("datasets", []):
+        lines.append(
+            "| "
+            f"`{entry.get('dataset', 'unknown')}` | "
+            f"`{entry.get('severity', 'unknown')}` | "
+            f"`{entry.get('source_mode', 'unknown')}` | "
+            f"`{entry.get('freshness_status', 'unknown')}` | "
+            f"`{entry.get('validation_status', 'unknown')}` | "
+            f"{entry.get('warning_count', 0)} |"
+        )
+
+    lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_hub_health_markdown_file(health, path=HUB_HEALTH_MARKDOWN_PATH):
+    Path(path).write_text(build_hub_health_markdown(health), encoding="utf-8")
 
 
 def build_dataset_catalog_markdown(catalog):

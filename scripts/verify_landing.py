@@ -57,9 +57,14 @@ def verify_landing():
             fail(f"Unexpected repo href: {repo_href}")
 
         status_actions = page.locator("#status-actions .dataset-action").all_inner_texts()
-        expected_status_actions = ["Status", "Catalog JSON", "Catalog MD", "Manifest"]
+        expected_status_actions = ["Status", "Health JSON", "Health MD", "Catalog JSON", "Catalog MD", "Manifest"]
         if status_actions != expected_status_actions:
             fail(f"Unexpected status actions: {status_actions}")
+
+        status_subtitle = page.locator("#status-subtitle").inner_text()
+        expected_status_subtitle = "4/4 capas operativas en modo live. Estado global: ok. Sin capas stale. Sin warnings activos."
+        if status_subtitle != expected_status_subtitle:
+            fail(f"Unexpected status subtitle: {status_subtitle}")
 
         quickstart_titles = page.locator(".quickstart-title").all_inner_texts()
         if quickstart_titles != ["Python + helper", "DuckDB directo", "CLI y refresh local"]:
@@ -81,6 +86,10 @@ def verify_landing():
         ]
         if artifact_meta[:2] != expected_artifact_meta:
             fail(f"Unexpected artifact metadata: {artifact_meta}")
+
+        first_card_facts = first_card.locator(".dataset-fact").all_inner_texts()
+        if "FRESHNESS\nfresh ·" not in "\n".join(first_card_facts):
+            fail(f"Freshness fact not found in first dataset card: {first_card_facts}")
 
         example_title = first_card.locator(".dataset-example-title").inner_text()
         if example_title.upper() != "RECETA DE USO":
@@ -110,7 +119,7 @@ def verify_landing():
         browser.close()
 
     print(
-        "Landing verification passed: status, quickstart, artifact metadata, "
+        "Landing verification passed: status, freshness, quickstart, artifact metadata, "
         "dataset examples and copy interactions are working."
     )
 

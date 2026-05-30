@@ -9,6 +9,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
 DATASET_CATALOG_PATH = NORMALIZED_DIR / "dataset_catalog.json"
 ARTIFACT_MANIFEST_PATH = NORMALIZED_DIR / "artifact_manifest.json"
+HUB_HEALTH_PATH = NORMALIZED_DIR / "hub_health.json"
 
 
 class ChileHub:
@@ -23,6 +24,10 @@ class ChileHub:
 
     def _load_artifact_manifest(self):
         with ARTIFACT_MANIFEST_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def _load_hub_health(self):
+        with HUB_HEALTH_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
     def list_datasets(self):
@@ -70,6 +75,7 @@ class ChileHub:
                 "freshness_status": entry.get("freshness", {}).get("status"),
                 "freshness_age_hours": entry.get("freshness", {}).get("age_hours"),
                 "validation_status": entry.get("validation_status"),
+                "warning_count": len(entry.get("warnings", [])),
             }
             for entry in self.catalog.get("datasets", [])
         ]
@@ -109,6 +115,7 @@ class ChileHub:
                     "confidence_tier": entry.get("confidence_tier"),
                     "freshness_status": entry.get("freshness", {}).get("status"),
                     "freshness_age_hours": entry.get("freshness", {}).get("age_hours"),
+                    "warning_count": len(entry.get("warnings", [])),
                     "published_outputs": published_outputs,
                     "artifact_count": len(artifacts),
                     "total_size_bytes": sum(artifact.get("size_bytes", 0) for artifact in artifacts),
@@ -123,6 +130,9 @@ class ChileHub:
                 }
             )
         return inventory
+
+    def health(self):
+        return self._load_hub_health()
 
 
 def build_parser():
@@ -158,6 +168,7 @@ def build_parser():
     )
 
     subparsers.add_parser("inventory", help="Mostrar inventario compacto de datasets y artefactos")
+    subparsers.add_parser("health", help="Mostrar salud agregada del hub")
 
     subparsers.add_parser("summary", help="Mostrar resumen breve de datasets")
     return parser
@@ -191,6 +202,10 @@ def main():
 
     if args.command == "inventory":
         print(json.dumps(hub.inventory(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "health":
+        print(json.dumps(hub.health(), ensure_ascii=False, indent=2))
         return
 
     if args.command == "summary":

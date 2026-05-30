@@ -1015,6 +1015,15 @@ make hub-list</pre>
             return `${(sizeBytes / (1024 * 1024)).toFixed(2)} MB`;
         }
 
+        function formatFreshness(freshness) {
+            if (!freshness) return "N/D";
+            const status = freshness.status || "unknown";
+            if (typeof freshness.age_hours !== "number" || typeof freshness.max_age_hours !== "number") {
+                return status;
+            }
+            return `${status} · ${freshness.age_hours}h / ${freshness.max_age_hours}h`;
+        }
+
         function formatArtifactLabel(path, fallbackLabel) {
             const manifestEntry = artifactManifestByPath[path];
             if (!manifestEntry?.output_type) return fallbackLabel;
@@ -1132,15 +1141,18 @@ make hub-list</pre>
                     if (!res.ok) throw new Error("No se pudo cargar el catálogo");
                     return res.json();
                 }),
+                fetch("data/normalized/hub_health.json")
+                    .then(res => res.ok ? res.json() : null)
+                    .catch(() => null),
                 fetch("data/normalized/artifact_manifest.json")
                     .then(res => res.ok ? res.json() : null)
                     .catch(() => null)
             ])
-                .then(([catalog, manifest]) => {
+                .then(([catalog, health, manifest]) => {
                     artifactManifestByPath = Object.fromEntries(
                         (manifest?.artifacts || []).map(entry => [entry.path, entry])
                     );
-                    renderCatalog(catalog);
+                    renderCatalog(catalog, health);
                 })
                 .catch(err => {
                     console.error("Error cargando catálogo:", err);
@@ -1159,19 +1171,25 @@ make hub-list</pre>
                 });
         }
 
-        function renderCatalog(catalog) {
+        function renderCatalog(catalog, health) {
             const datasets = catalog.datasets || [];
-            const liveCount = datasets.filter(d => d.source_mode === "live").length;
-            const warningCount = datasets.reduce((acc, d) => acc + (d.warnings?.length || 0), 0);
+            const liveCount = health?.live_count ?? datasets.filter(d => d.source_mode === "live").length;
+            const warningCount = health?.warning_count ?? datasets.reduce((acc, d) => acc + (d.warnings?.length || 0), 0);
+            const staleCount = health?.stale_count ?? datasets.filter(d => d.freshness?.status === "stale").length;
+            const overallStatus = health?.overall_status || "ok";
 
-            statusSubtitle.textContent = `${liveCount}/${datasets.length} capas operativas en modo live. ${warningCount === 0 ? "Sin warnings activos." : `${warningCount} warnings activos.`}`;
+            statusSubtitle.textContent = `${liveCount}/${datasets.length} capas operativas en modo live. Estado global: ${overallStatus}. ${staleCount === 0 ? "Sin capas stale." : `${staleCount} capas stale.`} ${warningCount === 0 ? "Sin warnings activos." : `${warningCount} warnings activos.`}`;
             statusPills.innerHTML = `
+                <span class="status-pill">Estado: ${overallStatus}</span>
                 <span class="status-pill">Capas: ${datasets.length}</span>
                 <span class="status-pill">Live: ${liveCount}</span>
+                <span class="status-pill">Stale: ${staleCount}</span>
                 <span class="status-pill">Warnings: ${warningCount}</span>
             `;
             statusActions.innerHTML = `
                 ${buildSimpleLink("data/normalized/pipeline_status.md", "Status")}
+                ${buildSimpleLink("data/normalized/hub_health.json", "Health JSON")}
+                ${buildSimpleLink("data/normalized/hub_health.md", "Health MD")}
                 ${buildSimpleLink("data/normalized/dataset_catalog.json", "Catalog JSON")}
                 ${buildSimpleLink("data/normalized/dataset_catalog.md", "Catalog MD")}
                 ${buildSimpleLink("data/normalized/artifact_manifest.json", "Manifest")}
@@ -1217,6 +1235,10 @@ make hub-list</pre>
                             <div class="dataset-fact">
                                 <span class="dataset-fact-label">Confianza</span>
                                 <span class="dataset-fact-value">${escapeHtml(dataset.confidence_tier || "N/D")}</span>
+                            </div>
+                            <div class="dataset-fact">
+                                <span class="dataset-fact-label">Freshness</span>
+                                <span class="dataset-fact-value">${escapeHtml(formatFreshness(dataset.freshness))}</span>
                             </div>
                         </div>
                         <div class="dataset-meta-line">

@@ -5,7 +5,12 @@ import hashlib
 from datetime import datetime, timezone
 import polars as pl
 import duckdb
-from pipeline_status_utils import write_status_markdown_file, write_dataset_catalog_markdown_file
+from pipeline_status_utils import (
+    build_hub_health,
+    write_status_markdown_file,
+    write_dataset_catalog_markdown_file,
+    write_hub_health_markdown_file,
+)
 
 # Configuración de rutas
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data"))
@@ -141,6 +146,23 @@ def build_freshness(refreshed_at_utc, max_age_hours):
         "max_age_hours": max_age_hours,
         "checked_at_utc": checked_at.isoformat(),
     }
+
+
+def build_freshness_warnings(dataset_name, freshness):
+    status = freshness.get("status")
+    age_hours = freshness.get("age_hours")
+    max_age_hours = freshness.get("max_age_hours")
+
+    if status == "stale":
+        return [
+            (
+                f"{dataset_name} freshness is stale: "
+                f"{age_hours}h since refresh, policy max is {max_age_hours}h"
+            )
+        ]
+    if status == "unknown":
+        return [f"{dataset_name} freshness is unknown: missing or invalid refreshed_at_utc"]
+    return []
 
 def ensure_directories():
     os.makedirs(NORMALIZED_DIR, exist_ok=True)
@@ -336,6 +358,13 @@ def write_artifact_manifest():
     output_path = os.path.join(NORMALIZED_DIR, "artifact_manifest.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def write_hub_health_json(health):
+    output_path = os.path.join(NORMALIZED_DIR, "hub_health.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(health, f, ensure_ascii=False, indent=2)
     return output_path
 
 def derive_geography_layers(df_comunas):
@@ -578,6 +607,9 @@ def main():
         },
         "comunas": {
             **comunas_metadata,
+            "dataset": "comunas",
+            "record_count": df_comunas.height,
+            "fields": df_comunas.columns,
             "freshness": build_freshness(
                 comunas_metadata.get("refreshed_at_utc"),
                 DATASET_CATALOG_CONFIG["comunas"]["freshness_policy"]["max_age_hours"],
@@ -585,6 +617,10 @@ def main():
         },
         "indicadores": {
             **indicadores_metadata,
+            "dataset": "indicadores",
+            "record_count": df_indicadores.height,
+            "fields": df_indicadores.columns,
+            "indicator_codes": sorted(df_indicadores["codigo_indicador"].unique().to_list()),
             "freshness": build_freshness(
                 indicadores_metadata.get("refreshed_at_utc"),
                 DATASET_CATALOG_CONFIG["indicadores"]["freshness_policy"]["max_age_hours"],
@@ -594,6 +630,8 @@ def main():
     validations_with_freshness = {
         dataset_name: {
             **validation,
+            "warnings": validation.get("warnings", [])
+            + build_freshness_warnings(dataset_name, dataset_metadata[dataset_name]["freshness"]),
             "freshness_status": dataset_metadata[dataset_name]["freshness"]["status"],
             "freshness_age_hours": dataset_metadata[dataset_name]["freshness"]["age_hours"],
         }
@@ -606,12 +644,16 @@ def main():
     with open(metadata_output, "r", encoding="utf-8") as f:
         pipeline_metadata = json.load(f)
     write_status_markdown_file(pipeline_metadata)
+    hub_health = build_hub_health(pipeline_metadata)
+    hub_health_output = write_hub_health_json(hub_health)
+    write_hub_health_markdown_file(hub_health)
     catalog_output = write_dataset_catalog(pipeline_metadata)
     with open(catalog_output, "r", encoding="utf-8") as f:
         dataset_catalog = json.load(f)
     write_dataset_catalog_markdown_file(dataset_catalog)
     artifact_manifest_output = write_artifact_manifest()
     print(f"Metadata y validaciones exportadas a: {metadata_output}")
+    print(f"Resumen de salud exportado a: {hub_health_output}")
     print(f"Catalogo de datasets exportado a: {catalog_output}")
     print(f"Manifest de artefactos exportado a: {artifact_manifest_output}")
     

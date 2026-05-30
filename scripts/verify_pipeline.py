@@ -24,6 +24,8 @@ REQUIRED_FILES = [
     NORMALIZED_DIR / "indicadores_hoy.json",
     NORMALIZED_DIR / "pipeline_metadata.json",
     NORMALIZED_DIR / "pipeline_status.md",
+    NORMALIZED_DIR / "hub_health.json",
+    NORMALIZED_DIR / "hub_health.md",
     NORMALIZED_DIR / "dataset_catalog.json",
     NORMALIZED_DIR / "dataset_catalog.md",
     NORMALIZED_DIR / "artifact_manifest.json",
@@ -114,6 +116,8 @@ def verify_pipeline_metadata():
             )
 
         warnings = validation.get("warnings", [])
+        if freshness.get("status") in {"stale", "unknown"} and not warnings:
+            fail(f"{dataset_name} should expose freshness warning when status is {freshness.get('status')}")
         if warnings:
             warning_count += len(warnings)
             for warning in warnings:
@@ -207,6 +211,8 @@ def verify_artifact_manifest():
         "data/normalized/indicadores_hoy.json",
         "data/normalized/pipeline_metadata.json",
         "data/normalized/pipeline_status.md",
+        "data/normalized/hub_health.json",
+        "data/normalized/hub_health.md",
         "data/normalized/dataset_catalog.json",
         "data/normalized/dataset_catalog.md",
     }
@@ -222,6 +228,7 @@ def verify_artifact_manifest():
         if path in expected_paths:
             if path.endswith((".parquet", ".json")) and path not in {
                 "data/normalized/pipeline_metadata.json",
+                "data/normalized/hub_health.json",
                 "data/normalized/dataset_catalog.json",
                 "data/normalized/artifact_manifest.json",
             }:
@@ -229,6 +236,7 @@ def verify_artifact_manifest():
                     fail(f"artifact manifest entry is missing dataset: {entry}")
             if path.endswith((".parquet", ".json")) and path not in {
                 "data/normalized/pipeline_metadata.json",
+                "data/normalized/hub_health.json",
                 "data/normalized/dataset_catalog.json",
                 "data/normalized/artifact_manifest.json",
             }:
@@ -247,9 +255,36 @@ def verify_artifact_manifest():
             fail(f"artifact manifest entry has invalid size_bytes: {entry}")
 
 
+def verify_hub_health():
+    health_path = NORMALIZED_DIR / "hub_health.json"
+    health = load_json(health_path)
+
+    if health.get("dataset_count") != len(REQUIRED_DATASETS):
+        fail(f"hub_health.json has unexpected dataset_count: {health.get('dataset_count')}")
+
+    if health.get("overall_status") not in {"ok", "warn", "error"}:
+        fail(f"hub_health.json has invalid overall_status: {health.get('overall_status')}")
+
+    datasets = health.get("datasets", [])
+    dataset_names = {entry.get("dataset") for entry in datasets}
+    if dataset_names != REQUIRED_DATASETS:
+        fail(f"hub_health.json has unexpected datasets: {sorted(dataset_names)}")
+
+    for entry in datasets:
+        if entry.get("severity") not in {"ok", "warn", "error"}:
+            fail(f"hub_health.json entry has invalid severity: {entry}")
+        if entry.get("source_mode") not in {"live", "fallback"}:
+            fail(f"hub_health.json entry has invalid source_mode: {entry}")
+        if entry.get("freshness_status") not in {"fresh", "stale", "unknown"}:
+            fail(f"hub_health.json entry has invalid freshness_status: {entry}")
+        if entry.get("validation_status") != "ok":
+            fail(f"hub_health.json entry has unexpected validation_status: {entry}")
+
+
 def main():
     verify_required_files()
     verify_pipeline_metadata()
+    verify_hub_health()
     verify_dataset_catalog()
     verify_artifact_manifest()
 

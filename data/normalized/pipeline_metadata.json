@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-30T23:45:13.309297+00:00",
+  "generated_at_utc": "2026-05-30T23:57:00.403864+00:00",
   "datasets": {
     "regiones": {
       "dataset": "regiones",
@@ -16,7 +16,13 @@
       "notes": [
         "bcn_skipped_null_code_records: 1",
         "bcn_supplemented_missing_comunas: 1"
-      ]
+      ],
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-30T23:57:00.403049+00:00"
+      }
     },
     "provincias": {
       "dataset": "provincias",
@@ -35,7 +41,13 @@
       "notes": [
         "bcn_skipped_null_code_records: 1",
         "bcn_supplemented_missing_comunas: 1"
-      ]
+      ],
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-30T23:57:00.403132+00:00"
+      }
     },
     "comunas": {
       "dataset": "comunas",
@@ -61,7 +73,13 @@
       "notes": [
         "bcn_skipped_null_code_records: 1",
         "bcn_supplemented_missing_comunas: 1"
-      ]
+      ],
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-30T23:57:00.403149+00:00"
+      }
     },
     "indicadores": {
       "dataset": "indicadores",
@@ -83,7 +101,13 @@
         "uf",
         "utm"
       ],
-      "notes": []
+      "notes": [],
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 72,
+        "checked_at_utc": "2026-05-30T23:57:00.403785+00:00"
+      }
     }
   },
   "validations": {
@@ -92,21 +116,27 @@
       "status": "ok",
       "record_count": 16,
       "errors": [],
-      "warnings": []
+      "warnings": [],
+      "freshness_status": "fresh",
+      "freshness_age_hours": 0.63
     },
     "provincias": {
       "dataset": "provincias",
       "status": "ok",
       "record_count": 56,
       "errors": [],
-      "warnings": []
+      "warnings": [],
+      "freshness_status": "fresh",
+      "freshness_age_hours": 0.63
     },
     "comunas": {
       "dataset": "comunas",
       "status": "ok",
       "record_count": 346,
       "errors": [],
-      "warnings": []
+      "warnings": [],
+      "freshness_status": "fresh",
+      "freshness_age_hours": 0.63
     },
     "indicadores": {
       "dataset": "indicadores",
@@ -120,7 +150,9 @@
         "ipc",
         "uf",
         "utm"
-      ]
+      ],
+      "freshness_status": "fresh",
+      "freshness_age_hours": 0.63
     }
   }
 }

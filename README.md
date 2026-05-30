@@ -188,7 +188,12 @@ python -m src.chile_hub path comunas --output parquet
 python -m src.chile_hub example indicadores --kind duckdb
 python -m src.chile_hub artifacts comunas
 python -m src.chile_hub inventory
+python -m src.chile_hub health
 ```
+
+`summary` e `inventory` ahora exponen también `freshness_status` y `freshness_age_hours` por capa, para detectar builds envejecidos sin tener que abrir los JSON crudos.
+Además incluyen `warning_count`, que sube automáticamente cuando una capa queda `stale`, `unknown` o entra en fallback con advertencias operativas.
+`health` entrega una vista agregada del hub con `overall_status`, counts por severidad y breakdown por capa.
 
 ### SQLite
 
@@ -266,8 +271,16 @@ Revisa el manifest de artefactos publicables:
 cat data/normalized/artifact_manifest.json
 ```
 
+Revisa la salud agregada del hub:
+
+```bash
+cat data/normalized/hub_health.json
+```
+
 Ese manifest ahora incluye `dataset` y `output_type` para cada artefacto publicable derivado de una capa.
 La landing reutiliza esa metadata para mostrar tipo de output y hash corto junto a los links de descarga.
+La política de `freshness` también se convierte en warnings operativos dentro de `pipeline_metadata.json` y `dataset_catalog.json` cuando una capa queda envejecida o indeterminada.
+Además se consolida en `hub_health.json` y `hub_health.md` como resumen agregado del estado del hub.
 
 O usa el verificador local:
 
@@ -302,6 +315,7 @@ make hub-list
 make hub-example
 make hub-artifacts
 make hub-inventory
+make hub-health
 ```
 
 Y para un resumen humano del último estado:
@@ -313,13 +327,15 @@ make status
 Ese comando también genera `data/normalized/pipeline_status.md`.
 La landing local en `index.html` consume `dataset_catalog.json` para reflejar el estado real de las capas publicadas.
 También expone links directos a documentación y artefactos `JSON`/`Parquet` por dataset usando `dataset_catalog.json` y `artifact_manifest.json`.
-Además deja accesos rápidos a `pipeline_status.md`, `dataset_catalog.json`, `dataset_catalog.md` y `artifact_manifest.json`, junto con la URL fuente de cada capa.
+Además deja accesos rápidos a `pipeline_status.md`, `hub_health.json`, `hub_health.md`, `dataset_catalog.json`, `dataset_catalog.md` y `artifact_manifest.json`, junto con la URL fuente de cada capa.
+También muestra `freshness` por dataset y un conteo agregado de capas `stale` para detectar drifting del hub.
 También incluye recetas breves de consumo para `Python`, `DuckDB` y la `CLI` local del proyecto.
 Esas recetas en la landing son copiables directamente desde la interfaz.
 Cada dataset card además muestra ejemplos específicos por capa para `python`, `duckdb` y `cli`, tomados desde el catálogo generado.
 Esos ejemplos por dataset también son copiables y responden al tab activo en cada card.
 La landing también se puede smoke-testear en navegador con `make verify-landing`.
 Ese smoke test cubre estado, quick-start, metadata de artefactos, recetas por dataset y flujos de copia.
+También cubre la presencia de `freshness` en la superficie visible de la landing.
 El workflow `pipeline-check` ejecuta esa verificación de landing además del build, verify y smoke tests del helper.
 El workflow de CI publica un artifact `chile-hub-publishable-bundle` con los outputs ligeros y el manifest asociado.
 

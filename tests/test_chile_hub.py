@@ -48,6 +48,11 @@ class ChileHubTests(unittest.TestCase):
             freshness_statuses,
             {"regiones": "fresh", "provincias": "fresh", "comunas": "fresh", "indicadores": "fresh"},
         )
+        warning_counts = {item["dataset"]: item["warning_count"] for item in summary}
+        self.assertEqual(
+            warning_counts,
+            {"regiones": 0, "provincias": 0, "comunas": 0, "indicadores": 0},
+        )
 
     def test_example_usage(self):
         example = self.hub.example_usage("comunas", "python")
@@ -69,10 +74,18 @@ class ChileHubTests(unittest.TestCase):
         self.assertGreater(comunas["total_size_bytes"], 0)
         self.assertEqual(comunas["freshness_status"], "fresh")
         self.assertIsInstance(comunas["freshness_age_hours"], float)
+        self.assertEqual(comunas["warning_count"], 0)
 
     def test_unknown_dataset_raises(self):
         with self.assertRaises(KeyError):
             self.hub.get_dataset("no-existe")
+
+    def test_health_summary(self):
+        health = self.hub.health()
+        self.assertEqual(health["overall_status"], "ok")
+        self.assertEqual(health["dataset_count"], 4)
+        self.assertEqual(health["warn_count"], 0)
+        self.assertEqual(health["error_count"], 0)
 
 
 class ArtifactContractTests(unittest.TestCase):
@@ -89,6 +102,8 @@ class ArtifactContractTests(unittest.TestCase):
         artifact_paths = {entry["path"] for entry in self.manifest["artifacts"]}
         self.assertIn("data/normalized/dataset_catalog.json", artifact_paths)
         self.assertIn("data/normalized/pipeline_status.md", artifact_paths)
+        self.assertIn("data/normalized/hub_health.json", artifact_paths)
+        self.assertIn("data/normalized/hub_health.md", artifact_paths)
         self.assertIn("data/normalized/regiones.parquet", artifact_paths)
         self.assertIn("data/normalized/provincias.parquet", artifact_paths)
         self.assertIn("data/normalized/comunas.parquet", artifact_paths)
@@ -111,6 +126,8 @@ class ArtifactContractTests(unittest.TestCase):
         for dataset in self.catalog["datasets"]:
             self.assertIn(dataset.get("freshness", {}).get("status"), {"fresh", "stale", "unknown"})
             self.assertTrue(dataset.get("freshness_policy", {}).get("max_age_hours"))
+            if dataset.get("freshness", {}).get("status") in {"stale", "unknown"}:
+                self.assertGreater(len(dataset.get("warnings", [])), 0)
 
     def test_manifest_hashes_present(self):
         for artifact in self.manifest["artifacts"]:
@@ -154,6 +171,12 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn('"published_outputs": [', result.stdout)
         self.assertIn('"artifact_count": 2', result.stdout)
         self.assertIn('"freshness_status": "fresh"', result.stdout)
+        self.assertIn('"warning_count": 0', result.stdout)
+
+    def test_cli_health(self):
+        result = self.run_cli("health")
+        self.assertIn('"overall_status": "ok"', result.stdout)
+        self.assertIn('"dataset_count": 4', result.stdout)
 
 
 if __name__ == "__main__":

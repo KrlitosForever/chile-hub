@@ -1,13 +1,13 @@
 {
-  "generated_at_utc": "2026-05-30T23:45:13.310673+00:00",
-  "artifact_count": 13,
+  "generated_at_utc": "2026-05-30T23:57:00.407001+00:00",
+  "artifact_count": 15,
   "artifacts": [
     {
       "path": "data/normalized/artifact_manifest.json",
       "dataset": null,
       "output_type": null,
       "size_bytes": 3097,
-      "sha256": "57c02f917550270de141d04c951be5c0028170b14b0e423973ceec1411fc4134"
+      "sha256": "377ea491c2d17123cce3dcc5cab0d14285732f34a285438d667500d6e56e8734"
     },
     {
       "path": "data/normalized/comunas.json",
@@ -27,15 +27,29 @@
       "path": "data/normalized/dataset_catalog.json",
       "dataset": null,
       "output_type": null,
-      "size_bytes": 5939,
-      "sha256": "9d63197880ae5131414ec8f37a4de59e68700186532d87ff9fe7ad0762f63ce8"
+      "size_bytes": 7018,
+      "sha256": "4d6aefc0865c853e20ac1ccf450e4d318a833a6b38e8dcd129c6889685118030"
     },
     {
       "path": "data/normalized/dataset_catalog.md",
       "dataset": null,
       "output_type": null,
-      "size_bytes": 4303,
-      "sha256": "f529025dc5e7ee068ec3dc76acaaf3c022216c8ba961d0a64ddbd378dce23f9e"
+      "size_bytes": 4578,
+      "sha256": "83e07a8ea9b7df063522c34b79fb0a11608640722bb64c22d70e08147d2c5d5d"
+    },
+    {
+      "path": "data/normalized/hub_health.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 1056,
+      "sha256": "283ab907a8b769a80502bb078f92e80af3d9ac0b016bc08e6b0d2eb10b7ab1b9"
+    },
+    {
+      "path": "data/normalized/hub_health.md",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 603,
+      "sha256": "12084beaacf08cb1931124f1b0f3e18fcad5dd5dcb5ae72116e3cfe4da8bfe05"
     },
     {
       "path": "data/normalized/indicadores.parquet",
@@ -55,15 +69,15 @@
       "path": "data/normalized/pipeline_metadata.json",
       "dataset": null,
       "output_type": null,
-      "size_bytes": 3263,
-      "sha256": "a7890e7cc8738968abb24c0b10ca369a7ec7c7d3175f7d7f1ffaea92aa51ba43"
+      "size_bytes": 4245,
+      "sha256": "67bc31102b0980f66b239472736a1e83d38b17db03e6596ebee56c1cdb7f58b9"
     },
     {
       "path": "data/normalized/pipeline_status.md",
       "dataset": null,
       "output_type": null,
-      "size_bytes": 1523,
-      "sha256": "401139afae9e7b039db0b53ce89bdaf37b5cd067302948ffb80a30ec83784dda"
+      "size_bytes": 1798,
+      "sha256": "8b187b6d66152b2420a736807798d205fbb34c53b78f57f139ff1203868ed8ed"
     },
     {
       "path": "data/normalized/provincias.json",

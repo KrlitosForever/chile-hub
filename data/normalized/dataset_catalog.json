@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-30T23:45:13.309297+00:00",
+  "generated_at_utc": "2026-05-30T23:57:00.403864+00:00",
   "dataset_count": 4,
   "datasets": [
     {
@@ -19,6 +19,16 @@
         "codigo_region"
       ],
       "confidence_tier": "Tier B",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-30T23:57:00.403049+00:00"
+      },
+      "freshness_policy": {
+        "max_age_hours": 2160,
+        "label": "estable"
+      },
       "usage_examples": {
         "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('regiones')",
         "duckdb": "SELECT *\nFROM 'data/normalized/regiones.parquet'\nORDER BY codigo_region;",
@@ -59,6 +69,16 @@
         "codigo_region"
       ],
       "confidence_tier": "Tier B",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-30T23:57:00.403132+00:00"
+      },
+      "freshness_policy": {
+        "max_age_hours": 2160,
+        "label": "estable"
+      },
       "usage_examples": {
         "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('provincias')",
         "duckdb": "SELECT *\nFROM 'data/normalized/provincias.parquet'\nWHERE codigo_region = '13';",
@@ -106,6 +126,16 @@
         "codigo_region"
       ],
       "confidence_tier": "Tier B",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-30T23:57:00.403149+00:00"
+      },
+      "freshness_policy": {
+        "max_age_hours": 2160,
+        "label": "estable"
+      },
       "usage_examples": {
         "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('comunas')",
         "duckdb": "SELECT codigo_comuna, nombre_comuna, nombre_region\nFROM 'data/normalized/comunas.parquet'\nLIMIT 10;",
@@ -145,6 +175,16 @@
         "codigo_indicador"
       ],
       "confidence_tier": "Tier A/B",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 72,
+        "checked_at_utc": "2026-05-30T23:57:00.403785+00:00"
+      },
+      "freshness_policy": {
+        "max_age_hours": 72,
+        "label": "diaria"
+      },
       "usage_examples": {
         "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('indicadores')",
         "duckdb": "SELECT *\nFROM 'data/normalized/indicadores.parquet'\nORDER BY fecha DESC, codigo_indicador;",
