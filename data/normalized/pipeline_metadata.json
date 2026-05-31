@@ -1,21 +1,21 @@
 {
-  "generated_at_utc": "2026-05-31T16:57:14.689748+00:00",
+  "generated_at_utc": "2026-05-31T22:17:30.175286+00:00",
   "datasets": {
     "regiones": {
       "dataset": "regiones",
-      "source_name": "BCN ArcGIS",
-      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
-      "source_mode": "live",
-      "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
-      "record_count": 16,
+      "source_name": "SUBDERE",
+      "source_url": "https://www.subdere.gov.cl/sites/default/files/documentos/cut_2018_0.xls",
+      "source_mode": "fallback",
+      "source_detail": "embedded_sample",
+      "refreshed_at_utc": "2026-05-31T20:25:25.852270+00:00",
+      "record_count": 11,
       "fields": [
         "codigo_region",
         "nombre_region"
       ],
       "notes": [
-        "bcn_skipped_null_code_records: 1",
-        "bcn_supplemented_missing_comunas: 1"
+        "bcn_fetch_error: Failed to perform, curl: (52) Empty reply from server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+        "fallback_due_to_missing_remote_file"
       ],
       "reuse_policy": {
         "status": "open-attribution",
@@ -27,19 +27,36 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 17.63,
+        "age_hours": 1.87,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-05-31T16:57:14.689138+00:00"
+        "checked_at_utc": "2026-05-31T22:17:30.175113+00:00"
+      },
+      "degradation": {
+        "status": "degraded",
+        "impact": "Capa derivada desde comunas en fallback; cardinalidad reducida a 11 filas.",
+        "recommended_action": "Recuperar comunas live para restaurar cobertura derivada completa."
+      },
+      "coverage": {
+        "status": "partial",
+        "expected_record_count": 16,
+        "actual_record_count": 11,
+        "coverage_ratio": 0.6875,
+        "summary": "Cobertura parcial: 11/16 filas respecto del baseline esperado."
+      },
+      "drift": {
+        "status": "drifted",
+        "summary": "Drift detectado: mode=fallback, coverage=partial, degradation=degraded.",
+        "recommended_action": "Recuperar comunas live para restaurar cobertura derivada completa."
       }
     },
     "provincias": {
       "dataset": "provincias",
-      "source_name": "BCN ArcGIS",
-      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
-      "source_mode": "live",
-      "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
-      "record_count": 56,
+      "source_name": "SUBDERE",
+      "source_url": "https://www.subdere.gov.cl/sites/default/files/documentos/cut_2018_0.xls",
+      "source_mode": "fallback",
+      "source_detail": "embedded_sample",
+      "refreshed_at_utc": "2026-05-31T20:25:25.852270+00:00",
+      "record_count": 11,
       "fields": [
         "codigo_region",
         "nombre_region",
@@ -47,8 +64,8 @@
         "nombre_provincia"
       ],
       "notes": [
-        "bcn_skipped_null_code_records: 1",
-        "bcn_supplemented_missing_comunas: 1"
+        "bcn_fetch_error: Failed to perform, curl: (52) Empty reply from server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+        "fallback_due_to_missing_remote_file"
       ],
       "reuse_policy": {
         "status": "open-attribution",
@@ -60,19 +77,36 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 17.63,
+        "age_hours": 1.87,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-05-31T16:57:14.689187+00:00"
+        "checked_at_utc": "2026-05-31T22:17:30.175138+00:00"
+      },
+      "degradation": {
+        "status": "degraded",
+        "impact": "Capa derivada desde comunas en fallback; cardinalidad reducida a 11 filas.",
+        "recommended_action": "Recuperar comunas live para restaurar cobertura derivada completa."
+      },
+      "coverage": {
+        "status": "partial",
+        "expected_record_count": 56,
+        "actual_record_count": 11,
+        "coverage_ratio": 0.1964,
+        "summary": "Cobertura parcial: 11/56 filas respecto del baseline esperado."
+      },
+      "drift": {
+        "status": "drifted",
+        "summary": "Drift detectado: mode=fallback, coverage=partial, degradation=degraded.",
+        "recommended_action": "Recuperar comunas live para restaurar cobertura derivada completa."
       }
     },
     "comunas": {
       "dataset": "comunas",
-      "source_name": "BCN ArcGIS",
-      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
-      "source_mode": "live",
-      "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
-      "record_count": 346,
+      "source_name": "SUBDERE",
+      "source_url": "https://www.subdere.gov.cl/sites/default/files/documentos/cut_2018_0.xls",
+      "source_mode": "fallback",
+      "source_detail": "embedded_sample",
+      "refreshed_at_utc": "2026-05-31T20:25:25.852270+00:00",
+      "record_count": 18,
       "fields": [
         "codigo_region",
         "nombre_region",
@@ -87,8 +121,8 @@
         "poblacion_estimada"
       ],
       "notes": [
-        "bcn_skipped_null_code_records: 1",
-        "bcn_supplemented_missing_comunas: 1"
+        "bcn_fetch_error: Failed to perform, curl: (52) Empty reply from server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.",
+        "fallback_due_to_missing_remote_file"
       ],
       "reuse_policy": {
         "status": "open-attribution",
@@ -100,19 +134,37 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 17.63,
+        "age_hours": 1.87,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-05-31T16:57:14.689206+00:00"
+        "checked_at_utc": "2026-05-31T22:17:30.175146+00:00"
+      },
+      "degradation": {
+        "status": "degraded",
+        "impact": "Cobertura territorial parcial: 18 comunas disponibles desde fallback embebido.",
+        "recommended_action": "Reintentar extractores o restaurar la fuente territorial primaria."
+      },
+      "coverage": {
+        "status": "partial",
+        "expected_record_count": 346,
+        "actual_record_count": 18,
+        "coverage_ratio": 0.052,
+        "summary": "Cobertura parcial: 18/346 filas respecto del baseline esperado."
+      },
+      "drift": {
+        "status": "drifted",
+        "summary": "Drift detectado: mode=fallback, coverage=partial, degradation=degraded.",
+        "recommended_action": "Reintentar extractores o restaurar la fuente territorial primaria."
       }
     },
     "indicadores": {
       "dataset": "indicadores",
-      "source_name": "mindicador.cl",
+      "source_name": "Banco Central de Chile (via mindicador.cl)",
       "source_url": "https://mindicador.cl/api",
+      "source_origin_url": "https://www.bcentral.cl/web/banco-central/estadisticas",
       "source_mode": "live",
       "source_detail": "public_api",
-      "refreshed_at_utc": "2026-05-30T23:19:28.799272+00:00",
-      "record_count": 5,
+      "refreshed_at_utc": "2026-05-31T20:01:54.399040+00:00",
+      "record_count": 375,
       "fields": [
         "fecha",
         "codigo_indicador",
@@ -125,20 +177,38 @@
         "uf",
         "utm"
       ],
+      "history_start_year": 2010,
       "notes": [],
       "reuse_policy": {
-        "status": "public-api-review-terms",
-        "license": "No declarada explicitamente",
-        "license_url": "https://mindicador.cl/",
+        "status": "open-attribution",
+        "license": "Reproducción libre con citación (BCCh / INE)",
+        "license_url": "https://www.bcentral.cl/web/banco-central/terminos-y-condiciones",
         "attribution_required": true,
-        "redistribution_ok": false,
-        "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes."
+        "redistribution_ok": true,
+        "summary": "Datos del Banco Central de Chile (BCCh) e INE. Libre reproducción con citación. Acceso vía mindicador.cl (API pública de la comunidad)."
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 17.63,
+        "age_hours": 2.26,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-05-31T16:57:14.689692+00:00"
+        "checked_at_utc": "2026-05-31T22:17:30.175250+00:00"
+      },
+      "degradation": {
+        "status": "none",
+        "impact": "Sin degradación operativa detectada en este build.",
+        "recommended_action": "Ninguna."
+      },
+      "coverage": {
+        "status": "not_applicable",
+        "expected_record_count": null,
+        "actual_record_count": 375,
+        "coverage_ratio": null,
+        "summary": "Sin baseline de cobertura por cardinalidad para esta capa."
+      },
+      "drift": {
+        "status": "healthy",
+        "summary": "Sin drift operativo detectado en este build.",
+        "recommended_action": "Ninguna."
       }
     }
   },
@@ -146,34 +216,36 @@
     "regiones": {
       "dataset": "regiones",
       "status": "ok",
-      "record_count": 16,
+      "record_count": 11,
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 17.63
+      "freshness_age_hours": 1.87
     },
     "provincias": {
       "dataset": "provincias",
       "status": "ok",
-      "record_count": 56,
+      "record_count": 11,
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 17.63
+      "freshness_age_hours": 1.87
     },
     "comunas": {
       "dataset": "comunas",
       "status": "ok",
-      "record_count": 346,
+      "record_count": 18,
       "errors": [],
-      "warnings": [],
+      "warnings": [
+        "comunas source_mode is fallback; coverage is limited by design"
+      ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 17.63
+      "freshness_age_hours": 1.87
     },
     "indicadores": {
       "dataset": "indicadores",
       "status": "ok",
-      "record_count": 5,
+      "record_count": 375,
       "errors": [],
       "warnings": [],
       "indicator_codes": [
@@ -184,7 +256,7 @@
         "utm"
       ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 17.63
+      "freshness_age_hours": 2.26
     }
   }
 }

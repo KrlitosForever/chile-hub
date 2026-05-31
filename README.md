@@ -198,23 +198,33 @@ python -m src.chile_hub show comunas
 python -m src.chile_hub path comunas --output parquet
 python -m src.chile_hub example indicadores --kind duckdb
 python -m src.chile_hub artifacts comunas
+python -m src.chile_hub shared-artifacts --shared-type hub_health --format json
+python -m src.chile_hub report drift_report --format markdown
 python -m src.chile_hub inventory
 python -m src.chile_hub health
 python -m src.chile_hub bundle
 python -m src.chile_hub packages
 python -m src.chile_hub redistribution
 python -m src.chile_hub provenance
+python -m src.chile_hub drift
 ```
 
-`summary` e `inventory` ahora exponen también `freshness_status` y `freshness_age_hours` por capa, para detectar builds envejecidos sin tener que abrir los JSON crudos.
+`summary` e `inventory` ahora exponen también `freshness_status`, `freshness_age_hours`, `coverage_status` y `coverage_ratio` por capa, para detectar builds envejecidos o con regresión de cobertura sin tener que abrir los JSON crudos.
 También exponen `reuse_status`, `reuse_license` y si la capa requiere atribución.
+También exponen `degradation_status` para distinguir una capa sana de una capa operativamente degradada.
 Además incluyen `warning_count`, que sube automáticamente cuando una capa queda `stale`, `unknown` o entra en fallback con advertencias operativas.
 `health` entrega una vista agregada del hub con `overall_status`, counts por severidad y breakdown por capa.
 También agrega conteos de publicabilidad: cuántas capas están listas para redistribución y cuántas siguen en `review_terms`.
-`bundle` entrega un único índice machine-readable que consolida health, catálogo y artefactos publicables por dataset.
+Y ahora agrega conteos de degradación operativa y cobertura parcial, para distinguir warnings genéricos de capas realmente degradadas o con regresión de cardinalidad.
+`bundle` entrega un único índice machine-readable que consolida health, catálogo, reportes tipados y artefactos publicables por dataset.
 `packages` expone los paquetes publicables del hub, incluido el ZIP listo para descarga.
+`shared-artifacts` lista artefactos compartidos del hub usando `shared_type` y `format`, sin depender de nombres de archivo.
+`report` resuelve metadata de un reporte compartido específico usando la misma semántica.
 `redistribution` entrega un inventario explícito de publicabilidad por capa con licencia, acción recomendada y cautelas de redistribución.
 `provenance` entrega un inventario explícito de procedencia efectiva por capa, incluyendo fuente, modo, detalle y timestamp del último refresh.
+`drift` entrega una vista explícita de drift operativo por capa, consolidando fallback, cobertura parcial, degradación y acción recomendada.
+Además, cada dataset del catálogo y del bundle publica ahora una sección `degradation` con impacto y acción recomendada cuando la capa cae a fallback o warning operativo.
+También publica `coverage`, con baseline esperado, ratio y resumen legible para detectar drift territorial o regresiones de cobertura en el último build.
 
 ### SQLite
 
@@ -317,7 +327,7 @@ Además se consolida en `hub_health.json` y `hub_health.md` como resumen agregad
 Ese resumen ahora incluye también señales de publicabilidad agregada como `publishable_count` y `review_terms_count`.
 Además, `redistribution_report.json` y `redistribution_report.md` convierten esas señales en una vista accionable por dataset.
 `provenance_report.json` y `provenance_report.md` hacen lo mismo para la procedencia efectiva del último build.
-Para consumidores externos, `hub_bundle.json` funciona como punto único de entrada para descubrir estado, datasets, outputs y artefactos sin abrir varios archivos por separado.
+Para consumidores externos, `hub_bundle.json` funciona como punto único de entrada para descubrir estado, datasets, outputs, reportes y artefactos sin abrir varios archivos por separado.
 La landing local ahora usa `hub_bundle.json` como fuente primaria para renderizar estado global y capas publicadas.
 El contrato del hub publica además `reuse_policy` por dataset para distinguir capas abiertas con atribución de capas públicas cuyo régimen de redistribución todavía conviene revisar.
 
@@ -353,11 +363,14 @@ make status
 make hub-list
 make hub-example
 make hub-artifacts
+make hub-shared-artifacts
+make hub-report
 make hub-inventory
 make hub-health
 make hub-bundle
 make hub-redistribution
 make hub-provenance
+make hub-drift
 make hub-packages
 make package-bundle
 ```
@@ -378,7 +391,7 @@ También expone `provenance_report.json` y `provenance_report.md` como vista dir
 Y muestra el `Bundle ZIP` como descarga directa del paquete publicable.
 Además dedica un bloque visible al paquete descargable, con tamaño y hash abreviado del ZIP del último build.
 Ese mismo bloque incluye una receta copiables para verificar la integridad del ZIP con `shasum -a 256`.
-También muestra `freshness` por dataset y un conteo agregado de capas `stale` para detectar drifting del hub.
+También muestra `freshness`, `coverage` y `degradation` por dataset, además de conteos agregados de capas `stale`, `degraded` y con cobertura parcial para detectar drifting del hub.
 También muestra metadata de reuso por capa, incluyendo licencia o cautela de redistribución y si requiere atribución.
 Y el banner superior resume cuántas capas siguen en `review_terms`.
 También incluye recetas breves de consumo para `Python`, `DuckDB` y la `CLI` local del proyecto.
@@ -387,10 +400,10 @@ Cada dataset card además muestra ejemplos específicos por capa para `python`, 
 Esos ejemplos por dataset también son copiables y responden al tab activo en cada card.
 La landing también se puede smoke-testear en navegador con `make verify-landing`.
 Ese smoke test cubre estado, quick-start, metadata de artefactos, recetas por dataset y flujos de copia.
-También cubre la presencia de `freshness` en la superficie visible de la landing.
+También cubre la presencia de `freshness`, `coverage` y `degradation` en la superficie visible de la landing.
 El workflow `pipeline-check` ejecuta esa verificación de landing además del build, verify y smoke tests del helper.
-El workflow de CI publica un artifact `chile-hub-publishable-bundle` con los outputs ligeros, `hub_health`, `hub_bundle`, `redistribution_report`, el ZIP publicable y su `SHA256`, además del manifest asociado.
-El `GITHUB_STEP_SUMMARY` también incluye ahora la vista agregada de redistribución junto al estado técnico del hub.
+El workflow de CI publica un artifact `chile-hub-publishable-bundle` con los outputs ligeros, `hub_health`, `hub_bundle`, `redistribution_report`, `provenance_report`, `drift_report`, el ZIP publicable y su `SHA256`, además del manifest asociado.
+El `GITHUB_STEP_SUMMARY` también incluye ahora las vistas agregadas de redistribución, procedencia y drift junto al estado técnico del hub.
 
 ## Criterio para crecer
 

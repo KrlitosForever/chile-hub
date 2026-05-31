@@ -13,6 +13,7 @@ HUB_HEALTH_PATH = NORMALIZED_DIR / "hub_health.json"
 HUB_BUNDLE_PATH = NORMALIZED_DIR / "hub_bundle.json"
 REDISTRIBUTION_REPORT_PATH = NORMALIZED_DIR / "redistribution_report.json"
 PROVENANCE_REPORT_PATH = NORMALIZED_DIR / "provenance_report.json"
+DRIFT_REPORT_PATH = NORMALIZED_DIR / "drift_report.json"
 
 
 class ChileHub:
@@ -43,6 +44,10 @@ class ChileHub:
 
     def _load_provenance_report(self):
         with PROVENANCE_REPORT_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def _load_drift_report(self):
+        with DRIFT_REPORT_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
     def list_datasets(self):
@@ -92,8 +97,14 @@ class ChileHub:
                 "attribution_required": entry.get("reuse_policy", {}).get("attribution_required"),
                 "freshness_status": entry.get("freshness", {}).get("status"),
                 "freshness_age_hours": entry.get("freshness", {}).get("age_hours"),
+                "coverage_status": entry.get("coverage", {}).get("status"),
+                "coverage_ratio": entry.get("coverage", {}).get("coverage_ratio"),
                 "validation_status": entry.get("validation_status"),
                 "warning_count": len(entry.get("warnings", [])),
+                "drift_status": entry.get("drift", {}).get("status"),
+                "drift_summary": entry.get("drift", {}).get("summary"),
+                "degradation_status": entry.get("degradation", {}).get("status"),
+                "degradation_impact": entry.get("degradation", {}).get("impact"),
             }
             for entry in self.catalog.get("datasets", [])
         ]
@@ -106,6 +117,25 @@ class ChileHub:
 
         self.get_dataset(dataset_name)
         return [entry for entry in artifacts if entry.get("dataset") == dataset_name]
+
+    def shared_artifacts(self, shared_type=None, format=None):
+        artifacts = [entry for entry in self.artifacts() if entry.get("shared_type")]
+        if shared_type is not None:
+            artifacts = [entry for entry in artifacts if entry.get("shared_type") == shared_type]
+        if format is not None:
+            artifacts = [entry for entry in artifacts if entry.get("format") == format]
+        return artifacts
+
+    def reports(self):
+        return self.bundle().get("reports", {})
+
+    def get_report(self, shared_type, format):
+        for entry in self.reports().values():
+            if entry.get("shared_type") == shared_type and entry.get("format") == format:
+                return entry
+        raise KeyError(
+            f"Reporte '{shared_type}' con formato '{format}' no existe en el bundle."
+        )
 
     def inventory(self):
         inventory = []
@@ -136,7 +166,13 @@ class ChileHub:
                     "attribution_required": entry.get("reuse_policy", {}).get("attribution_required"),
                     "freshness_status": entry.get("freshness", {}).get("status"),
                     "freshness_age_hours": entry.get("freshness", {}).get("age_hours"),
+                    "coverage_status": entry.get("coverage", {}).get("status"),
+                    "coverage_ratio": entry.get("coverage", {}).get("coverage_ratio"),
                     "warning_count": len(entry.get("warnings", [])),
+                    "drift_status": entry.get("drift", {}).get("status"),
+                    "drift_summary": entry.get("drift", {}).get("summary"),
+                    "degradation_status": entry.get("degradation", {}).get("status"),
+                    "degradation_impact": entry.get("degradation", {}).get("impact"),
                     "published_outputs": published_outputs,
                     "artifact_count": len(artifacts),
                     "total_size_bytes": sum(artifact.get("size_bytes", 0) for artifact in artifacts),
@@ -167,6 +203,9 @@ class ChileHub:
 
     def provenance(self):
         return self._load_provenance_report()
+
+    def drift(self):
+        return self._load_drift_report()
 
 
 def build_parser():
@@ -201,12 +240,21 @@ def build_parser():
         help="Nombre opcional de dataset para filtrar artefactos",
     )
 
+    shared_artifacts_parser = subparsers.add_parser("shared-artifacts", help="Mostrar artefactos compartidos del hub")
+    shared_artifacts_parser.add_argument("--shared-type", help="Filtrar por shared_type")
+    shared_artifacts_parser.add_argument("--format", help="Filtrar por formato, por ejemplo json o markdown")
+
+    report_parser = subparsers.add_parser("report", help="Resolver metadata de un reporte compartido")
+    report_parser.add_argument("shared_type", help="shared_type del reporte, por ejemplo hub_health")
+    report_parser.add_argument("--format", default="json", help="Formato del reporte, por ejemplo json o markdown")
+
     subparsers.add_parser("inventory", help="Mostrar inventario compacto de datasets y artefactos")
     subparsers.add_parser("health", help="Mostrar salud agregada del hub")
     subparsers.add_parser("bundle", help="Mostrar bundle consolidado del hub")
     subparsers.add_parser("packages", help="Mostrar paquetes publicables del hub")
     subparsers.add_parser("redistribution", help="Mostrar inventario de redistribucion del hub")
     subparsers.add_parser("provenance", help="Mostrar inventario de procedencia del hub")
+    subparsers.add_parser("drift", help="Mostrar inventario de drift operativo del hub")
 
     subparsers.add_parser("summary", help="Mostrar resumen breve de datasets")
     return parser
@@ -238,6 +286,14 @@ def main():
         print(json.dumps(hub.artifacts(args.dataset), ensure_ascii=False, indent=2))
         return
 
+    if args.command == "shared-artifacts":
+        print(json.dumps(hub.shared_artifacts(args.shared_type, args.format), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "report":
+        print(json.dumps(hub.get_report(args.shared_type, args.format), ensure_ascii=False, indent=2))
+        return
+
     if args.command == "inventory":
         print(json.dumps(hub.inventory(), ensure_ascii=False, indent=2))
         return
@@ -260,6 +316,10 @@ def main():
 
     if args.command == "provenance":
         print(json.dumps(hub.provenance(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "drift":
+        print(json.dumps(hub.drift(), ensure_ascii=False, indent=2))
         return
 
     if args.command == "summary":

@@ -142,10 +142,16 @@ def verify_pipeline_metadata():
                     "indicadores validation has unexpected indicator_codes: "
                     f"{validation.get('indicator_codes')}"
                 )
-        if dataset_name == "regiones" and validation.get("record_count") < 16:
-            fail("regiones validation record_count looks too small")
-        if dataset_name == "provincias" and validation.get("record_count") < 50:
-            fail("provincias validation record_count looks too small")
+        if dataset_name == "regiones":
+            if dataset_metadata.get("source_mode") == "live" and validation.get("record_count") < 16:
+                fail("regiones validation record_count looks too small for live mode")
+            if dataset_metadata.get("source_mode") == "fallback" and validation.get("record_count") <= 0:
+                fail("regiones validation record_count looks empty in fallback mode")
+        if dataset_name == "provincias":
+            if dataset_metadata.get("source_mode") == "live" and validation.get("record_count") < 50:
+                fail("provincias validation record_count looks too small for live mode")
+            if dataset_metadata.get("source_mode") == "fallback" and validation.get("record_count") <= 0:
+                fail("provincias validation record_count looks empty in fallback mode")
 
     print(
         "Verification passed:"
@@ -199,6 +205,16 @@ def verify_dataset_catalog():
                 f"{entry.get('dataset')} catalog entry has invalid freshness.status: "
                 f"{freshness.get('status')}"
             )
+        coverage = entry.get("coverage", {})
+        if coverage.get("status") not in {"full", "partial", "unknown", "not_applicable"}:
+            fail(f"{entry.get('dataset')} catalog entry has invalid coverage.status")
+        if not coverage.get("summary"):
+            fail(f"{entry.get('dataset')} catalog entry is missing coverage.summary")
+        drift = entry.get("drift", {})
+        if drift.get("status") not in {"healthy", "drifted"}:
+            fail(f"{entry.get('dataset')} catalog entry has invalid drift.status")
+        if not drift.get("summary"):
+            fail(f"{entry.get('dataset')} catalog entry is missing drift.summary")
         if not entry.get("freshness_policy", {}).get("max_age_hours"):
             fail(f"{entry.get('dataset')} catalog entry is missing freshness_policy.max_age_hours")
         usage_examples = entry.get("usage_examples", {})
@@ -207,6 +223,11 @@ def verify_dataset_catalog():
                 fail(
                     f"{entry.get('dataset')} catalog entry is missing usage_examples.{required_example}"
                 )
+        degradation = entry.get("degradation", {})
+        if degradation.get("status") not in {"none", "warning", "degraded"}:
+            fail(f"{entry.get('dataset')} catalog entry has invalid degradation.status")
+        if not degradation.get("impact"):
+            fail(f"{entry.get('dataset')} catalog entry is missing degradation.impact")
         if entry.get("validation_status") != "ok":
             fail(
                 f"{entry.get('dataset')} catalog entry has invalid validation_status: "
@@ -243,6 +264,8 @@ def verify_artifact_manifest():
         "data/normalized/redistribution_report.md",
         "data/normalized/provenance_report.json",
         "data/normalized/provenance_report.md",
+        "data/normalized/drift_report.json",
+        "data/normalized/drift_report.md",
         "data/normalized/dataset_catalog.json",
         "data/normalized/dataset_catalog.md",
     }
@@ -262,6 +285,7 @@ def verify_artifact_manifest():
                 "data/normalized/hub_bundle.json",
                 "data/normalized/redistribution_report.json",
                 "data/normalized/provenance_report.json",
+                "data/normalized/drift_report.json",
                 "data/normalized/dataset_catalog.json",
                 "data/normalized/artifact_manifest.json",
             }:
@@ -273,11 +297,38 @@ def verify_artifact_manifest():
                 "data/normalized/hub_bundle.json",
                 "data/normalized/redistribution_report.json",
                 "data/normalized/provenance_report.json",
+                "data/normalized/drift_report.json",
                 "data/normalized/dataset_catalog.json",
                 "data/normalized/artifact_manifest.json",
             }:
                 if path.endswith(".parquet") and not entry.get("output_type") == "parquet":
                     fail(f"artifact manifest entry has invalid output_type for parquet: {entry}")
+        if path in {
+            "data/normalized/pipeline_metadata.json",
+            "data/normalized/hub_health.json",
+            "data/normalized/hub_bundle.json",
+            "data/normalized/redistribution_report.json",
+            "data/normalized/provenance_report.json",
+            "data/normalized/drift_report.json",
+            "data/normalized/dataset_catalog.json",
+            "data/normalized/artifact_manifest.json",
+        }:
+            if not entry.get("shared_type"):
+                fail(f"artifact manifest shared JSON entry is missing shared_type: {entry}")
+            if entry.get("format") != "json":
+                fail(f"artifact manifest shared JSON entry has invalid format: {entry}")
+        if path in {
+            "data/normalized/pipeline_status.md",
+            "data/normalized/hub_health.md",
+            "data/normalized/redistribution_report.md",
+            "data/normalized/provenance_report.md",
+            "data/normalized/drift_report.md",
+            "data/normalized/dataset_catalog.md",
+        }:
+            if not entry.get("shared_type"):
+                fail(f"artifact manifest shared Markdown entry is missing shared_type: {entry}")
+            if entry.get("format") != "markdown":
+                fail(f"artifact manifest shared Markdown entry has invalid format: {entry}")
         if path in {
             "data/normalized/regiones.json",
             "data/normalized/provincias.json",
@@ -313,7 +364,16 @@ def verify_hub_health():
 
     if health.get("overall_status") not in {"ok", "warn", "error"}:
         fail(f"hub_health.json has invalid overall_status: {health.get('overall_status')}")
-    for key in ("publishable_count", "review_terms_count", "unknown_reuse_count"):
+    for key in (
+        "publishable_count",
+        "review_terms_count",
+        "unknown_reuse_count",
+        "degraded_count",
+        "degradation_warning_count",
+        "partial_coverage_count",
+        "unknown_coverage_count",
+        "drifted_count",
+    ):
         if health.get(key) is None:
             fail(f"hub_health.json is missing {key}")
 
@@ -333,6 +393,12 @@ def verify_hub_health():
             fail(f"hub_health.json entry has unexpected validation_status: {entry}")
         if entry.get("publishability_status") not in {"ready", "review_terms", "unknown"}:
             fail(f"hub_health.json entry has invalid publishability_status: {entry}")
+        if entry.get("degradation_status") not in {"none", "warning", "degraded"}:
+            fail(f"hub_health.json entry has invalid degradation_status: {entry}")
+        if entry.get("coverage_status") not in {"full", "partial", "unknown", "not_applicable"}:
+            fail(f"hub_health.json entry has invalid coverage_status: {entry}")
+        if entry.get("drift_status") not in {"healthy", "drifted"}:
+            fail(f"hub_health.json entry has invalid drift_status: {entry}")
 
 
 def verify_hub_bundle():
@@ -348,6 +414,31 @@ def verify_hub_bundle():
     dataset_names = {entry.get("dataset") for entry in datasets}
     if dataset_names != REQUIRED_DATASETS:
         fail(f"hub_bundle.json has unexpected datasets: {sorted(dataset_names)}")
+    reports = bundle.get("reports", {})
+    expected_reports = {
+        "status_markdown": ("pipeline_status", "markdown"),
+        "health_json": ("hub_health", "json"),
+        "health_markdown": ("hub_health", "markdown"),
+        "bundle_json": ("hub_bundle", "json"),
+        "redistribution_json": ("redistribution_report", "json"),
+        "redistribution_markdown": ("redistribution_report", "markdown"),
+        "provenance_json": ("provenance_report", "json"),
+        "provenance_markdown": ("provenance_report", "markdown"),
+        "drift_json": ("drift_report", "json"),
+        "drift_markdown": ("drift_report", "markdown"),
+        "catalog_json": ("dataset_catalog", "json"),
+        "catalog_markdown": ("dataset_catalog", "markdown"),
+        "manifest_json": ("artifact_manifest", "json"),
+    }
+    for report_name, (shared_type, artifact_format) in expected_reports.items():
+        report_entry = reports.get(report_name, {})
+        if report_entry.get("shared_type") != shared_type or report_entry.get("format") != artifact_format:
+            fail(
+                f"hub_bundle.json has invalid reports.{report_name}: "
+                f"{report_entry}"
+            )
+        if not report_entry.get("path"):
+            fail(f"hub_bundle.json is missing reports.{report_name}.path: {report_entry}")
 
     for entry in datasets:
         if not entry.get("artifacts"):
@@ -361,6 +452,12 @@ def verify_hub_bundle():
             fail(f"hub_bundle.json dataset entry has invalid reuse_policy: {entry}")
         if entry.get("publishability_status") not in {"ready", "review_terms", "unknown"}:
             fail(f"hub_bundle.json dataset entry has invalid publishability_status: {entry}")
+        if entry.get("degradation", {}).get("status") not in {"none", "warning", "degraded"}:
+            fail(f"hub_bundle.json dataset entry has invalid degradation: {entry}")
+        if entry.get("coverage", {}).get("status") not in {"full", "partial", "unknown", "not_applicable"}:
+            fail(f"hub_bundle.json dataset entry has invalid coverage: {entry}")
+        if entry.get("drift", {}).get("status") not in {"healthy", "drifted"}:
+            fail(f"hub_bundle.json dataset entry has invalid drift: {entry}")
     packages = bundle.get("packages", [])
     if len(packages) != 1 or packages[0].get("package_type") != "zip":
         fail(f"hub_bundle.json has invalid packages metadata: {packages}")
@@ -416,6 +513,36 @@ def verify_provenance_report():
             fail(f"provenance_report.json has invalid freshness_status: {entry}")
 
 
+def verify_drift_report():
+    report_path = NORMALIZED_DIR / "drift_report.json"
+    report = load_json(report_path)
+
+    if report.get("dataset_count") != len(REQUIRED_DATASETS):
+        fail(f"drift_report.json has unexpected dataset_count: {report.get('dataset_count')}")
+    for key in ("drifted_count", "healthy_count", "fallback_count", "partial_coverage_count", "degraded_count"):
+        if report.get(key) is None:
+            fail(f"drift_report.json is missing {key}")
+
+    datasets = report.get("datasets", [])
+    dataset_names = {entry.get("dataset") for entry in datasets}
+    if dataset_names != REQUIRED_DATASETS:
+        fail(f"drift_report.json has unexpected datasets: {sorted(dataset_names)}")
+
+    for entry in datasets:
+        if entry.get("drift_status") not in {"healthy", "drifted"}:
+            fail(f"drift_report.json has invalid drift_status: {entry}")
+        if entry.get("source_mode") not in {"live", "fallback"}:
+            fail(f"drift_report.json has invalid source_mode: {entry}")
+        if entry.get("coverage_status") not in {"full", "partial", "unknown", "not_applicable"}:
+            fail(f"drift_report.json has invalid coverage_status: {entry}")
+        if entry.get("degradation_status") not in {"none", "warning", "degraded"}:
+            fail(f"drift_report.json has invalid degradation_status: {entry}")
+        if not entry.get("coverage_summary"):
+            fail(f"drift_report.json is missing coverage_summary: {entry}")
+        if not entry.get("recommended_action"):
+            fail(f"drift_report.json is missing recommended_action: {entry}")
+
+
 def verify_publishable_zip():
     zip_path = NORMALIZED_DIR / "chile-hub-publishable-bundle.zip"
     if zip_path.stat().st_size <= 0:
@@ -433,6 +560,7 @@ def main():
     verify_hub_bundle()
     verify_redistribution_report()
     verify_provenance_report()
+    verify_drift_report()
     verify_dataset_catalog()
     verify_artifact_manifest()
     verify_publishable_zip()

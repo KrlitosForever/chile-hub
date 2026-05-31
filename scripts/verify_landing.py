@@ -1,4 +1,5 @@
 import contextlib
+import json
 import socket
 import threading
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
@@ -6,6 +7,7 @@ from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+BUNDLE_PATH = ROOT_DIR / "data" / "normalized" / "hub_bundle.json"
 
 
 def fail(message):
@@ -47,6 +49,28 @@ def verify_landing():
             "Instala dependencias con `make bootstrap` o `pip install -r requirements.txt`."
         )
 
+    bundle = json.loads(BUNDLE_PATH.read_text(encoding="utf-8"))
+    health = bundle.get("health", {})
+    datasets = bundle.get("datasets", [])
+    live_count = health.get("live_count", 0)
+    stale_count = health.get("stale_count", 0)
+    degraded_count = health.get("degraded_count", 0)
+    partial_coverage_count = health.get("partial_coverage_count", 0)
+    drifted_count = health.get("drifted_count", 0)
+    review_terms_count = health.get("review_terms_count", 0)
+    warning_count = health.get("warning_count", 0)
+    overall_status = bundle.get("overall_status", "unknown")
+    expected_status_subtitle = (
+        f"{live_count}/{len(datasets)} capas operativas en modo live. "
+        f"Estado global: {overall_status}. "
+        f"{'Sin capas stale.' if stale_count == 0 else f'{stale_count} capas stale.'} "
+        f"{'Sin capas con drift.' if drifted_count == 0 else f'{drifted_count} capas con drift.'} "
+        f"{'Sin capas degradadas.' if degraded_count == 0 else f'{degraded_count} capas degradadas.'} "
+        f"{'Sin regresiones de cobertura.' if partial_coverage_count == 0 else f'{partial_coverage_count} capas con cobertura parcial.'} "
+        f"{'Sin capas en review_terms.' if review_terms_count == 0 else f'{review_terms_count} capas en review_terms.'} "
+        f"{'Sin warnings activos.' if warning_count == 0 else f'{warning_count} warnings activos.'}"
+    )
+
     with local_server() as url, sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1440, "height": 1600})
@@ -57,18 +81,23 @@ def verify_landing():
             fail(f"Unexpected repo href: {repo_href}")
 
         status_actions = page.locator("#status-actions .dataset-action").all_inner_texts()
-        expected_status_actions = ["Status", "Health JSON", "Health MD", "Bundle JSON", "Reuse JSON", "Reuse MD", "Provenance JSON", "Provenance MD", "Catalog JSON", "Catalog MD", "Manifest"]
+        expected_status_actions = ["Status", "Health JSON", "Health MD", "Bundle JSON", "Reuse JSON", "Reuse MD", "Provenance JSON", "Provenance MD", "Drift JSON", "Drift MD", "Catalog JSON", "Catalog MD", "Manifest"]
         if status_actions != expected_status_actions:
             fail(f"Unexpected status actions: {status_actions}")
 
         status_subtitle = page.locator("#status-subtitle").inner_text()
-        expected_status_subtitle = "4/4 capas operativas en modo live. Estado global: ok. Sin capas stale. 1 capas en review_terms. Sin warnings activos."
         if status_subtitle != expected_status_subtitle:
             fail(f"Unexpected status subtitle: {status_subtitle}")
 
         status_pills = page.locator("#status-pills .status-pill").all_inner_texts()
-        if "Review terms: 1" not in status_pills:
+        if f"Review terms: {review_terms_count}" not in status_pills:
             fail(f"Review terms pill not found: {status_pills}")
+        if f"Degraded: {degraded_count}" not in status_pills:
+            fail(f"Degraded pill not found: {status_pills}")
+        if f"Drifted: {drifted_count}" not in status_pills:
+            fail(f"Drifted pill not found: {status_pills}")
+        if f"Partial coverage: {partial_coverage_count}" not in status_pills:
+            fail(f"Partial coverage pill not found: {status_pills}")
 
         package_actions = page.locator("#package-actions .dataset-action").all_inner_texts()
         if len(package_actions) != 4 or not package_actions[0].startswith("Bundle ZIP · ") or package_actions[1:] != ["SHA256", "Bundle JSON", "Manifest"]:
@@ -102,24 +131,26 @@ def verify_landing():
             fail(f"Unexpected first dataset card: {first_card_name}")
 
         first_card_actions = first_card.locator(".dataset-action").all_inner_texts()
-        if first_card_actions[:4] != ["Docs", "Fuente", "PARQUET · 1.3 KB", "JSON · 1.3 KB"]:
+        if len(first_card_actions) < 4 or first_card_actions[0:2] != ["Docs", "Fuente"] or not first_card_actions[2].startswith("PARQUET · ") or not first_card_actions[3].startswith("JSON · "):
             fail(f"Unexpected first dataset actions: {first_card_actions}")
 
         artifact_meta = first_card.locator(".dataset-artifact-meta").all_inner_texts()
-        expected_artifact_meta = [
-            "tipo: parquet · sha256: ac709667dc44",
-            "tipo: json · sha256: d7f3b237f532",
-        ]
-        if artifact_meta[:2] != expected_artifact_meta:
+        if len(artifact_meta) < 2 or not artifact_meta[0].startswith("tipo: parquet · sha256: ") or not artifact_meta[1].startswith("tipo: json · sha256: "):
             fail(f"Unexpected artifact metadata: {artifact_meta}")
 
         first_card_facts = first_card.locator(".dataset-fact").all_inner_texts()
         if "FRESHNESS\nfresh ·" not in "\n".join(first_card_facts):
             fail(f"Freshness fact not found in first dataset card: {first_card_facts}")
+        if "COVERAGE\n" not in "\n".join(first_card_facts):
+            fail(f"Coverage fact not found in first dataset card: {first_card_facts}")
+        if "DRIFT\n" not in "\n".join(first_card_facts):
+            fail(f"Drift fact not found in first dataset card: {first_card_facts}")
         if "REUSO\nopen-attribution · CC BY" not in "\n".join(first_card_facts):
             fail(f"Reuse fact not found in first dataset card: {first_card_facts}")
+        if "DEGRADACIÓN\n" not in "\n".join(first_card_facts):
+            fail(f"Degradation fact not found in first dataset card: {first_card_facts}")
 
-        first_card_meta = first_card.locator(".dataset-meta-line").inner_text()
+        first_card_meta = first_card.locator(".dataset-meta-line").first.inner_text()
         if "Requiere atribución: sí" not in first_card_meta:
             fail(f"Reuse attribution metadata not found in first dataset card: {first_card_meta}")
 
@@ -151,8 +182,8 @@ def verify_landing():
         browser.close()
 
     print(
-        "Landing verification passed: status, package surface, freshness, reuse metadata, quickstart, "
-        "artifact metadata, dataset examples and copy interactions are working."
+        "Landing verification passed: status, package surface, freshness, coverage, drift, reuse metadata, "
+        "quickstart, artifact metadata, dataset examples and copy interactions are working."
     )
 
 

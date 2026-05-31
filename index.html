@@ -1117,6 +1117,15 @@ make hub-list</pre>
             return `${status} · ${freshness.age_hours}h / ${freshness.max_age_hours}h`;
         }
 
+        function formatCoverage(coverage) {
+            if (!coverage) return "N/D";
+            const status = coverage.status || "unknown";
+            if (typeof coverage.actual_record_count !== "number" || typeof coverage.expected_record_count !== "number") {
+                return status;
+            }
+            return `${status} · ${coverage.actual_record_count}/${coverage.expected_record_count}`;
+        }
+
         function formatReusePolicy(reusePolicy) {
             if (!reusePolicy) return "N/D";
             const status = reusePolicy.status || "unknown";
@@ -1157,6 +1166,12 @@ make hub-list</pre>
                     ${escapeHtml(label)}
                 </a>
             `;
+        }
+
+        function findReportPath(reports, sharedType, format, fallbackPath) {
+            const reportEntries = Object.values(reports || {});
+            const matched = reportEntries.find(entry => entry?.shared_type === sharedType && entry?.format === format);
+            return matched?.path || fallbackPath;
         }
 
         function buildDatasetExample(dataset, preferredKind = "python") {
@@ -1279,10 +1294,14 @@ make hub-list</pre>
         function renderCatalog(bundle) {
             const datasets = bundle.datasets || [];
             const health = bundle.health || {};
+            const reports = bundle.reports || {};
             const liveCount = health.live_count ?? datasets.filter(d => d.source_mode === "live").length;
             const warningCount = health.warning_count ?? datasets.reduce((acc, d) => acc + (d.warning_count || 0), 0);
             const staleCount = health.stale_count ?? datasets.filter(d => d.freshness?.status === "stale").length;
             const reviewTermsCount = health.review_terms_count ?? datasets.filter(d => d.publishability_status === "review_terms").length;
+            const degradedCount = health.degraded_count ?? datasets.filter(d => d.degradation?.status === "degraded").length;
+            const partialCoverageCount = health.partial_coverage_count ?? datasets.filter(d => d.coverage?.status === "partial").length;
+            const driftedCount = health.drifted_count ?? datasets.filter(d => d.drift?.status === "drifted").length;
             const overallStatus = bundle.overall_status || "ok";
             const zipPackage = (bundle.packages || []).find(pkg => pkg.package_type === "zip");
             const zipLabel = zipPackage
@@ -1293,27 +1312,32 @@ make hub-list</pre>
                 ? `shasum -a 256 -c ${zipPackage.checksum_path}`
                 : "echo \"sha256 pendiente  data/normalized/chile-hub-publishable-bundle.zip\" | shasum -a 256 -c -";
 
-            statusSubtitle.textContent = `${liveCount}/${datasets.length} capas operativas en modo live. Estado global: ${overallStatus}. ${staleCount === 0 ? "Sin capas stale." : `${staleCount} capas stale.`} ${reviewTermsCount === 0 ? "Sin capas en review_terms." : `${reviewTermsCount} capas en review_terms.`} ${warningCount === 0 ? "Sin warnings activos." : `${warningCount} warnings activos.`}`;
+            statusSubtitle.textContent = `${liveCount}/${datasets.length} capas operativas en modo live. Estado global: ${overallStatus}. ${staleCount === 0 ? "Sin capas stale." : `${staleCount} capas stale.`} ${driftedCount === 0 ? "Sin capas con drift." : `${driftedCount} capas con drift.`} ${degradedCount === 0 ? "Sin capas degradadas." : `${degradedCount} capas degradadas.`} ${partialCoverageCount === 0 ? "Sin regresiones de cobertura." : `${partialCoverageCount} capas con cobertura parcial.`} ${reviewTermsCount === 0 ? "Sin capas en review_terms." : `${reviewTermsCount} capas en review_terms.`} ${warningCount === 0 ? "Sin warnings activos." : `${warningCount} warnings activos.`}`;
             statusPills.innerHTML = `
                 <span class="status-pill">Estado: ${overallStatus}</span>
                 <span class="status-pill">Capas: ${datasets.length}</span>
                 <span class="status-pill">Live: ${liveCount}</span>
                 <span class="status-pill">Stale: ${staleCount}</span>
+                <span class="status-pill">Drifted: ${driftedCount}</span>
+                <span class="status-pill">Degraded: ${degradedCount}</span>
+                <span class="status-pill">Partial coverage: ${partialCoverageCount}</span>
                 <span class="status-pill">Review terms: ${reviewTermsCount}</span>
                 <span class="status-pill">Warnings: ${warningCount}</span>
             `;
             statusActions.innerHTML = `
-                ${buildSimpleLink("data/normalized/pipeline_status.md", "Status")}
-                ${buildSimpleLink("data/normalized/hub_health.json", "Health JSON")}
-                ${buildSimpleLink("data/normalized/hub_health.md", "Health MD")}
-                ${buildSimpleLink("data/normalized/hub_bundle.json", "Bundle JSON")}
-                ${buildSimpleLink("data/normalized/redistribution_report.json", "Reuse JSON")}
-                ${buildSimpleLink("data/normalized/redistribution_report.md", "Reuse MD")}
-                ${buildSimpleLink("data/normalized/provenance_report.json", "Provenance JSON")}
-                ${buildSimpleLink("data/normalized/provenance_report.md", "Provenance MD")}
-                ${buildSimpleLink("data/normalized/dataset_catalog.json", "Catalog JSON")}
-                ${buildSimpleLink("data/normalized/dataset_catalog.md", "Catalog MD")}
-                ${buildSimpleLink("data/normalized/artifact_manifest.json", "Manifest")}
+                ${buildSimpleLink(findReportPath(reports, "pipeline_status", "markdown", "data/normalized/pipeline_status.md"), "Status")}
+                ${buildSimpleLink(findReportPath(reports, "hub_health", "json", "data/normalized/hub_health.json"), "Health JSON")}
+                ${buildSimpleLink(findReportPath(reports, "hub_health", "markdown", "data/normalized/hub_health.md"), "Health MD")}
+                ${buildSimpleLink(findReportPath(reports, "hub_bundle", "json", "data/normalized/hub_bundle.json"), "Bundle JSON")}
+                ${buildSimpleLink(findReportPath(reports, "redistribution_report", "json", "data/normalized/redistribution_report.json"), "Reuse JSON")}
+                ${buildSimpleLink(findReportPath(reports, "redistribution_report", "markdown", "data/normalized/redistribution_report.md"), "Reuse MD")}
+                ${buildSimpleLink(findReportPath(reports, "provenance_report", "json", "data/normalized/provenance_report.json"), "Provenance JSON")}
+                ${buildSimpleLink(findReportPath(reports, "provenance_report", "markdown", "data/normalized/provenance_report.md"), "Provenance MD")}
+                ${buildSimpleLink(findReportPath(reports, "drift_report", "json", "data/normalized/drift_report.json"), "Drift JSON")}
+                ${buildSimpleLink(findReportPath(reports, "drift_report", "markdown", "data/normalized/drift_report.md"), "Drift MD")}
+                ${buildSimpleLink(findReportPath(reports, "dataset_catalog", "json", "data/normalized/dataset_catalog.json"), "Catalog JSON")}
+                ${buildSimpleLink(findReportPath(reports, "dataset_catalog", "markdown", "data/normalized/dataset_catalog.md"), "Catalog MD")}
+                ${buildSimpleLink(findReportPath(reports, "artifact_manifest", "json", "data/normalized/artifact_manifest.json"), "Manifest")}
             `;
 
             packageMeta.textContent = zipPackage
@@ -1323,8 +1347,8 @@ make hub-list</pre>
             packageActions.innerHTML = `
                 ${zipPackage ? buildSimpleLink(zipPackage.path, zipLabel) : ""}
                 ${zipPackage?.checksum_path ? buildSimpleLink(zipPackage.checksum_path, "SHA256") : ""}
-                ${buildSimpleLink("data/normalized/hub_bundle.json", "Bundle JSON")}
-                ${buildSimpleLink("data/normalized/artifact_manifest.json", "Manifest")}
+                ${buildSimpleLink(findReportPath(reports, "hub_bundle", "json", "data/normalized/hub_bundle.json"), "Bundle JSON")}
+                ${buildSimpleLink(findReportPath(reports, "artifact_manifest", "json", "data/normalized/artifact_manifest.json"), "Manifest")}
             `;
 
             catalogGeneratedAt.textContent = `Actualizado: ${formatTimestamp(bundle.generated_at_utc)}`;
@@ -1373,8 +1397,20 @@ make hub-list</pre>
                                 <span class="dataset-fact-value">${escapeHtml(formatFreshness(dataset.freshness))}</span>
                             </div>
                             <div class="dataset-fact">
+                                <span class="dataset-fact-label">Coverage</span>
+                                <span class="dataset-fact-value">${escapeHtml(formatCoverage(dataset.coverage))}</span>
+                            </div>
+                            <div class="dataset-fact">
+                                <span class="dataset-fact-label">Drift</span>
+                                <span class="dataset-fact-value">${escapeHtml(dataset.drift?.status || "N/D")}</span>
+                            </div>
+                            <div class="dataset-fact">
                                 <span class="dataset-fact-label">Reuso</span>
                                 <span class="dataset-fact-value">${escapeHtml(formatReusePolicy(dataset.reuse_policy))}</span>
+                            </div>
+                            <div class="dataset-fact">
+                                <span class="dataset-fact-label">Degradación</span>
+                                <span class="dataset-fact-value">${escapeHtml(dataset.degradation?.status || "N/D")}</span>
                             </div>
                         </div>
                         <div class="dataset-meta-line">
@@ -1382,6 +1418,9 @@ make hub-list</pre>
                             Actualizado: ${escapeHtml(formatTimestamp(dataset.refreshed_at_utc))} ·
                             Requiere atribución: <strong>${dataset.reuse_policy?.attribution_required ? "sí" : "no"}</strong>
                         </div>
+                        ${dataset.drift?.summary ? `<div class="dataset-meta-line">Drift: ${escapeHtml(dataset.drift.summary)}</div>` : ""}
+                        ${dataset.coverage?.summary ? `<div class="dataset-meta-line">Cobertura: ${escapeHtml(dataset.coverage.summary)}</div>` : ""}
+                        ${dataset.degradation?.impact ? `<div class="dataset-meta-line">Impacto: ${escapeHtml(dataset.degradation.impact)}</div>` : ""}
                         <div class="dataset-actions">
                             ${docsPath ? `<a class="dataset-action muted" href="${escapeHtml(docsPath)}" target="_blank" rel="noopener noreferrer">Docs</a>` : ""}
                             ${sourceUrl ? `<a class="dataset-action muted" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Fuente</a>` : ""}

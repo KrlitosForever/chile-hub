@@ -13,6 +13,7 @@ from pipeline_status_utils import (
     write_hub_health_markdown_file,
     write_redistribution_report_markdown_file,
     write_provenance_report_markdown_file,
+    write_drift_report_markdown_file,
 )
 
 # Configuración de rutas
@@ -34,6 +35,7 @@ DATASET_CATALOG_CONFIG = {
         "description": "Capa derivada de regiones para filtros, joins y referencias administrativas de alto nivel.",
         "join_keys": ["codigo_region"],
         "confidence_tier": "Tier B",
+        "expected_record_count": 16,
         "reuse_policy": {
             "status": "open-attribution",
             "license": "CC BY",
@@ -64,6 +66,7 @@ DATASET_CATALOG_CONFIG = {
         "description": "Capa derivada de provincias para cruces intermedios entre region y comuna.",
         "join_keys": ["codigo_provincia", "codigo_region"],
         "confidence_tier": "Tier B",
+        "expected_record_count": 56,
         "reuse_policy": {
             "status": "open-attribution",
             "license": "CC BY",
@@ -94,6 +97,7 @@ DATASET_CATALOG_CONFIG = {
         "description": "Base territorial normalizada para cruces por region, provincia y comuna.",
         "join_keys": ["codigo_comuna", "codigo_region"],
         "confidence_tier": "Tier B",
+        "expected_record_count": 346,
         "reuse_policy": {
             "status": "open-attribution",
             "license": "CC BY",
@@ -200,6 +204,145 @@ def build_freshness_warnings(dataset_name, freshness):
     if status == "unknown":
         return [f"{dataset_name} freshness is unknown: missing or invalid refreshed_at_utc"]
     return []
+
+
+def build_degradation(dataset_name, dataset_metadata, validation):
+    source_mode = dataset_metadata.get("source_mode")
+    record_count = dataset_metadata.get("record_count")
+    warnings = validation.get("warnings", [])
+
+    if source_mode == "fallback":
+        if dataset_name == "comunas":
+            return {
+                "status": "degraded",
+                "impact": (
+                    f"Cobertura territorial parcial: {record_count} comunas disponibles "
+                    "desde fallback embebido."
+                ),
+                "recommended_action": "Reintentar extractores o restaurar la fuente territorial primaria.",
+            }
+        if dataset_name in {"regiones", "provincias"}:
+            return {
+                "status": "degraded",
+                "impact": (
+                    f"Capa derivada desde comunas en fallback; cardinalidad reducida a {record_count} filas."
+                ),
+                "recommended_action": "Recuperar comunas live para restaurar cobertura derivada completa.",
+            }
+        if dataset_name == "indicadores":
+            return {
+                "status": "degraded",
+                "impact": "Valores provenientes de fallback local; no representan el último snapshot live.",
+                "recommended_action": "Reintentar la API pública antes de redistribuir o usar en reporting.",
+            }
+
+    if warnings:
+        return {
+            "status": "warning",
+            "impact": "; ".join(warnings),
+            "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción.",
+        }
+
+    return {
+        "status": "none",
+        "impact": "Sin degradación operativa detectada en este build.",
+        "recommended_action": "Ninguna.",
+    }
+
+
+def build_coverage(dataset_name, dataset_metadata):
+    expected_record_count = DATASET_CATALOG_CONFIG.get(dataset_name, {}).get("expected_record_count")
+    actual_record_count = dataset_metadata.get("record_count")
+
+    if expected_record_count is None:
+        return {
+            "status": "not_applicable",
+            "expected_record_count": None,
+            "actual_record_count": actual_record_count,
+            "coverage_ratio": None,
+            "summary": "Sin baseline de cobertura por cardinalidad para esta capa.",
+        }
+
+    if actual_record_count is None or expected_record_count <= 0:
+        return {
+            "status": "unknown",
+            "expected_record_count": expected_record_count,
+            "actual_record_count": actual_record_count,
+            "coverage_ratio": None,
+            "summary": "No fue posible calcular cobertura contra el baseline esperado.",
+        }
+
+    coverage_ratio = round(actual_record_count / expected_record_count, 4)
+    if actual_record_count >= expected_record_count:
+        status = "full"
+        summary = (
+            f"Cobertura completa: {actual_record_count}/{expected_record_count} filas "
+            "respecto del baseline esperado."
+        )
+    else:
+        status = "partial"
+        summary = (
+            f"Cobertura parcial: {actual_record_count}/{expected_record_count} filas "
+            "respecto del baseline esperado."
+        )
+
+    return {
+        "status": status,
+        "expected_record_count": expected_record_count,
+        "actual_record_count": actual_record_count,
+        "coverage_ratio": coverage_ratio,
+        "summary": summary,
+    }
+
+
+def build_drift(dataset_metadata):
+    source_mode = dataset_metadata.get("source_mode")
+    coverage = dataset_metadata.get("coverage", {})
+    degradation = dataset_metadata.get("degradation", {})
+    coverage_status = coverage.get("status", "unknown")
+    degradation_status = degradation.get("status", "none")
+
+    drift_status = "healthy"
+    if (
+        source_mode == "fallback"
+        or coverage_status in {"partial", "unknown"}
+        or degradation_status in {"warning", "degraded"}
+    ):
+        drift_status = "drifted"
+
+    if drift_status == "healthy":
+        summary = "Sin drift operativo detectado en este build."
+        recommended_action = "Ninguna."
+    else:
+        summary = (
+            f"Drift detectado: mode={source_mode}, coverage={coverage_status}, "
+            f"degradation={degradation_status}."
+        )
+        recommended_action = degradation.get(
+            "recommended_action",
+            "Revisar fuente, cobertura y warnings antes de consumir esta capa.",
+        )
+
+    return {
+        "status": drift_status,
+        "summary": summary,
+        "recommended_action": recommended_action,
+    }
+
+
+def enrich_dataset_metadata(dataset_metadata, validations):
+    enriched = {}
+    for dataset_name, metadata in dataset_metadata.items():
+        validation = validations.get(dataset_name, {})
+        degradation = build_degradation(dataset_name, metadata, validation)
+        coverage = build_coverage(dataset_name, metadata)
+        enriched[dataset_name] = {
+            **metadata,
+            "degradation": degradation,
+            "coverage": coverage,
+        }
+        enriched[dataset_name]["drift"] = build_drift(enriched[dataset_name])
+    return enriched
 
 def ensure_directories():
     os.makedirs(NORMALIZED_DIR, exist_ok=True)
@@ -329,11 +472,14 @@ def write_dataset_catalog(pipeline_metadata):
                 "reuse_policy": config.get("reuse_policy", {}),
                 "freshness": dataset_metadata.get("freshness", {}),
                 "freshness_policy": freshness_policy,
+                "coverage": dataset_metadata.get("coverage", {}),
+                "drift": dataset_metadata.get("drift", {}),
                 "usage_examples": config.get("usage_examples", {}),
                 "outputs": config.get("outputs", {}),
                 "documentation": config.get("documentation"),
                 "validation_status": validation.get("status"),
                 "warnings": validation.get("warnings", []),
+                "degradation": dataset_metadata.get("degradation", {}),
                 "notes": dataset_metadata.get("notes", []),
             }
         )
@@ -365,6 +511,65 @@ def build_publishable_artifact_index():
                     "dataset": dataset_name,
                     "output_type": output_type,
                 }
+    shared_artifacts = {
+        "data/normalized/pipeline_metadata.json": {
+            "shared_type": "pipeline_metadata",
+            "format": "json",
+        },
+        "data/normalized/pipeline_status.md": {
+            "shared_type": "pipeline_status",
+            "format": "markdown",
+        },
+        "data/normalized/hub_health.json": {
+            "shared_type": "hub_health",
+            "format": "json",
+        },
+        "data/normalized/hub_health.md": {
+            "shared_type": "hub_health",
+            "format": "markdown",
+        },
+        "data/normalized/hub_bundle.json": {
+            "shared_type": "hub_bundle",
+            "format": "json",
+        },
+        "data/normalized/redistribution_report.json": {
+            "shared_type": "redistribution_report",
+            "format": "json",
+        },
+        "data/normalized/redistribution_report.md": {
+            "shared_type": "redistribution_report",
+            "format": "markdown",
+        },
+        "data/normalized/provenance_report.json": {
+            "shared_type": "provenance_report",
+            "format": "json",
+        },
+        "data/normalized/provenance_report.md": {
+            "shared_type": "provenance_report",
+            "format": "markdown",
+        },
+        "data/normalized/drift_report.json": {
+            "shared_type": "drift_report",
+            "format": "json",
+        },
+        "data/normalized/drift_report.md": {
+            "shared_type": "drift_report",
+            "format": "markdown",
+        },
+        "data/normalized/dataset_catalog.json": {
+            "shared_type": "dataset_catalog",
+            "format": "json",
+        },
+        "data/normalized/dataset_catalog.md": {
+            "shared_type": "dataset_catalog",
+            "format": "markdown",
+        },
+        "data/normalized/artifact_manifest.json": {
+            "shared_type": "artifact_manifest",
+            "format": "json",
+        },
+    }
+    artifact_index.update(shared_artifacts)
     return artifact_index
 
 def write_artifact_manifest():
@@ -383,6 +588,8 @@ def write_artifact_manifest():
                 "path": relative_path,
                 "dataset": artifact_metadata.get("dataset"),
                 "output_type": artifact_metadata.get("output_type"),
+                "shared_type": artifact_metadata.get("shared_type"),
+                "format": artifact_metadata.get("format"),
                 "size_bytes": os.path.getsize(path),
                 "sha256": compute_sha256(path),
             }
@@ -502,6 +709,52 @@ def write_provenance_report_json(report):
     return output_path
 
 
+def build_drift_report(dataset_catalog):
+    datasets = []
+    for entry in dataset_catalog.get("datasets", []):
+        source_mode = entry.get("source_mode")
+        coverage = entry.get("coverage", {})
+        degradation = entry.get("degradation", {})
+        drift = entry.get("drift", {})
+        coverage_status = coverage.get("status", "unknown")
+        degradation_status = degradation.get("status", "none")
+        drift_status = drift.get("status", "healthy")
+
+        datasets.append(
+            {
+                "dataset": entry.get("dataset"),
+                "drift_status": drift_status,
+                "source_mode": source_mode,
+                "coverage_status": coverage_status,
+                "coverage_ratio": coverage.get("coverage_ratio"),
+                "coverage_summary": coverage.get("summary"),
+                "degradation_status": degradation_status,
+                "degradation_impact": degradation.get("impact"),
+                "drift_summary": drift.get("summary"),
+                "recommended_action": drift.get("recommended_action"),
+                "documentation": entry.get("documentation"),
+            }
+        )
+
+    return {
+        "generated_at_utc": dataset_catalog.get("generated_at_utc"),
+        "dataset_count": len(datasets),
+        "drifted_count": sum(1 for entry in datasets if entry["drift_status"] == "drifted"),
+        "healthy_count": sum(1 for entry in datasets if entry["drift_status"] == "healthy"),
+        "fallback_count": sum(1 for entry in datasets if entry["source_mode"] == "fallback"),
+        "partial_coverage_count": sum(1 for entry in datasets if entry["coverage_status"] == "partial"),
+        "degraded_count": sum(1 for entry in datasets if entry["degradation_status"] == "degraded"),
+        "datasets": datasets,
+    }
+
+
+def write_drift_report_json(report):
+    output_path = os.path.join(NORMALIZED_DIR, "drift_report.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    return output_path
+
+
 def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifact_manifest):
     artifacts_by_dataset = {}
     shared_artifacts = []
@@ -512,6 +765,39 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
             artifacts_by_dataset.setdefault(dataset_name, []).append(artifact)
         else:
             shared_artifacts.append(artifact)
+
+    shared_artifacts_by_semantic_key = {}
+    for artifact in shared_artifacts:
+        shared_type = artifact.get("shared_type")
+        artifact_format = artifact.get("format")
+        if shared_type and artifact_format:
+            shared_artifacts_by_semantic_key[f"{shared_type}:{artifact_format}"] = artifact
+
+    report_specs = {
+        "status_markdown": ("pipeline_status", "markdown"),
+        "health_json": ("hub_health", "json"),
+        "health_markdown": ("hub_health", "markdown"),
+        "bundle_json": ("hub_bundle", "json"),
+        "redistribution_json": ("redistribution_report", "json"),
+        "redistribution_markdown": ("redistribution_report", "markdown"),
+        "provenance_json": ("provenance_report", "json"),
+        "provenance_markdown": ("provenance_report", "markdown"),
+        "drift_json": ("drift_report", "json"),
+        "drift_markdown": ("drift_report", "markdown"),
+        "catalog_json": ("dataset_catalog", "json"),
+        "catalog_markdown": ("dataset_catalog", "markdown"),
+        "manifest_json": ("artifact_manifest", "json"),
+    }
+    reports = {}
+    for report_name, (shared_type, artifact_format) in report_specs.items():
+        reports[report_name] = shared_artifacts_by_semantic_key.get(
+            f"{shared_type}:{artifact_format}",
+            {
+                "path": None,
+                "shared_type": shared_type,
+                "format": artifact_format,
+            },
+        )
 
     bundle = {
         "generated_at_utc": pipeline_metadata.get("generated_at_utc"),
@@ -527,9 +813,15 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
             "publishable_count": hub_health.get("publishable_count"),
             "review_terms_count": hub_health.get("review_terms_count"),
             "unknown_reuse_count": hub_health.get("unknown_reuse_count"),
+            "degraded_count": hub_health.get("degraded_count"),
+            "degradation_warning_count": hub_health.get("degradation_warning_count"),
+            "partial_coverage_count": hub_health.get("partial_coverage_count"),
+            "unknown_coverage_count": hub_health.get("unknown_coverage_count"),
+            "drifted_count": hub_health.get("drifted_count"),
             "warning_count": hub_health.get("warning_count"),
         },
         "datasets": [],
+        "reports": reports,
         "shared_artifacts": shared_artifacts,
         "packages": artifact_manifest.get("packages", []),
     }
@@ -552,9 +844,12 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
                 "reuse_policy": dataset.get("reuse_policy", {}),
                 "validation_status": dataset.get("validation_status"),
                 "freshness": dataset.get("freshness", {}),
+                "coverage": dataset.get("coverage", {}),
                 "warning_count": len(dataset.get("warnings", [])),
                 "severity": dataset_health.get("severity"),
                 "publishability_status": dataset_health.get("publishability_status"),
+                "degradation": dataset.get("degradation", {}),
+                "drift": dataset.get("drift", {}),
                 "documentation": dataset.get("documentation"),
                 "outputs": dataset.get("outputs", {}),
                 "usage_examples": dataset.get("usage_examples", {}),
@@ -886,6 +1181,7 @@ def main():
         }
         for dataset_name, validation in validations.items()
     }
+    dataset_metadata = enrich_dataset_metadata(dataset_metadata, validations_with_freshness)
     metadata_output = write_pipeline_metadata(
         dataset_metadata,
         validations_with_freshness,
@@ -906,6 +1202,9 @@ def main():
     provenance_report = build_provenance_report(dataset_catalog)
     provenance_report_output = write_provenance_report_json(provenance_report)
     write_provenance_report_markdown_file(provenance_report)
+    drift_report = build_drift_report(dataset_catalog)
+    drift_report_output = write_drift_report_json(drift_report)
+    write_drift_report_markdown_file(drift_report)
     artifact_manifest_output = write_artifact_manifest()
     with open(artifact_manifest_output, "r", encoding="utf-8") as f:
         artifact_manifest = json.load(f)
@@ -932,6 +1231,7 @@ def main():
     print(f"Catalogo de datasets exportado a: {catalog_output}")
     print(f"Reporte de redistribucion exportado a: {redistribution_report_output}")
     print(f"Reporte de procedencia exportado a: {provenance_report_output}")
+    print(f"Reporte de drift exportado a: {drift_report_output}")
     print(f"Manifest de artefactos exportado a: {artifact_manifest_output}")
     print(f"Bundle publicable exportado a: {hub_bundle_output}")
     print(f"ZIP publicable exportado a: {zip_output}")

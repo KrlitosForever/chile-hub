@@ -1,7 +1,7 @@
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VENV_DIR ?= .venv
 
-.PHONY: help bootstrap install-browsers doctor extract build verify verify-landing test check refresh status catalog hub-list hub-summary hub-example hub-artifacts hub-inventory hub-health hub-bundle hub-packages hub-redistribution hub-provenance package-bundle clean-publishable
+.PHONY: help bootstrap install-browsers doctor extract build verify verify-landing test check refresh status catalog hub-list hub-summary hub-example hub-artifacts hub-shared-artifacts hub-report hub-inventory hub-health hub-bundle hub-packages hub-redistribution hub-provenance hub-drift package-bundle clean-publishable
 
 help:
 	@printf "Targets disponibles:\n"
@@ -21,12 +21,15 @@ help:
 	@printf "  make hub-summary      Resume datasets via CLI\n"
 	@printf "  make hub-example      Muestra ejemplo de uso del dataset comunas\n"
 	@printf "  make hub-artifacts    Lista artefactos publicables del dataset comunas\n"
+	@printf "  make hub-shared-artifacts Lista artefactos compartidos del hub\n"
+	@printf "  make hub-report       Resuelve metadata del reporte hub_health en JSON\n"
 	@printf "  make hub-inventory    Muestra inventario compacto del hub\n"
 	@printf "  make hub-health       Muestra salud agregada del hub\n"
 	@printf "  make hub-bundle       Muestra bundle consolidado del hub\n"
 	@printf "  make hub-packages     Muestra paquetes publicables del hub\n"
 	@printf "  make hub-redistribution Muestra inventario de redistribucion del hub\n"
 	@printf "  make hub-provenance   Muestra inventario de procedencia del hub\n"
+	@printf "  make hub-drift        Muestra inventario de drift operativo del hub\n"
 	@printf "  make package-bundle   Genera ZIP publicable desde el manifest\n"
 	@printf "  make clean-publishable Elimina artefactos livianos versionables\n"
 
@@ -82,6 +85,12 @@ hub-example:
 hub-artifacts:
 	$(PYTHON) -m src.chile_hub artifacts comunas
 
+hub-shared-artifacts:
+	$(PYTHON) -m src.chile_hub shared-artifacts --shared-type hub_health --format json
+
+hub-report:
+	$(PYTHON) -m src.chile_hub report hub_health --format json
+
 hub-inventory:
 	$(PYTHON) -m src.chile_hub inventory
 
@@ -99,6 +108,9 @@ hub-redistribution:
 
 hub-provenance:
 	$(PYTHON) -m src.chile_hub provenance
+
+hub-drift:
+	$(PYTHON) -m src.chile_hub drift
 
 package-bundle:
 	$(PYTHON) scripts/package_publishable_bundle.py
