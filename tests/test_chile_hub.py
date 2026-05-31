@@ -2,6 +2,7 @@ import json
 import subprocess
 import sys
 import unittest
+import zipfile
 from pathlib import Path
 
 
@@ -53,6 +54,16 @@ class ChileHubTests(unittest.TestCase):
             warning_counts,
             {"regiones": 0, "provincias": 0, "comunas": 0, "indicadores": 0},
         )
+        reuse_statuses = {item["dataset"]: item["reuse_status"] for item in summary}
+        self.assertEqual(
+            reuse_statuses,
+            {
+                "regiones": "open-attribution",
+                "provincias": "open-attribution",
+                "comunas": "open-attribution",
+                "indicadores": "public-api-review-terms",
+            },
+        )
 
     def test_example_usage(self):
         example = self.hub.example_usage("comunas", "python")
@@ -75,6 +86,9 @@ class ChileHubTests(unittest.TestCase):
         self.assertEqual(comunas["freshness_status"], "fresh")
         self.assertIsInstance(comunas["freshness_age_hours"], float)
         self.assertEqual(comunas["warning_count"], 0)
+        self.assertEqual(comunas["reuse_status"], "open-attribution")
+        self.assertEqual(comunas["reuse_license"], "CC BY")
+        self.assertTrue(comunas["attribution_required"])
 
     def test_unknown_dataset_raises(self):
         with self.assertRaises(KeyError):
@@ -86,6 +100,46 @@ class ChileHubTests(unittest.TestCase):
         self.assertEqual(health["dataset_count"], 4)
         self.assertEqual(health["warn_count"], 0)
         self.assertEqual(health["error_count"], 0)
+        self.assertEqual(health["publishable_count"], 3)
+        self.assertEqual(health["review_terms_count"], 1)
+        self.assertEqual(health["unknown_reuse_count"], 0)
+
+    def test_bundle_summary(self):
+        bundle = self.hub.bundle()
+        self.assertEqual(bundle["overall_status"], "ok")
+        self.assertEqual(bundle["dataset_count"], 4)
+        self.assertEqual(len(bundle["datasets"]), 4)
+        self.assertEqual(bundle["health"]["publishable_count"], 3)
+        self.assertEqual(bundle["health"]["review_terms_count"], 1)
+        self.assertEqual(bundle["packages"][0]["package_type"], "zip")
+        self.assertTrue(bundle["packages"][0]["checksum_path"].endswith(".sha256"))
+        comunas = next(entry for entry in bundle["datasets"] if entry["dataset"] == "comunas")
+        self.assertEqual(comunas["severity"], "ok")
+        self.assertTrue(comunas["artifacts"])
+        self.assertEqual(comunas["reuse_policy"]["status"], "open-attribution")
+        self.assertEqual(comunas["publishability_status"], "ready")
+        indicadores = next(entry for entry in bundle["datasets"] if entry["dataset"] == "indicadores")
+        self.assertEqual(indicadores["reuse_policy"]["status"], "public-api-review-terms")
+        self.assertEqual(indicadores["publishability_status"], "review_terms")
+
+    def test_redistribution_report(self):
+        report = self.hub.redistribution()
+        self.assertEqual(report["dataset_count"], 4)
+        self.assertEqual(report["ready_count"], 3)
+        self.assertEqual(report["review_terms_count"], 1)
+        indicadores = next(entry for entry in report["datasets"] if entry["dataset"] == "indicadores")
+        self.assertEqual(indicadores["publishability_status"], "review_terms")
+        self.assertIn("Revisar terminos vigentes", indicadores["recommended_action"])
+
+    def test_provenance_report(self):
+        report = self.hub.provenance()
+        self.assertEqual(report["dataset_count"], 4)
+        self.assertEqual(report["live_count"], 4)
+        self.assertEqual(report["fallback_count"], 0)
+        comunas = next(entry for entry in report["datasets"] if entry["dataset"] == "comunas")
+        self.assertEqual(comunas["source_name"], "BCN ArcGIS")
+        self.assertEqual(comunas["source_detail"], "bcn_arcgis")
+        self.assertEqual(comunas["freshness_status"], "fresh")
 
 
 class ArtifactContractTests(unittest.TestCase):
@@ -104,6 +158,11 @@ class ArtifactContractTests(unittest.TestCase):
         self.assertIn("data/normalized/pipeline_status.md", artifact_paths)
         self.assertIn("data/normalized/hub_health.json", artifact_paths)
         self.assertIn("data/normalized/hub_health.md", artifact_paths)
+        self.assertIn("data/normalized/hub_bundle.json", artifact_paths)
+        self.assertIn("data/normalized/redistribution_report.json", artifact_paths)
+        self.assertIn("data/normalized/redistribution_report.md", artifact_paths)
+        self.assertIn("data/normalized/provenance_report.json", artifact_paths)
+        self.assertIn("data/normalized/provenance_report.md", artifact_paths)
         self.assertIn("data/normalized/regiones.parquet", artifact_paths)
         self.assertIn("data/normalized/provincias.parquet", artifact_paths)
         self.assertIn("data/normalized/comunas.parquet", artifact_paths)
@@ -122,6 +181,16 @@ class ArtifactContractTests(unittest.TestCase):
             self.assertIn("duckdb", examples)
             self.assertIn("cli", examples)
 
+    def test_catalog_reuse_policy_present(self):
+        for dataset in self.catalog["datasets"]:
+            reuse_policy = dataset.get("reuse_policy", {})
+            self.assertIn(
+                reuse_policy.get("status"),
+                {"open-attribution", "public-api-review-terms"},
+            )
+            self.assertTrue(reuse_policy.get("license"))
+            self.assertTrue(reuse_policy.get("summary"))
+
     def test_catalog_freshness_present(self):
         for dataset in self.catalog["datasets"]:
             self.assertIn(dataset.get("freshness", {}).get("status"), {"fresh", "stale", "unknown"})
@@ -133,6 +202,18 @@ class ArtifactContractTests(unittest.TestCase):
         for artifact in self.manifest["artifacts"]:
             self.assertTrue(artifact["sha256"])
             self.assertGreater(artifact["size_bytes"], 0)
+        self.assertEqual(self.manifest["packages"][0]["package_type"], "zip")
+        self.assertTrue(self.manifest["packages"][0]["checksum_path"].endswith(".sha256"))
+
+    def test_publishable_zip_exists_and_contains_bundle(self):
+        zip_path = self.normalized_dir / "chile-hub-publishable-bundle.zip"
+        checksum_path = self.normalized_dir / "chile-hub-publishable-bundle.zip.sha256"
+        self.assertTrue(zip_path.exists())
+        self.assertTrue(checksum_path.exists())
+        with zipfile.ZipFile(zip_path) as archive:
+            names = set(archive.namelist())
+        self.assertIn("data/normalized/hub_bundle.json", names)
+        self.assertIn("data/normalized/artifact_manifest.json", names)
 
 
 class ChileHubCliTests(unittest.TestCase):
@@ -172,11 +253,33 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn('"artifact_count": 2', result.stdout)
         self.assertIn('"freshness_status": "fresh"', result.stdout)
         self.assertIn('"warning_count": 0', result.stdout)
+        self.assertIn('"reuse_status": "open-attribution"', result.stdout)
 
     def test_cli_health(self):
         result = self.run_cli("health")
         self.assertIn('"overall_status": "ok"', result.stdout)
         self.assertIn('"dataset_count": 4', result.stdout)
+        self.assertIn('"review_terms_count": 1', result.stdout)
+
+    def test_cli_bundle(self):
+        result = self.run_cli("bundle")
+        self.assertIn('"overall_status": "ok"', result.stdout)
+        self.assertIn('"shared_artifacts"', result.stdout)
+
+    def test_cli_packages(self):
+        result = self.run_cli("packages")
+        self.assertIn('"package_type": "zip"', result.stdout)
+        self.assertIn('"path": "data/normalized/chile-hub-publishable-bundle.zip"', result.stdout)
+
+    def test_cli_redistribution(self):
+        result = self.run_cli("redistribution")
+        self.assertIn('"review_terms_count": 1', result.stdout)
+        self.assertIn('"dataset": "indicadores"', result.stdout)
+
+    def test_cli_provenance(self):
+        result = self.run_cli("provenance")
+        self.assertIn('"live_count": 4', result.stdout)
+        self.assertIn('"source_name": "BCN ArcGIS"', result.stdout)
 
 
 if __name__ == "__main__":

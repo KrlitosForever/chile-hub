@@ -1,14 +1,14 @@
 # chile-hub dataset catalog
 
-- `generated_at_utc`: `2026-05-30T23:57:00.403864+00:00`
+- `generated_at_utc`: `2026-05-31T16:57:14.689748+00:00`
 - `dataset_count`: `4`
 
-| Dataset | Source | Mode | Freshness | Records | Confidence | Join Keys | Validation |
-| :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- |
-| `regiones` | BCN ArcGIS | `live` | `fresh (0.63h / 2160h)` | 16 | `Tier B` | `codigo_region` | `ok` |
-| `provincias` | BCN ArcGIS | `live` | `fresh (0.63h / 2160h)` | 56 | `Tier B` | `codigo_provincia, codigo_region` | `ok` |
-| `comunas` | BCN ArcGIS | `live` | `fresh (0.63h / 2160h)` | 346 | `Tier B` | `codigo_comuna, codigo_region` | `ok` |
-| `indicadores` | mindicador.cl | `live` | `fresh (0.63h / 72h)` | 5 | `Tier A/B` | `fecha, codigo_indicador` | `ok` |
+| Dataset | Source | Mode | Freshness | Reuse | Records | Confidence | Join Keys | Validation |
+| :--- | :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- |
+| `regiones` | BCN ArcGIS | `live` | `fresh (17.63h / 2160h)` | `open-attribution (CC BY)` | 16 | `Tier B` | `codigo_region` | `ok` |
+| `provincias` | BCN ArcGIS | `live` | `fresh (17.63h / 2160h)` | `open-attribution (CC BY)` | 56 | `Tier B` | `codigo_provincia, codigo_region` | `ok` |
+| `comunas` | BCN ArcGIS | `live` | `fresh (17.63h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna, codigo_region` | `ok` |
+| `indicadores` | mindicador.cl | `live` | `fresh (17.63h / 72h)` | `public-api-review-terms (No declarada explicitamente)` | 5 | `Tier A/B` | `fecha, codigo_indicador` | `ok` |
 
 ## regiones
 
@@ -16,7 +16,8 @@ Capa derivada de regiones para filtros, joins y referencias administrativas de a
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/regiones.md`
-- `freshness`: `fresh (0.63h / 2160h)`
+- `freshness`: `fresh (17.63h / 2160h)`
+- `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."}`
 - `fields`: `codigo_region, nombre_region`
 - `join_keys`: `codigo_region`
 - `outputs`: `{"parquet": "data/normalized/regiones.parquet", "json": "data/normalized/regiones.json", "duckdb_table": "regiones", "sqlite_table": "regiones", "excel_sheet": "Regiones"}`
@@ -30,7 +31,8 @@ Capa derivada de provincias para cruces intermedios entre region y comuna.
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/provincias.md`
-- `freshness`: `fresh (0.63h / 2160h)`
+- `freshness`: `fresh (17.63h / 2160h)`
+- `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."}`
 - `fields`: `codigo_region, nombre_region, codigo_provincia, nombre_provincia`
 - `join_keys`: `codigo_provincia, codigo_region`
 - `outputs`: `{"parquet": "data/normalized/provincias.parquet", "json": "data/normalized/provincias.json", "duckdb_table": "provincias", "sqlite_table": "provincias", "excel_sheet": "Provincias"}`
@@ -44,7 +46,8 @@ Base territorial normalizada para cruces por region, provincia y comuna.
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/comunas.md`
-- `freshness`: `fresh (0.63h / 2160h)`
+- `freshness`: `fresh (17.63h / 2160h)`
+- `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida."}`
 - `fields`: `codigo_region, nombre_region, abreviatura, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, nombre_comuna_clean, latitud_cabecera, longitud_cabecera, poblacion_estimada`
 - `join_keys`: `codigo_comuna, codigo_region`
 - `outputs`: `{"parquet": "data/normalized/comunas.parquet", "json": "data/normalized/comunas.json", "duckdb_table": "comunas", "sqlite_table": "comunas", "excel_sheet": "Comunas y Regiones"}`
@@ -58,7 +61,8 @@ Serie de indicadores economicos diarios de referencia para analisis y software.
 
 - `source_url`: https://mindicador.cl/api
 - `documentation`: `docs/datasets/indicadores.md`
-- `freshness`: `fresh (0.63h / 72h)`
+- `freshness`: `fresh (17.63h / 72h)`
+- `reuse_policy`: `{"status": "public-api-review-terms", "license": "No declarada explicitamente", "license_url": "https://mindicador.cl/", "attribution_required": true, "redistribution_ok": false, "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes."}`
 - `fields`: `fecha, codigo_indicador, valor`
 - `join_keys`: `fecha, codigo_indicador`
 - `outputs`: `{"parquet": "data/normalized/indicadores.parquet", "json": "data/normalized/indicadores_hoy.json", "duckdb_table": "indicadores", "sqlite_table": "indicadores", "excel_sheet": "Indicadores Diarios"}`

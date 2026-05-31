@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-30T23:57:00.403864+00:00",
+  "generated_at_utc": "2026-05-31T16:57:14.689748+00:00",
   "dataset_count": 4,
   "datasets": [
     {
@@ -19,11 +19,19 @@
         "codigo_region"
       ],
       "confidence_tier": "Tier B",
+      "reuse_policy": {
+        "status": "open-attribution",
+        "license": "CC BY",
+        "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+        "attribution_required": true,
+        "redistribution_ok": true,
+        "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."
+      },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 17.63,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-05-30T23:57:00.403049+00:00"
+        "checked_at_utc": "2026-05-31T16:57:14.689138+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -69,11 +77,19 @@
         "codigo_region"
       ],
       "confidence_tier": "Tier B",
+      "reuse_policy": {
+        "status": "open-attribution",
+        "license": "CC BY",
+        "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+        "attribution_required": true,
+        "redistribution_ok": true,
+        "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."
+      },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 17.63,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-05-30T23:57:00.403132+00:00"
+        "checked_at_utc": "2026-05-31T16:57:14.689187+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -126,11 +142,19 @@
         "codigo_region"
       ],
       "confidence_tier": "Tier B",
+      "reuse_policy": {
+        "status": "open-attribution",
+        "license": "CC BY",
+        "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+        "attribution_required": true,
+        "redistribution_ok": true,
+        "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida."
+      },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 17.63,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-05-30T23:57:00.403149+00:00"
+        "checked_at_utc": "2026-05-31T16:57:14.689206+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -175,11 +199,19 @@
         "codigo_indicador"
       ],
       "confidence_tier": "Tier A/B",
+      "reuse_policy": {
+        "status": "public-api-review-terms",
+        "license": "No declarada explicitamente",
+        "license_url": "https://mindicador.cl/",
+        "attribution_required": true,
+        "redistribution_ok": false,
+        "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes."
+      },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 17.63,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-05-30T23:57:00.403785+00:00"
+        "checked_at_utc": "2026-05-31T16:57:14.689692+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 72,

@@ -87,8 +87,8 @@ Campos recomendados para cruce:
 
 ## Notas legales
 
-- tratar como derivado de una fuente pública administrativa
-- antes de redistribuir masivamente, conviene documentar con más precisión la licencia exacta de la fuente operativa final
+- la fuente operativa actual cae dentro de la superficie de datos abiertos BCN, que declara reutilización con atribución
+- si redistribuyes esta capa, conviene preservar referencia a BCN y a la fuente administrativa de origen cuando aplique
 
 ## Recomendación de evolución
 

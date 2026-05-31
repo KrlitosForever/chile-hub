@@ -1,0 +1,57 @@
+{
+  "generated_at_utc": "2026-05-31T16:57:14.689748+00:00",
+  "dataset_count": 4,
+  "ready_count": 3,
+  "review_terms_count": 1,
+  "unknown_count": 0,
+  "datasets": [
+    {
+      "dataset": "regiones",
+      "publishability_status": "ready",
+      "license": "CC BY",
+      "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+      "reuse_status": "open-attribution",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/regiones.md"
+    },
+    {
+      "dataset": "provincias",
+      "publishability_status": "ready",
+      "license": "CC BY",
+      "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+      "reuse_status": "open-attribution",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/provincias.md"
+    },
+    {
+      "dataset": "comunas",
+      "publishability_status": "ready",
+      "license": "CC BY",
+      "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+      "reuse_status": "open-attribution",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/comunas.md"
+    },
+    {
+      "dataset": "indicadores",
+      "publishability_status": "review_terms",
+      "license": "No declarada explicitamente",
+      "license_url": "https://mindicador.cl/",
+      "reuse_status": "public-api-review-terms",
+      "attribution_required": true,
+      "redistribution_ok": false,
+      "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes.",
+      "recommended_action": "Revisar terminos vigentes antes de redistribuir fuera del repo.",
+      "documentation": "docs/datasets/indicadores.md"
+    }
+  ]
+}

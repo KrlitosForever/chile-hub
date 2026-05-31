@@ -26,9 +26,16 @@ REQUIRED_FILES = [
     NORMALIZED_DIR / "pipeline_status.md",
     NORMALIZED_DIR / "hub_health.json",
     NORMALIZED_DIR / "hub_health.md",
+    NORMALIZED_DIR / "hub_bundle.json",
+    NORMALIZED_DIR / "redistribution_report.json",
+    NORMALIZED_DIR / "redistribution_report.md",
+    NORMALIZED_DIR / "provenance_report.json",
+    NORMALIZED_DIR / "provenance_report.md",
     NORMALIZED_DIR / "dataset_catalog.json",
     NORMALIZED_DIR / "dataset_catalog.md",
     NORMALIZED_DIR / "artifact_manifest.json",
+    NORMALIZED_DIR / "chile-hub-publishable-bundle.zip",
+    NORMALIZED_DIR / "chile-hub-publishable-bundle.zip.sha256",
 ]
 
 REQUIRED_DATASETS = {"regiones", "provincias", "comunas", "indicadores"}
@@ -168,6 +175,24 @@ def verify_dataset_catalog():
             fail(f"{entry.get('dataset')} catalog entry is missing outputs")
         if not entry.get("join_keys"):
             fail(f"{entry.get('dataset')} catalog entry is missing join_keys")
+        reuse_policy = entry.get("reuse_policy", {})
+        if reuse_policy.get("status") not in {"open-attribution", "public-api-review-terms"}:
+            fail(
+                f"{entry.get('dataset')} catalog entry has invalid reuse_policy.status: "
+                f"{reuse_policy.get('status')}"
+            )
+        if not reuse_policy.get("license"):
+            fail(f"{entry.get('dataset')} catalog entry is missing reuse_policy.license")
+        if not reuse_policy.get("summary"):
+            fail(f"{entry.get('dataset')} catalog entry is missing reuse_policy.summary")
+        if reuse_policy.get("attribution_required") not in {True, False}:
+            fail(
+                f"{entry.get('dataset')} catalog entry has invalid reuse_policy.attribution_required"
+            )
+        if reuse_policy.get("redistribution_ok") not in {True, False}:
+            fail(
+                f"{entry.get('dataset')} catalog entry has invalid reuse_policy.redistribution_ok"
+            )
         freshness = entry.get("freshness", {})
         if freshness.get("status") not in {"fresh", "stale", "unknown"}:
             fail(
@@ -213,6 +238,11 @@ def verify_artifact_manifest():
         "data/normalized/pipeline_status.md",
         "data/normalized/hub_health.json",
         "data/normalized/hub_health.md",
+        "data/normalized/hub_bundle.json",
+        "data/normalized/redistribution_report.json",
+        "data/normalized/redistribution_report.md",
+        "data/normalized/provenance_report.json",
+        "data/normalized/provenance_report.md",
         "data/normalized/dataset_catalog.json",
         "data/normalized/dataset_catalog.md",
     }
@@ -229,6 +259,9 @@ def verify_artifact_manifest():
             if path.endswith((".parquet", ".json")) and path not in {
                 "data/normalized/pipeline_metadata.json",
                 "data/normalized/hub_health.json",
+                "data/normalized/hub_bundle.json",
+                "data/normalized/redistribution_report.json",
+                "data/normalized/provenance_report.json",
                 "data/normalized/dataset_catalog.json",
                 "data/normalized/artifact_manifest.json",
             }:
@@ -237,6 +270,9 @@ def verify_artifact_manifest():
             if path.endswith((".parquet", ".json")) and path not in {
                 "data/normalized/pipeline_metadata.json",
                 "data/normalized/hub_health.json",
+                "data/normalized/hub_bundle.json",
+                "data/normalized/redistribution_report.json",
+                "data/normalized/provenance_report.json",
                 "data/normalized/dataset_catalog.json",
                 "data/normalized/artifact_manifest.json",
             }:
@@ -254,6 +290,19 @@ def verify_artifact_manifest():
         if entry.get("size_bytes", 0) <= 0:
             fail(f"artifact manifest entry has invalid size_bytes: {entry}")
 
+    packages = manifest.get("packages", [])
+    if len(packages) != 1:
+        fail(f"artifact_manifest.json has unexpected packages count: {len(packages)}")
+    package = packages[0]
+    if package.get("path") != "data/normalized/chile-hub-publishable-bundle.zip":
+        fail(f"artifact_manifest.json has unexpected package path: {package}")
+    if package.get("package_type") != "zip":
+        fail(f"artifact_manifest.json has invalid package_type: {package}")
+    if package.get("checksum_path") != "data/normalized/chile-hub-publishable-bundle.zip.sha256":
+        fail(f"artifact_manifest.json has invalid checksum_path: {package}")
+    if not package.get("sha256") or package.get("size_bytes", 0) <= 0:
+        fail(f"artifact_manifest.json has invalid package metadata: {package}")
+
 
 def verify_hub_health():
     health_path = NORMALIZED_DIR / "hub_health.json"
@@ -264,6 +313,9 @@ def verify_hub_health():
 
     if health.get("overall_status") not in {"ok", "warn", "error"}:
         fail(f"hub_health.json has invalid overall_status: {health.get('overall_status')}")
+    for key in ("publishable_count", "review_terms_count", "unknown_reuse_count"):
+        if health.get(key) is None:
+            fail(f"hub_health.json is missing {key}")
 
     datasets = health.get("datasets", [])
     dataset_names = {entry.get("dataset") for entry in datasets}
@@ -279,14 +331,111 @@ def verify_hub_health():
             fail(f"hub_health.json entry has invalid freshness_status: {entry}")
         if entry.get("validation_status") != "ok":
             fail(f"hub_health.json entry has unexpected validation_status: {entry}")
+        if entry.get("publishability_status") not in {"ready", "review_terms", "unknown"}:
+            fail(f"hub_health.json entry has invalid publishability_status: {entry}")
+
+
+def verify_hub_bundle():
+    bundle_path = NORMALIZED_DIR / "hub_bundle.json"
+    bundle = load_json(bundle_path)
+
+    if bundle.get("dataset_count") != len(REQUIRED_DATASETS):
+        fail(f"hub_bundle.json has unexpected dataset_count: {bundle.get('dataset_count')}")
+    if bundle.get("overall_status") not in {"ok", "warn", "error"}:
+        fail(f"hub_bundle.json has invalid overall_status: {bundle.get('overall_status')}")
+
+    datasets = bundle.get("datasets", [])
+    dataset_names = {entry.get("dataset") for entry in datasets}
+    if dataset_names != REQUIRED_DATASETS:
+        fail(f"hub_bundle.json has unexpected datasets: {sorted(dataset_names)}")
+
+    for entry in datasets:
+        if not entry.get("artifacts"):
+            fail(f"hub_bundle.json dataset entry is missing artifacts: {entry.get('dataset')}")
+        if entry.get("severity") not in {"ok", "warn", "error"}:
+            fail(f"hub_bundle.json dataset entry has invalid severity: {entry}")
+        if entry.get("validation_status") != "ok":
+            fail(f"hub_bundle.json dataset entry has unexpected validation_status: {entry}")
+        reuse_policy = entry.get("reuse_policy", {})
+        if reuse_policy.get("status") not in {"open-attribution", "public-api-review-terms"}:
+            fail(f"hub_bundle.json dataset entry has invalid reuse_policy: {entry}")
+        if entry.get("publishability_status") not in {"ready", "review_terms", "unknown"}:
+            fail(f"hub_bundle.json dataset entry has invalid publishability_status: {entry}")
+    packages = bundle.get("packages", [])
+    if len(packages) != 1 or packages[0].get("package_type") != "zip":
+        fail(f"hub_bundle.json has invalid packages metadata: {packages}")
+
+
+def verify_redistribution_report():
+    report_path = NORMALIZED_DIR / "redistribution_report.json"
+    report = load_json(report_path)
+
+    if report.get("dataset_count") != len(REQUIRED_DATASETS):
+        fail(
+            "redistribution_report.json has unexpected dataset_count: "
+            f"{report.get('dataset_count')}"
+        )
+    datasets = report.get("datasets", [])
+    dataset_names = {entry.get("dataset") for entry in datasets}
+    if dataset_names != REQUIRED_DATASETS:
+        fail(f"redistribution_report.json has unexpected datasets: {sorted(dataset_names)}")
+    for entry in datasets:
+        if entry.get("publishability_status") not in {"ready", "review_terms", "unknown"}:
+            fail(f"redistribution_report.json has invalid publishability_status: {entry}")
+        if not entry.get("license"):
+            fail(f"redistribution_report.json is missing license: {entry}")
+        if not entry.get("recommended_action"):
+            fail(f"redistribution_report.json is missing recommended_action: {entry}")
+    if report.get("ready_count") is None or report.get("review_terms_count") is None:
+        fail("redistribution_report.json is missing aggregated counts")
+
+
+def verify_provenance_report():
+    report_path = NORMALIZED_DIR / "provenance_report.json"
+    report = load_json(report_path)
+
+    if report.get("dataset_count") != len(REQUIRED_DATASETS):
+        fail(
+            "provenance_report.json has unexpected dataset_count: "
+            f"{report.get('dataset_count')}"
+        )
+    datasets = report.get("datasets", [])
+    dataset_names = {entry.get("dataset") for entry in datasets}
+    if dataset_names != REQUIRED_DATASETS:
+        fail(f"provenance_report.json has unexpected datasets: {sorted(dataset_names)}")
+    for entry in datasets:
+        if entry.get("source_mode") not in {"live", "fallback"}:
+            fail(f"provenance_report.json has invalid source_mode: {entry}")
+        if not entry.get("source_name"):
+            fail(f"provenance_report.json is missing source_name: {entry}")
+        if not entry.get("source_url"):
+            fail(f"provenance_report.json is missing source_url: {entry}")
+        if not entry.get("refreshed_at_utc"):
+            fail(f"provenance_report.json is missing refreshed_at_utc: {entry}")
+        if entry.get("freshness_status") not in {"fresh", "stale", "unknown"}:
+            fail(f"provenance_report.json has invalid freshness_status: {entry}")
+
+
+def verify_publishable_zip():
+    zip_path = NORMALIZED_DIR / "chile-hub-publishable-bundle.zip"
+    if zip_path.stat().st_size <= 0:
+        fail("publishable bundle zip is empty")
+    checksum_path = NORMALIZED_DIR / "chile-hub-publishable-bundle.zip.sha256"
+    checksum_line = checksum_path.read_text(encoding="utf-8").strip()
+    if "data/normalized/chile-hub-publishable-bundle.zip" not in checksum_line:
+        fail("publishable bundle checksum file has unexpected contents")
 
 
 def main():
     verify_required_files()
     verify_pipeline_metadata()
     verify_hub_health()
+    verify_hub_bundle()
+    verify_redistribution_report()
+    verify_provenance_report()
     verify_dataset_catalog()
     verify_artifact_manifest()
+    verify_publishable_zip()
 
 
 if __name__ == "__main__":

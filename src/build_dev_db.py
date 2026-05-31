@@ -2,6 +2,7 @@ import os
 import json
 import sqlite3
 import hashlib
+import zipfile
 from datetime import datetime, timezone
 import polars as pl
 import duckdb
@@ -10,6 +11,8 @@ from pipeline_status_utils import (
     write_status_markdown_file,
     write_dataset_catalog_markdown_file,
     write_hub_health_markdown_file,
+    write_redistribution_report_markdown_file,
+    write_provenance_report_markdown_file,
 )
 
 # Configuración de rutas
@@ -23,12 +26,22 @@ EXPECTED_INDICATOR_CODES = {"uf", "dolar", "euro", "utm", "ipc"}
 FALLBACK_COMUNAS_COUNT = 18
 EXPECTED_LIVE_COMUNAS_COUNT = 346
 PUBLISHABLE_ARTIFACT_SUFFIXES = (".json", ".md", ".parquet")
+PUBLISHABLE_BUNDLE_ZIP_NAME = "chile-hub-publishable-bundle.zip"
+PUBLISHABLE_BUNDLE_SHA256_NAME = "chile-hub-publishable-bundle.zip.sha256"
 
 DATASET_CATALOG_CONFIG = {
     "regiones": {
         "description": "Capa derivada de regiones para filtros, joins y referencias administrativas de alto nivel.",
         "join_keys": ["codigo_region"],
         "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "CC BY",
+            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
+        },
         "freshness_policy": {
             "max_age_hours": 24 * 90,
             "label": "estable",
@@ -51,6 +64,14 @@ DATASET_CATALOG_CONFIG = {
         "description": "Capa derivada de provincias para cruces intermedios entre region y comuna.",
         "join_keys": ["codigo_provincia", "codigo_region"],
         "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "CC BY",
+            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
+        },
         "freshness_policy": {
             "max_age_hours": 24 * 90,
             "label": "estable",
@@ -73,6 +94,14 @@ DATASET_CATALOG_CONFIG = {
         "description": "Base territorial normalizada para cruces por region, provincia y comuna.",
         "join_keys": ["codigo_comuna", "codigo_region"],
         "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "CC BY",
+            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida.",
+        },
         "freshness_policy": {
             "max_age_hours": 24 * 90,
             "label": "estable",
@@ -95,6 +124,14 @@ DATASET_CATALOG_CONFIG = {
         "description": "Serie de indicadores economicos diarios de referencia para analisis y software.",
         "join_keys": ["fecha", "codigo_indicador"],
         "confidence_tier": "Tier A/B",
+        "reuse_policy": {
+            "status": "public-api-review-terms",
+            "license": "No declarada explicitamente",
+            "license_url": "https://mindicador.cl/",
+            "attribution_required": True,
+            "redistribution_ok": False,
+            "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes.",
+        },
         "freshness_policy": {
             "max_age_hours": 72,
             "label": "diaria",
@@ -289,6 +326,7 @@ def write_dataset_catalog(pipeline_metadata):
                 "fields": dataset_metadata.get("fields", []),
                 "join_keys": config.get("join_keys", []),
                 "confidence_tier": config.get("confidence_tier"),
+                "reuse_policy": config.get("reuse_policy", {}),
                 "freshness": dataset_metadata.get("freshness", {}),
                 "freshness_policy": freshness_policy,
                 "usage_examples": config.get("usage_examples", {}),
@@ -354,6 +392,7 @@ def write_artifact_manifest():
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "artifact_count": len(artifacts),
         "artifacts": artifacts,
+        "packages": [],
     }
     output_path = os.path.join(NORMALIZED_DIR, "artifact_manifest.json")
     with open(output_path, "w", encoding="utf-8") as f:
@@ -366,6 +405,212 @@ def write_hub_health_json(health):
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(health, f, ensure_ascii=False, indent=2)
     return output_path
+
+
+def build_redistribution_report(dataset_catalog):
+    datasets = []
+    for entry in dataset_catalog.get("datasets", []):
+        reuse_policy = entry.get("reuse_policy", {})
+        redistribution_ok = reuse_policy.get("redistribution_ok")
+        publishability_status = (
+            "ready" if redistribution_ok is True else
+            "review_terms" if redistribution_ok is False else
+            "unknown"
+        )
+        if publishability_status == "ready":
+            recommended_action = "Publicable con atribucion y referencia de fuente."
+        elif publishability_status == "review_terms":
+            recommended_action = "Revisar terminos vigentes antes de redistribuir fuera del repo."
+        else:
+            recommended_action = "Aclarar licencia o terminos antes de redistribuir."
+
+        datasets.append(
+            {
+                "dataset": entry.get("dataset"),
+                "publishability_status": publishability_status,
+                "license": reuse_policy.get("license"),
+                "license_url": reuse_policy.get("license_url"),
+                "reuse_status": reuse_policy.get("status"),
+                "attribution_required": reuse_policy.get("attribution_required"),
+                "redistribution_ok": redistribution_ok,
+                "summary": reuse_policy.get("summary"),
+                "recommended_action": recommended_action,
+                "documentation": entry.get("documentation"),
+            }
+        )
+
+    report = {
+        "generated_at_utc": dataset_catalog.get("generated_at_utc"),
+        "dataset_count": len(datasets),
+        "ready_count": sum(1 for entry in datasets if entry["publishability_status"] == "ready"),
+        "review_terms_count": sum(
+            1 for entry in datasets if entry["publishability_status"] == "review_terms"
+        ),
+        "unknown_count": sum(1 for entry in datasets if entry["publishability_status"] == "unknown"),
+        "datasets": datasets,
+    }
+    return report
+
+
+def write_redistribution_report_json(report):
+    output_path = os.path.join(NORMALIZED_DIR, "redistribution_report.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def build_provenance_report(dataset_catalog):
+    datasets = []
+    for entry in dataset_catalog.get("datasets", []):
+        freshness = entry.get("freshness", {})
+        freshness_status = freshness.get("status", "unknown")
+        age_hours = freshness.get("age_hours")
+        max_age_hours = freshness.get("max_age_hours")
+        if age_hours is None or max_age_hours is None:
+            freshness_label = freshness_status
+        else:
+            freshness_label = f"{freshness_status} ({age_hours}h / {max_age_hours}h)"
+
+        datasets.append(
+            {
+                "dataset": entry.get("dataset"),
+                "source_name": entry.get("source_name"),
+                "source_url": entry.get("source_url"),
+                "source_mode": entry.get("source_mode"),
+                "source_detail": entry.get("source_detail"),
+                "refreshed_at_utc": entry.get("refreshed_at_utc"),
+                "freshness_status": freshness_status,
+                "freshness_label": freshness_label,
+                "reuse_status": entry.get("reuse_policy", {}).get("status"),
+                "documentation": entry.get("documentation"),
+            }
+        )
+
+    return {
+        "generated_at_utc": dataset_catalog.get("generated_at_utc"),
+        "dataset_count": len(datasets),
+        "live_count": sum(1 for entry in datasets if entry.get("source_mode") == "live"),
+        "fallback_count": sum(1 for entry in datasets if entry.get("source_mode") == "fallback"),
+        "datasets": datasets,
+    }
+
+
+def write_provenance_report_json(report):
+    output_path = os.path.join(NORMALIZED_DIR, "provenance_report.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifact_manifest):
+    artifacts_by_dataset = {}
+    shared_artifacts = []
+
+    for artifact in artifact_manifest.get("artifacts", []):
+        dataset_name = artifact.get("dataset")
+        if dataset_name:
+            artifacts_by_dataset.setdefault(dataset_name, []).append(artifact)
+        else:
+            shared_artifacts.append(artifact)
+
+    bundle = {
+        "generated_at_utc": pipeline_metadata.get("generated_at_utc"),
+        "overall_status": hub_health.get("overall_status"),
+        "dataset_count": dataset_catalog.get("dataset_count"),
+        "health": {
+            "ok_count": hub_health.get("ok_count"),
+            "warn_count": hub_health.get("warn_count"),
+            "error_count": hub_health.get("error_count"),
+            "live_count": hub_health.get("live_count"),
+            "fallback_count": hub_health.get("fallback_count"),
+            "stale_count": hub_health.get("stale_count"),
+            "publishable_count": hub_health.get("publishable_count"),
+            "review_terms_count": hub_health.get("review_terms_count"),
+            "unknown_reuse_count": hub_health.get("unknown_reuse_count"),
+            "warning_count": hub_health.get("warning_count"),
+        },
+        "datasets": [],
+        "shared_artifacts": shared_artifacts,
+        "packages": artifact_manifest.get("packages", []),
+    }
+
+    health_by_dataset = {entry["dataset"]: entry for entry in hub_health.get("datasets", [])}
+
+    for dataset in dataset_catalog.get("datasets", []):
+        dataset_name = dataset["dataset"]
+        dataset_health = health_by_dataset.get(dataset_name, {})
+        bundle["datasets"].append(
+            {
+                "dataset": dataset_name,
+                "description": dataset.get("description"),
+                "source_name": dataset.get("source_name"),
+                "source_url": dataset.get("source_url"),
+                "source_mode": dataset.get("source_mode"),
+                "record_count": dataset.get("record_count"),
+                "join_keys": dataset.get("join_keys", []),
+                "confidence_tier": dataset.get("confidence_tier"),
+                "reuse_policy": dataset.get("reuse_policy", {}),
+                "validation_status": dataset.get("validation_status"),
+                "freshness": dataset.get("freshness", {}),
+                "warning_count": len(dataset.get("warnings", [])),
+                "severity": dataset_health.get("severity"),
+                "publishability_status": dataset_health.get("publishability_status"),
+                "documentation": dataset.get("documentation"),
+                "outputs": dataset.get("outputs", {}),
+                "usage_examples": dataset.get("usage_examples", {}),
+                "artifacts": artifacts_by_dataset.get(dataset_name, []),
+            }
+        )
+
+    output_path = os.path.join(NORMALIZED_DIR, "hub_bundle.json")
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(bundle, f, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def write_publishable_bundle_zip():
+    manifest_path = os.path.join(NORMALIZED_DIR, "artifact_manifest.json")
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    output_path = os.path.join(NORMALIZED_DIR, PUBLISHABLE_BUNDLE_ZIP_NAME)
+    with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for artifact in manifest.get("artifacts", []):
+            relative_path = artifact["path"]
+            absolute_path = os.path.join(DATA_DIR, os.path.relpath(relative_path, "data"))
+            archive.write(absolute_path, arcname=relative_path)
+    return output_path
+
+
+def write_publishable_bundle_sha256(zip_path):
+    output_path = os.path.join(NORMALIZED_DIR, PUBLISHABLE_BUNDLE_SHA256_NAME)
+    relative_zip_path = f"data/normalized/{os.path.basename(zip_path)}"
+    sha256 = compute_sha256(zip_path)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(f"{sha256}  {relative_zip_path}\n")
+    return output_path
+
+
+def attach_publishable_package_to_manifest(zip_path, sha256_path):
+    manifest_path = os.path.join(NORMALIZED_DIR, "artifact_manifest.json")
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    relative_path = f"data/normalized/{os.path.basename(zip_path)}"
+    checksum_path = f"data/normalized/{os.path.basename(sha256_path)}"
+    manifest["packages"] = [
+        {
+            "path": relative_path,
+            "package_type": "zip",
+            "size_bytes": os.path.getsize(zip_path),
+            "sha256": compute_sha256(zip_path),
+            "checksum_path": checksum_path,
+        }
+    ]
+
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    return manifest_path
 
 def derive_geography_layers(df_comunas):
     df_regiones = (
@@ -590,6 +835,7 @@ def main():
             "dataset": "regiones",
             "record_count": df_regiones.height,
             "fields": df_regiones.columns,
+            "reuse_policy": DATASET_CATALOG_CONFIG["regiones"]["reuse_policy"],
             "freshness": build_freshness(
                 comunas_metadata.get("refreshed_at_utc"),
                 DATASET_CATALOG_CONFIG["regiones"]["freshness_policy"]["max_age_hours"],
@@ -600,6 +846,7 @@ def main():
             "dataset": "provincias",
             "record_count": df_provincias.height,
             "fields": df_provincias.columns,
+            "reuse_policy": DATASET_CATALOG_CONFIG["provincias"]["reuse_policy"],
             "freshness": build_freshness(
                 comunas_metadata.get("refreshed_at_utc"),
                 DATASET_CATALOG_CONFIG["provincias"]["freshness_policy"]["max_age_hours"],
@@ -610,6 +857,7 @@ def main():
             "dataset": "comunas",
             "record_count": df_comunas.height,
             "fields": df_comunas.columns,
+            "reuse_policy": DATASET_CATALOG_CONFIG["comunas"]["reuse_policy"],
             "freshness": build_freshness(
                 comunas_metadata.get("refreshed_at_utc"),
                 DATASET_CATALOG_CONFIG["comunas"]["freshness_policy"]["max_age_hours"],
@@ -621,6 +869,7 @@ def main():
             "record_count": df_indicadores.height,
             "fields": df_indicadores.columns,
             "indicator_codes": sorted(df_indicadores["codigo_indicador"].unique().to_list()),
+            "reuse_policy": DATASET_CATALOG_CONFIG["indicadores"]["reuse_policy"],
             "freshness": build_freshness(
                 indicadores_metadata.get("refreshed_at_utc"),
                 DATASET_CATALOG_CONFIG["indicadores"]["freshness_policy"]["max_age_hours"],
@@ -651,11 +900,42 @@ def main():
     with open(catalog_output, "r", encoding="utf-8") as f:
         dataset_catalog = json.load(f)
     write_dataset_catalog_markdown_file(dataset_catalog)
+    redistribution_report = build_redistribution_report(dataset_catalog)
+    redistribution_report_output = write_redistribution_report_json(redistribution_report)
+    write_redistribution_report_markdown_file(redistribution_report)
+    provenance_report = build_provenance_report(dataset_catalog)
+    provenance_report_output = write_provenance_report_json(provenance_report)
+    write_provenance_report_markdown_file(provenance_report)
     artifact_manifest_output = write_artifact_manifest()
+    with open(artifact_manifest_output, "r", encoding="utf-8") as f:
+        artifact_manifest = json.load(f)
+    hub_bundle_output = write_hub_bundle_json(
+        pipeline_metadata,
+        hub_health,
+        dataset_catalog,
+        artifact_manifest,
+    )
+    artifact_manifest_output = write_artifact_manifest()
+    zip_output = write_publishable_bundle_zip()
+    sha256_output = write_publishable_bundle_sha256(zip_output)
+    artifact_manifest_output = attach_publishable_package_to_manifest(zip_output, sha256_output)
+    with open(artifact_manifest_output, "r", encoding="utf-8") as f:
+        artifact_manifest = json.load(f)
+    hub_bundle_output = write_hub_bundle_json(
+        pipeline_metadata,
+        hub_health,
+        dataset_catalog,
+        artifact_manifest,
+    )
     print(f"Metadata y validaciones exportadas a: {metadata_output}")
     print(f"Resumen de salud exportado a: {hub_health_output}")
     print(f"Catalogo de datasets exportado a: {catalog_output}")
+    print(f"Reporte de redistribucion exportado a: {redistribution_report_output}")
+    print(f"Reporte de procedencia exportado a: {provenance_report_output}")
     print(f"Manifest de artefactos exportado a: {artifact_manifest_output}")
+    print(f"Bundle publicable exportado a: {hub_bundle_output}")
+    print(f"ZIP publicable exportado a: {zip_output}")
+    print(f"SHA256 publicable exportado a: {sha256_output}")
     
     print("\n--- Compilación del Sprint 0 completada con éxito ---")
 

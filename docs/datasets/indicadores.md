@@ -82,7 +82,8 @@ Cruces sugeridos:
 
 ## Notas legales
 
-- la fuente operativa actual es pública, pero conviene documentar de forma más estricta la política de redistribución si esta capa pasa a publicarse fuera del repo
+- la API actual es pública y está orientada a desarrolladores, pero no expone una licencia abierta explícita en la superficie revisada
+- si esta capa se redistribuye fuera del repo, conviene revisar términos vigentes de la fuente y mantener atribución visible
 
 ## Recomendación de evolución
 

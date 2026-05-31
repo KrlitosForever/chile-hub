@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-05-30T23:57:00.403864+00:00",
+  "generated_at_utc": "2026-05-31T16:57:14.689748+00:00",
   "overall_status": "ok",
   "dataset_count": 4,
   "ok_count": 4,
@@ -9,6 +9,9 @@
   "fallback_count": 0,
   "stale_count": 0,
   "unknown_freshness_count": 0,
+  "publishable_count": 3,
+  "review_terms_count": 1,
+  "unknown_reuse_count": 0,
   "warning_count": 0,
   "datasets": [
     {
@@ -17,7 +20,10 @@
       "source_mode": "live",
       "freshness_status": "fresh",
       "validation_status": "ok",
-      "warning_count": 0
+      "warning_count": 0,
+      "reuse_status": "open-attribution",
+      "redistribution_ok": true,
+      "publishability_status": "ready"
     },
     {
       "dataset": "indicadores",
@@ -25,7 +31,10 @@
       "source_mode": "live",
       "freshness_status": "fresh",
       "validation_status": "ok",
-      "warning_count": 0
+      "warning_count": 0,
+      "reuse_status": "public-api-review-terms",
+      "redistribution_ok": false,
+      "publishability_status": "review_terms"
     },
     {
       "dataset": "provincias",
@@ -33,7 +42,10 @@
       "source_mode": "live",
       "freshness_status": "fresh",
       "validation_status": "ok",
-      "warning_count": 0
+      "warning_count": 0,
+      "reuse_status": "open-attribution",
+      "redistribution_ok": true,
+      "publishability_status": "ready"
     },
     {
       "dataset": "regiones",
@@ -41,7 +53,10 @@
       "source_mode": "live",
       "freshness_status": "fresh",
       "validation_status": "ok",
-      "warning_count": 0
+      "warning_count": 0,
+      "reuse_status": "open-attribution",
+      "redistribution_ok": true,
+      "publishability_status": "ready"
     }
   ]
 }

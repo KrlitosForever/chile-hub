@@ -57,14 +57,40 @@ def verify_landing():
             fail(f"Unexpected repo href: {repo_href}")
 
         status_actions = page.locator("#status-actions .dataset-action").all_inner_texts()
-        expected_status_actions = ["Status", "Health JSON", "Health MD", "Catalog JSON", "Catalog MD", "Manifest"]
+        expected_status_actions = ["Status", "Health JSON", "Health MD", "Bundle JSON", "Reuse JSON", "Reuse MD", "Provenance JSON", "Provenance MD", "Catalog JSON", "Catalog MD", "Manifest"]
         if status_actions != expected_status_actions:
             fail(f"Unexpected status actions: {status_actions}")
 
         status_subtitle = page.locator("#status-subtitle").inner_text()
-        expected_status_subtitle = "4/4 capas operativas en modo live. Estado global: ok. Sin capas stale. Sin warnings activos."
+        expected_status_subtitle = "4/4 capas operativas en modo live. Estado global: ok. Sin capas stale. 1 capas en review_terms. Sin warnings activos."
         if status_subtitle != expected_status_subtitle:
             fail(f"Unexpected status subtitle: {status_subtitle}")
+
+        status_pills = page.locator("#status-pills .status-pill").all_inner_texts()
+        if "Review terms: 1" not in status_pills:
+            fail(f"Review terms pill not found: {status_pills}")
+
+        package_actions = page.locator("#package-actions .dataset-action").all_inner_texts()
+        if len(package_actions) != 4 or not package_actions[0].startswith("Bundle ZIP · ") or package_actions[1:] != ["SHA256", "Bundle JSON", "Manifest"]:
+            fail(f"Unexpected package actions: {package_actions}")
+
+        package_meta = page.locator("#package-meta").inner_text()
+        if "Tamaño:" not in package_meta or "sha256:" not in package_meta or "generado junto al último build" not in package_meta:
+            fail(f"Unexpected package meta: {package_meta}")
+
+        package_verify_title = page.locator(".package-verify-title").inner_text()
+        if package_verify_title != "VERIFICAR INTEGRIDAD":
+            fail(f"Unexpected package verify title: {package_verify_title}")
+
+        package_verify_line = page.locator("#package-verify-code").inner_text().splitlines()[0]
+        if package_verify_line != "shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256":
+            fail(f"Unexpected package verify command: {package_verify_line}")
+
+        package_copy = page.locator("#package-verify-copy")
+        package_copy.click()
+        page.wait_for_timeout(150)
+        if package_copy.inner_text() != "Copiado":
+            fail(f"Package verify copy button did not change label: {package_copy.inner_text()}")
 
         quickstart_titles = page.locator(".quickstart-title").all_inner_texts()
         if quickstart_titles != ["Python + helper", "DuckDB directo", "CLI y refresh local"]:
@@ -90,6 +116,12 @@ def verify_landing():
         first_card_facts = first_card.locator(".dataset-fact").all_inner_texts()
         if "FRESHNESS\nfresh ·" not in "\n".join(first_card_facts):
             fail(f"Freshness fact not found in first dataset card: {first_card_facts}")
+        if "REUSO\nopen-attribution · CC BY" not in "\n".join(first_card_facts):
+            fail(f"Reuse fact not found in first dataset card: {first_card_facts}")
+
+        first_card_meta = first_card.locator(".dataset-meta-line").inner_text()
+        if "Requiere atribución: sí" not in first_card_meta:
+            fail(f"Reuse attribution metadata not found in first dataset card: {first_card_meta}")
 
         example_title = first_card.locator(".dataset-example-title").inner_text()
         if example_title.upper() != "RECETA DE USO":
@@ -119,8 +151,8 @@ def verify_landing():
         browser.close()
 
     print(
-        "Landing verification passed: status, freshness, quickstart, artifact metadata, "
-        "dataset examples and copy interactions are working."
+        "Landing verification passed: status, package surface, freshness, reuse metadata, quickstart, "
+        "artifact metadata, dataset examples and copy interactions are working."
     )
 
 

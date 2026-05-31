@@ -10,6 +10,9 @@ NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
 DATASET_CATALOG_PATH = NORMALIZED_DIR / "dataset_catalog.json"
 ARTIFACT_MANIFEST_PATH = NORMALIZED_DIR / "artifact_manifest.json"
 HUB_HEALTH_PATH = NORMALIZED_DIR / "hub_health.json"
+HUB_BUNDLE_PATH = NORMALIZED_DIR / "hub_bundle.json"
+REDISTRIBUTION_REPORT_PATH = NORMALIZED_DIR / "redistribution_report.json"
+PROVENANCE_REPORT_PATH = NORMALIZED_DIR / "provenance_report.json"
 
 
 class ChileHub:
@@ -28,6 +31,18 @@ class ChileHub:
 
     def _load_hub_health(self):
         with HUB_HEALTH_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def _load_hub_bundle(self):
+        with HUB_BUNDLE_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def _load_redistribution_report(self):
+        with REDISTRIBUTION_REPORT_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def _load_provenance_report(self):
+        with PROVENANCE_REPORT_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
     def list_datasets(self):
@@ -72,6 +87,9 @@ class ChileHub:
                 "record_count": entry["record_count"],
                 "join_keys": entry.get("join_keys", []),
                 "confidence_tier": entry.get("confidence_tier"),
+                "reuse_status": entry.get("reuse_policy", {}).get("status"),
+                "reuse_license": entry.get("reuse_policy", {}).get("license"),
+                "attribution_required": entry.get("reuse_policy", {}).get("attribution_required"),
                 "freshness_status": entry.get("freshness", {}).get("status"),
                 "freshness_age_hours": entry.get("freshness", {}).get("age_hours"),
                 "validation_status": entry.get("validation_status"),
@@ -113,6 +131,9 @@ class ChileHub:
                     "record_count": entry.get("record_count"),
                     "validation_status": entry.get("validation_status"),
                     "confidence_tier": entry.get("confidence_tier"),
+                    "reuse_status": entry.get("reuse_policy", {}).get("status"),
+                    "reuse_license": entry.get("reuse_policy", {}).get("license"),
+                    "attribution_required": entry.get("reuse_policy", {}).get("attribution_required"),
                     "freshness_status": entry.get("freshness", {}).get("status"),
                     "freshness_age_hours": entry.get("freshness", {}).get("age_hours"),
                     "warning_count": len(entry.get("warnings", [])),
@@ -133,6 +154,19 @@ class ChileHub:
 
     def health(self):
         return self._load_hub_health()
+
+    def bundle(self):
+        return self._load_hub_bundle()
+
+    def packages(self):
+        manifest = self._load_artifact_manifest()
+        return manifest.get("packages", [])
+
+    def redistribution(self):
+        return self._load_redistribution_report()
+
+    def provenance(self):
+        return self._load_provenance_report()
 
 
 def build_parser():
@@ -169,6 +203,10 @@ def build_parser():
 
     subparsers.add_parser("inventory", help="Mostrar inventario compacto de datasets y artefactos")
     subparsers.add_parser("health", help="Mostrar salud agregada del hub")
+    subparsers.add_parser("bundle", help="Mostrar bundle consolidado del hub")
+    subparsers.add_parser("packages", help="Mostrar paquetes publicables del hub")
+    subparsers.add_parser("redistribution", help="Mostrar inventario de redistribucion del hub")
+    subparsers.add_parser("provenance", help="Mostrar inventario de procedencia del hub")
 
     subparsers.add_parser("summary", help="Mostrar resumen breve de datasets")
     return parser
@@ -206,6 +244,22 @@ def main():
 
     if args.command == "health":
         print(json.dumps(hub.health(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "bundle":
+        print(json.dumps(hub.bundle(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "packages":
+        print(json.dumps(hub.packages(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "redistribution":
+        print(json.dumps(hub.redistribution(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "provenance":
+        print(json.dumps(hub.provenance(), ensure_ascii=False, indent=2))
         return
 
     if args.command == "summary":

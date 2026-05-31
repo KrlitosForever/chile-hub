@@ -1,7 +1,7 @@
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VENV_DIR ?= .venv
 
-.PHONY: help bootstrap install-browsers doctor extract build verify verify-landing test check refresh status catalog hub-list hub-summary hub-example hub-artifacts hub-inventory hub-health clean-publishable
+.PHONY: help bootstrap install-browsers doctor extract build verify verify-landing test check refresh status catalog hub-list hub-summary hub-example hub-artifacts hub-inventory hub-health hub-bundle hub-packages hub-redistribution hub-provenance package-bundle clean-publishable
 
 help:
 	@printf "Targets disponibles:\n"
@@ -23,6 +23,11 @@ help:
 	@printf "  make hub-artifacts    Lista artefactos publicables del dataset comunas\n"
 	@printf "  make hub-inventory    Muestra inventario compacto del hub\n"
 	@printf "  make hub-health       Muestra salud agregada del hub\n"
+	@printf "  make hub-bundle       Muestra bundle consolidado del hub\n"
+	@printf "  make hub-packages     Muestra paquetes publicables del hub\n"
+	@printf "  make hub-redistribution Muestra inventario de redistribucion del hub\n"
+	@printf "  make hub-provenance   Muestra inventario de procedencia del hub\n"
+	@printf "  make package-bundle   Genera ZIP publicable desde el manifest\n"
 	@printf "  make clean-publishable Elimina artefactos livianos versionables\n"
 
 bootstrap:
@@ -83,5 +88,20 @@ hub-inventory:
 hub-health:
 	$(PYTHON) -m src.chile_hub health
 
+hub-bundle:
+	$(PYTHON) -m src.chile_hub bundle
+
+hub-packages:
+	$(PYTHON) -m src.chile_hub packages
+
+hub-redistribution:
+	$(PYTHON) -m src.chile_hub redistribution
+
+hub-provenance:
+	$(PYTHON) -m src.chile_hub provenance
+
+package-bundle:
+	$(PYTHON) scripts/package_publishable_bundle.py
+
 clean-publishable:
-	rm -f data/normalized/*.json data/normalized/*.md data/normalized/*.parquet
+	rm -f data/normalized/*.json data/normalized/*.md data/normalized/*.parquet data/normalized/*.zip

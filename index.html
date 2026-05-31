@@ -156,6 +156,7 @@
 
         .status-banner,
         .catalog-section,
+        .package-section,
         .quickstart-section {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
@@ -236,6 +237,73 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 1rem;
+        }
+
+        .package-card {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(246, 189, 96, 0.12), rgba(10, 15, 25, 0.3));
+            border: 1px solid rgba(246, 189, 96, 0.3);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
+        .package-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            max-width: 720px;
+        }
+
+        .package-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .package-desc,
+        .package-meta {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+        }
+
+        .package-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .package-verify {
+            margin-top: 1rem;
+            background: rgba(10, 15, 25, 0.45);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .package-verify-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .package-verify-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
         .quickstart-grid {
@@ -836,6 +904,27 @@
             </div>
         </section>
 
+        <section class="package-section" id="package-section">
+            <div class="package-card">
+                <div class="package-copy">
+                    <div class="package-title">Paquete descargable</div>
+                    <div class="package-desc">ZIP reproducible del hub listo para mover, adjuntar o consumir fuera del repo.</div>
+                    <div class="package-meta" id="package-meta">Generando package metadata...</div>
+                    <div class="package-verify">
+                        <div class="package-verify-head">
+                            <div class="package-verify-title">Verificar integridad</div>
+                            <button class="quickstart-copy" id="package-verify-copy" data-copy-target="package-verify-code">Copiar</button>
+                        </div>
+                        <pre class="quickstart-code" id="package-verify-code">echo "sha256 pendiente  data/normalized/chile-hub-publishable-bundle.zip" | shasum -a 256 -c -</pre>
+                    </div>
+                </div>
+                <div class="package-actions" id="package-actions">
+                    <a class="dataset-action" href="data/normalized/chile-hub-publishable-bundle.zip" target="_blank" rel="noopener noreferrer">Bundle ZIP</a>
+                    <a class="dataset-action muted" href="data/normalized/hub_bundle.json" target="_blank" rel="noopener noreferrer">Bundle JSON</a>
+                </div>
+            </div>
+        </section>
+
         <section class="catalog-section">
             <div class="catalog-header">
                 <div>
@@ -974,10 +1063,14 @@ make hub-list</pre>
         const statusSubtitle = document.getElementById("status-subtitle");
         const statusPills = document.getElementById("status-pills");
         const statusActions = document.getElementById("status-actions");
+        const packageMeta = document.getElementById("package-meta");
+        const packageActions = document.getElementById("package-actions");
+        const packageVerifyCopy = document.getElementById("package-verify-copy");
         const catalogGeneratedAt = document.getElementById("catalog-generated-at");
         const catalogGrid = document.getElementById("catalog-grid");
         const quickstartCopyButtons = document.querySelectorAll(".quickstart-copy");
         let artifactManifestByPath = {};
+        let packageManifestByPath = {};
 
         // Formateador de moneda en pesos chilenos (CLP)
         const formatCLP = new Intl.NumberFormat("es-CL", {
@@ -1022,6 +1115,13 @@ make hub-list</pre>
                 return status;
             }
             return `${status} · ${freshness.age_hours}h / ${freshness.max_age_hours}h`;
+        }
+
+        function formatReusePolicy(reusePolicy) {
+            if (!reusePolicy) return "N/D";
+            const status = reusePolicy.status || "unknown";
+            const license = reusePolicy.license;
+            return license ? `${status} · ${license}` : status;
         }
 
         function formatArtifactLabel(path, fallbackLabel) {
@@ -1137,70 +1237,102 @@ make hub-list</pre>
 
         function loadCatalog() {
             Promise.all([
-                fetch("data/normalized/dataset_catalog.json").then(res => {
-                    if (!res.ok) throw new Error("No se pudo cargar el catálogo");
+                fetch("data/normalized/hub_bundle.json").then(res => {
+                    if (!res.ok) throw new Error("No se pudo cargar el bundle");
                     return res.json();
                 }),
-                fetch("data/normalized/hub_health.json")
-                    .then(res => res.ok ? res.json() : null)
-                    .catch(() => null),
                 fetch("data/normalized/artifact_manifest.json")
                     .then(res => res.ok ? res.json() : null)
                     .catch(() => null)
             ])
-                .then(([catalog, health, manifest]) => {
+                .then(([bundle, manifest]) => {
                     artifactManifestByPath = Object.fromEntries(
                         (manifest?.artifacts || []).map(entry => [entry.path, entry])
                     );
-                    renderCatalog(catalog, health);
+                    packageManifestByPath = Object.fromEntries(
+                        (manifest?.packages || []).map(entry => [entry.path, entry])
+                    );
+                    renderCatalog(bundle);
                 })
                 .catch(err => {
                     console.error("Error cargando catálogo:", err);
                     statusSubtitle.textContent = "No se pudo cargar el estado del hub local.";
                     statusPills.innerHTML = `<span class="status-pill">Catálogo no disponible</span>`;
                     statusActions.innerHTML = `
-                        <a class="dataset-action muted" href="data/normalized/dataset_catalog.json" target="_blank" rel="noopener noreferrer">Catalog JSON</a>
+                        <a class="dataset-action muted" href="data/normalized/hub_bundle.json" target="_blank" rel="noopener noreferrer">Bundle JSON</a>
                     `;
+                    packageMeta.textContent = "Sin package metadata local";
+                    packageActions.innerHTML = `
+                        <a class="dataset-action muted" href="data/normalized/hub_bundle.json" target="_blank" rel="noopener noreferrer">Bundle JSON</a>
+                    `;
+                    document.getElementById("package-verify-code").textContent = "echo \"sha256 pendiente  data/normalized/chile-hub-publishable-bundle.zip\" | shasum -a 256 -c -";
                     catalogGeneratedAt.textContent = "Sin metadata local";
                     catalogGrid.innerHTML = `
                         <div class="dataset-card">
                             <div class="dataset-name">Catálogo no disponible</div>
-                            <div class="dataset-desc">Compila el pipeline para generar \`data/normalized/dataset_catalog.json\`.</div>
+                            <div class="dataset-desc">Compila el pipeline para generar \`data/normalized/hub_bundle.json\`.</div>
                         </div>
                     `;
                 });
         }
 
-        function renderCatalog(catalog, health) {
-            const datasets = catalog.datasets || [];
-            const liveCount = health?.live_count ?? datasets.filter(d => d.source_mode === "live").length;
-            const warningCount = health?.warning_count ?? datasets.reduce((acc, d) => acc + (d.warnings?.length || 0), 0);
-            const staleCount = health?.stale_count ?? datasets.filter(d => d.freshness?.status === "stale").length;
-            const overallStatus = health?.overall_status || "ok";
+        function renderCatalog(bundle) {
+            const datasets = bundle.datasets || [];
+            const health = bundle.health || {};
+            const liveCount = health.live_count ?? datasets.filter(d => d.source_mode === "live").length;
+            const warningCount = health.warning_count ?? datasets.reduce((acc, d) => acc + (d.warning_count || 0), 0);
+            const staleCount = health.stale_count ?? datasets.filter(d => d.freshness?.status === "stale").length;
+            const reviewTermsCount = health.review_terms_count ?? datasets.filter(d => d.publishability_status === "review_terms").length;
+            const overallStatus = bundle.overall_status || "ok";
+            const zipPackage = (bundle.packages || []).find(pkg => pkg.package_type === "zip");
+            const zipLabel = zipPackage
+                ? `Bundle ZIP · ${formatBytes(zipPackage.size_bytes)}`
+                : "Bundle ZIP";
+            const zipHash = zipPackage?.sha256 ? zipPackage.sha256.slice(0, 12) : "N/D";
+            const verifyCommand = zipPackage
+                ? `shasum -a 256 -c ${zipPackage.checksum_path}`
+                : "echo \"sha256 pendiente  data/normalized/chile-hub-publishable-bundle.zip\" | shasum -a 256 -c -";
 
-            statusSubtitle.textContent = `${liveCount}/${datasets.length} capas operativas en modo live. Estado global: ${overallStatus}. ${staleCount === 0 ? "Sin capas stale." : `${staleCount} capas stale.`} ${warningCount === 0 ? "Sin warnings activos." : `${warningCount} warnings activos.`}`;
+            statusSubtitle.textContent = `${liveCount}/${datasets.length} capas operativas en modo live. Estado global: ${overallStatus}. ${staleCount === 0 ? "Sin capas stale." : `${staleCount} capas stale.`} ${reviewTermsCount === 0 ? "Sin capas en review_terms." : `${reviewTermsCount} capas en review_terms.`} ${warningCount === 0 ? "Sin warnings activos." : `${warningCount} warnings activos.`}`;
             statusPills.innerHTML = `
                 <span class="status-pill">Estado: ${overallStatus}</span>
                 <span class="status-pill">Capas: ${datasets.length}</span>
                 <span class="status-pill">Live: ${liveCount}</span>
                 <span class="status-pill">Stale: ${staleCount}</span>
+                <span class="status-pill">Review terms: ${reviewTermsCount}</span>
                 <span class="status-pill">Warnings: ${warningCount}</span>
             `;
             statusActions.innerHTML = `
                 ${buildSimpleLink("data/normalized/pipeline_status.md", "Status")}
                 ${buildSimpleLink("data/normalized/hub_health.json", "Health JSON")}
                 ${buildSimpleLink("data/normalized/hub_health.md", "Health MD")}
+                ${buildSimpleLink("data/normalized/hub_bundle.json", "Bundle JSON")}
+                ${buildSimpleLink("data/normalized/redistribution_report.json", "Reuse JSON")}
+                ${buildSimpleLink("data/normalized/redistribution_report.md", "Reuse MD")}
+                ${buildSimpleLink("data/normalized/provenance_report.json", "Provenance JSON")}
+                ${buildSimpleLink("data/normalized/provenance_report.md", "Provenance MD")}
                 ${buildSimpleLink("data/normalized/dataset_catalog.json", "Catalog JSON")}
                 ${buildSimpleLink("data/normalized/dataset_catalog.md", "Catalog MD")}
                 ${buildSimpleLink("data/normalized/artifact_manifest.json", "Manifest")}
             `;
 
-            catalogGeneratedAt.textContent = `Actualizado: ${formatTimestamp(catalog.generated_at_utc)}`;
+            packageMeta.textContent = zipPackage
+                ? `Tamaño: ${formatBytes(zipPackage.size_bytes)} · sha256: ${zipHash} · generado junto al último build`
+                : "No hay package ZIP disponible en este build.";
+            document.getElementById("package-verify-code").textContent = verifyCommand;
+            packageActions.innerHTML = `
+                ${zipPackage ? buildSimpleLink(zipPackage.path, zipLabel) : ""}
+                ${zipPackage?.checksum_path ? buildSimpleLink(zipPackage.checksum_path, "SHA256") : ""}
+                ${buildSimpleLink("data/normalized/hub_bundle.json", "Bundle JSON")}
+                ${buildSimpleLink("data/normalized/artifact_manifest.json", "Manifest")}
+            `;
+
+            catalogGeneratedAt.textContent = `Actualizado: ${formatTimestamp(bundle.generated_at_utc)}`;
 
             catalogGrid.innerHTML = datasets.map(dataset => {
                 const outputs = Object.keys(dataset.outputs || {}).map(key => `<span class="dataset-tag">${escapeHtml(key)}</span>`).join("");
-                const warnings = (dataset.warnings && dataset.warnings.length > 0)
-                    ? dataset.warnings.map(w => `<span class="dataset-tag">${escapeHtml(w)}</span>`).join("")
+                const warnings = (dataset.warning_count && dataset.warning_count > 0)
+                    ? `<span class="dataset-tag">${escapeHtml(`${dataset.warning_count} warnings`)}</span>`
                     : `<span class="dataset-tag">sin warnings</span>`;
                 const jsonPath = dataset.outputs?.json;
                 const parquetPath = dataset.outputs?.parquet;
@@ -1240,10 +1372,15 @@ make hub-list</pre>
                                 <span class="dataset-fact-label">Freshness</span>
                                 <span class="dataset-fact-value">${escapeHtml(formatFreshness(dataset.freshness))}</span>
                             </div>
+                            <div class="dataset-fact">
+                                <span class="dataset-fact-label">Reuso</span>
+                                <span class="dataset-fact-value">${escapeHtml(formatReusePolicy(dataset.reuse_policy))}</span>
+                            </div>
                         </div>
                         <div class="dataset-meta-line">
                             Validación: <strong>${escapeHtml(dataset.validation_status || "N/D")}</strong> ·
-                            Actualizado: ${escapeHtml(formatTimestamp(dataset.refreshed_at_utc))}
+                            Actualizado: ${escapeHtml(formatTimestamp(dataset.refreshed_at_utc))} ·
+                            Requiere atribución: <strong>${dataset.reuse_policy?.attribution_required ? "sí" : "no"}</strong>
                         </div>
                         <div class="dataset-actions">
                             ${docsPath ? `<a class="dataset-action muted" href="${escapeHtml(docsPath)}" target="_blank" rel="noopener noreferrer">Docs</a>` : ""}
@@ -1261,6 +1398,13 @@ make hub-list</pre>
             }).join("");
 
             wireDatasetExampleInteractions();
+
+            if (packageVerifyCopy && !packageVerifyCopy.dataset.wired) {
+                packageVerifyCopy.addEventListener("click", () => {
+                    copyTextFromTarget(packageVerifyCopy, packageVerifyCopy.dataset.copyTarget);
+                });
+                packageVerifyCopy.dataset.wired = "true";
+            }
         }
 
         async function copyTextFromTarget(button, targetId) {

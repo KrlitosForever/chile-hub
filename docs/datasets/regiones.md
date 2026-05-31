@@ -71,7 +71,7 @@ Cruces sugeridos:
 
 ## Notas legales
 
-- al ser una capa derivada, su redistribución depende de la política aplicable a la capa comunal de origen
+- al ser una capa derivada, hereda la lógica de reutilización con atribución de la capa comunal de origen
 
 ## Recomendación de evolución
 

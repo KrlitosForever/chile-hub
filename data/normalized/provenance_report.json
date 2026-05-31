@@ -1,0 +1,56 @@
+{
+  "generated_at_utc": "2026-05-31T16:57:14.689748+00:00",
+  "dataset_count": 4,
+  "live_count": 4,
+  "fallback_count": 0,
+  "datasets": [
+    {
+      "dataset": "regiones",
+      "source_name": "BCN ArcGIS",
+      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
+      "source_mode": "live",
+      "source_detail": "bcn_arcgis",
+      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
+      "freshness_status": "fresh",
+      "freshness_label": "fresh (17.63h / 2160h)",
+      "reuse_status": "open-attribution",
+      "documentation": "docs/datasets/regiones.md"
+    },
+    {
+      "dataset": "provincias",
+      "source_name": "BCN ArcGIS",
+      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
+      "source_mode": "live",
+      "source_detail": "bcn_arcgis",
+      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
+      "freshness_status": "fresh",
+      "freshness_label": "fresh (17.63h / 2160h)",
+      "reuse_status": "open-attribution",
+      "documentation": "docs/datasets/provincias.md"
+    },
+    {
+      "dataset": "comunas",
+      "source_name": "BCN ArcGIS",
+      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
+      "source_mode": "live",
+      "source_detail": "bcn_arcgis",
+      "refreshed_at_utc": "2026-05-30T23:19:27.748102+00:00",
+      "freshness_status": "fresh",
+      "freshness_label": "fresh (17.63h / 2160h)",
+      "reuse_status": "open-attribution",
+      "documentation": "docs/datasets/comunas.md"
+    },
+    {
+      "dataset": "indicadores",
+      "source_name": "mindicador.cl",
+      "source_url": "https://mindicador.cl/api",
+      "source_mode": "live",
+      "source_detail": "public_api",
+      "refreshed_at_utc": "2026-05-30T23:19:28.799272+00:00",
+      "freshness_status": "fresh",
+      "freshness_label": "fresh (17.63h / 72h)",
+      "reuse_status": "public-api-review-terms",
+      "documentation": "docs/datasets/indicadores.md"
+    }
+  ]
+}

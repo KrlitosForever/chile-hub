@@ -1,0 +1,353 @@
+{
+  "generated_at_utc": "2026-05-31T16:57:14.689748+00:00",
+  "overall_status": "ok",
+  "dataset_count": 4,
+  "health": {
+    "ok_count": 4,
+    "warn_count": 0,
+    "error_count": 0,
+    "live_count": 4,
+    "fallback_count": 0,
+    "stale_count": 0,
+    "publishable_count": 3,
+    "review_terms_count": 1,
+    "unknown_reuse_count": 0,
+    "warning_count": 0
+  },
+  "datasets": [
+    {
+      "dataset": "regiones",
+      "description": "Capa derivada de regiones para filtros, joins y referencias administrativas de alto nivel.",
+      "source_name": "BCN ArcGIS",
+      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
+      "source_mode": "live",
+      "record_count": 16,
+      "join_keys": [
+        "codigo_region"
+      ],
+      "confidence_tier": "Tier B",
+      "reuse_policy": {
+        "status": "open-attribution",
+        "license": "CC BY",
+        "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+        "attribution_required": true,
+        "redistribution_ok": true,
+        "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."
+      },
+      "validation_status": "ok",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 17.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-31T16:57:14.689138+00:00"
+      },
+      "warning_count": 0,
+      "severity": "ok",
+      "publishability_status": "ready",
+      "documentation": "docs/datasets/regiones.md",
+      "outputs": {
+        "parquet": "data/normalized/regiones.parquet",
+        "json": "data/normalized/regiones.json",
+        "duckdb_table": "regiones",
+        "sqlite_table": "regiones",
+        "excel_sheet": "Regiones"
+      },
+      "usage_examples": {
+        "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('regiones')",
+        "duckdb": "SELECT *\nFROM 'data/normalized/regiones.parquet'\nORDER BY codigo_region;",
+        "cli": "python -m src.chile_hub show regiones"
+      },
+      "artifacts": [
+        {
+          "path": "data/normalized/regiones.json",
+          "dataset": "regiones",
+          "output_type": "json",
+          "size_bytes": 1371,
+          "sha256": "d7f3b237f53209a8021c29dae915ab42c9662aa543ba6e9896fddafdfc2bb68c"
+        },
+        {
+          "path": "data/normalized/regiones.parquet",
+          "dataset": "regiones",
+          "output_type": "parquet",
+          "size_bytes": 1318,
+          "sha256": "ac709667dc4409a090632c103519451b52fe1a82d3f9803de369c0ea82a2f78f"
+        }
+      ]
+    },
+    {
+      "dataset": "provincias",
+      "description": "Capa derivada de provincias para cruces intermedios entre region y comuna.",
+      "source_name": "BCN ArcGIS",
+      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
+      "source_mode": "live",
+      "record_count": 56,
+      "join_keys": [
+        "codigo_provincia",
+        "codigo_region"
+      ],
+      "confidence_tier": "Tier B",
+      "reuse_policy": {
+        "status": "open-attribution",
+        "license": "CC BY",
+        "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+        "attribution_required": true,
+        "redistribution_ok": true,
+        "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."
+      },
+      "validation_status": "ok",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 17.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-31T16:57:14.689187+00:00"
+      },
+      "warning_count": 0,
+      "severity": "ok",
+      "publishability_status": "ready",
+      "documentation": "docs/datasets/provincias.md",
+      "outputs": {
+        "parquet": "data/normalized/provincias.parquet",
+        "json": "data/normalized/provincias.json",
+        "duckdb_table": "provincias",
+        "sqlite_table": "provincias",
+        "excel_sheet": "Provincias"
+      },
+      "usage_examples": {
+        "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('provincias')",
+        "duckdb": "SELECT *\nFROM 'data/normalized/provincias.parquet'\nWHERE codigo_region = '13';",
+        "cli": "python -m src.chile_hub show provincias"
+      },
+      "artifacts": [
+        {
+          "path": "data/normalized/provincias.json",
+          "dataset": "provincias",
+          "output_type": "json",
+          "size_bytes": 8622,
+          "sha256": "b5e791c6228377202df557c1c933c067c44131ac23895de0ccb256b015b58344"
+        },
+        {
+          "path": "data/normalized/provincias.parquet",
+          "dataset": "provincias",
+          "output_type": "parquet",
+          "size_bytes": 2768,
+          "sha256": "04980f32989850a0575a7ce8fca5a7c2535fd497adb127d4d2b9808f9861d21c"
+        }
+      ]
+    },
+    {
+      "dataset": "comunas",
+      "description": "Base territorial normalizada para cruces por region, provincia y comuna.",
+      "source_name": "BCN ArcGIS",
+      "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
+      "source_mode": "live",
+      "record_count": 346,
+      "join_keys": [
+        "codigo_comuna",
+        "codigo_region"
+      ],
+      "confidence_tier": "Tier B",
+      "reuse_policy": {
+        "status": "open-attribution",
+        "license": "CC BY",
+        "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+        "attribution_required": true,
+        "redistribution_ok": true,
+        "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida."
+      },
+      "validation_status": "ok",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 17.63,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-05-31T16:57:14.689206+00:00"
+      },
+      "warning_count": 0,
+      "severity": "ok",
+      "publishability_status": "ready",
+      "documentation": "docs/datasets/comunas.md",
+      "outputs": {
+        "parquet": "data/normalized/comunas.parquet",
+        "json": "data/normalized/comunas.json",
+        "duckdb_table": "comunas",
+        "sqlite_table": "comunas",
+        "excel_sheet": "Comunas y Regiones"
+      },
+      "usage_examples": {
+        "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('comunas')",
+        "duckdb": "SELECT codigo_comuna, nombre_comuna, nombre_region\nFROM 'data/normalized/comunas.parquet'\nLIMIT 10;",
+        "cli": "python -m src.chile_hub path comunas --output parquet"
+      },
+      "artifacts": [
+        {
+          "path": "data/normalized/comunas.json",
+          "dataset": "comunas",
+          "output_type": "json",
+          "size_bytes": 127156,
+          "sha256": "e50565aca60a20d2efd086cc65cf2bfb89494949413d1fab5be641f99a5e2228"
+        },
+        {
+          "path": "data/normalized/comunas.parquet",
+          "dataset": "comunas",
+          "output_type": "parquet",
+          "size_bytes": 11377,
+          "sha256": "3bac210496940fb1b6bd62f0b68a9c53b80bc4a81fdf386d747ec3b1915516ec"
+        }
+      ]
+    },
+    {
+      "dataset": "indicadores",
+      "description": "Serie de indicadores economicos diarios de referencia para analisis y software.",
+      "source_name": "mindicador.cl",
+      "source_url": "https://mindicador.cl/api",
+      "source_mode": "live",
+      "record_count": 5,
+      "join_keys": [
+        "fecha",
+        "codigo_indicador"
+      ],
+      "confidence_tier": "Tier A/B",
+      "reuse_policy": {
+        "status": "public-api-review-terms",
+        "license": "No declarada explicitamente",
+        "license_url": "https://mindicador.cl/",
+        "attribution_required": true,
+        "redistribution_ok": false,
+        "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes."
+      },
+      "validation_status": "ok",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 17.63,
+        "max_age_hours": 72,
+        "checked_at_utc": "2026-05-31T16:57:14.689692+00:00"
+      },
+      "warning_count": 0,
+      "severity": "ok",
+      "publishability_status": "review_terms",
+      "documentation": "docs/datasets/indicadores.md",
+      "outputs": {
+        "parquet": "data/normalized/indicadores.parquet",
+        "json": "data/normalized/indicadores_hoy.json",
+        "duckdb_table": "indicadores",
+        "sqlite_table": "indicadores",
+        "excel_sheet": "Indicadores Diarios"
+      },
+      "usage_examples": {
+        "python": "from src.chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('indicadores')",
+        "duckdb": "SELECT *\nFROM 'data/normalized/indicadores.parquet'\nORDER BY fecha DESC, codigo_indicador;",
+        "cli": "python -m src.chile_hub show indicadores"
+      },
+      "artifacts": [
+        {
+          "path": "data/normalized/indicadores.parquet",
+          "dataset": "indicadores",
+          "output_type": "parquet",
+          "size_bytes": 1218,
+          "sha256": "9247e0c822838c9714e3073dd0c91f6526e04c212119acf7b0cf71fd62ce5b54"
+        },
+        {
+          "path": "data/normalized/indicadores_hoy.json",
+          "dataset": "indicadores",
+          "output_type": "json",
+          "size_bytes": 441,
+          "sha256": "540abce1198fb042797b0931617e51ecf34b90ba78974e4eb8e667eefc8d9b97"
+        }
+      ]
+    }
+  ],
+  "shared_artifacts": [
+    {
+      "path": "data/normalized/artifact_manifest.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 4692,
+      "sha256": "0b85e1e57961d87260d40b9b10e6ff9f42563f239847313dac6a18ad89e2095a"
+    },
+    {
+      "path": "data/normalized/dataset_catalog.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 8456,
+      "sha256": "940aa7950a3e3e61dd5cfa8185ec811d7d67549257e5fee4031ff653bb8ab182"
+    },
+    {
+      "path": "data/normalized/dataset_catalog.md",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 5944,
+      "sha256": "c0308f8e8461882bb2247932d59f6e0d9274403e09564f00190dd499da3e1647"
+    },
+    {
+      "path": "data/normalized/hub_bundle.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 12216,
+      "sha256": "e8a6bee22c3dd7f31072867a07ab61becbf215d1107f2f41c0e601965fc01960"
+    },
+    {
+      "path": "data/normalized/hub_health.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 1612,
+      "sha256": "43255f79e652462326ccdf6fb59d511bbedb78987964727bfbc97cade71bc960"
+    },
+    {
+      "path": "data/normalized/hub_health.md",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 758,
+      "sha256": "aff427d2d458e1ec5c576b216b2a2cdfa76ae5b0587e4262b776ff5b9b9b0f10"
+    },
+    {
+      "path": "data/normalized/pipeline_metadata.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 5687,
+      "sha256": "07c5ac89aa2c940cdf3122240955da47a3a05e725d7d59495478adf1ec8d4dfe"
+    },
+    {
+      "path": "data/normalized/pipeline_status.md",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 1806,
+      "sha256": "62095fc6bd92345e789833aab9a1705fa1bba90a71ada0ed34d9ac710adf7ce1"
+    },
+    {
+      "path": "data/normalized/provenance_report.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 2087,
+      "sha256": "b4f64d21bec7ca77a8fd3d898081fd816d2eb5c9ace8af7846200e1fb758c7ca"
+    },
+    {
+      "path": "data/normalized/provenance_report.md",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 2331,
+      "sha256": "9ed9a44e4b7f61d97b2975a21c4960fdc05e299c5f25e6b42e809c1b4cdd7da3"
+    },
+    {
+      "path": "data/normalized/redistribution_report.json",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 2338,
+      "sha256": "ed7f932489f1d7b1fa2c0c6557b6f92c72f93b62b7e36050bbd9e0a29ac440f8"
+    },
+    {
+      "path": "data/normalized/redistribution_report.md",
+      "dataset": null,
+      "output_type": null,
+      "size_bytes": 2286,
+      "sha256": "17efee54e155f2c5ac3a17c8c879b30fdd68b49a98b6b254b9b6414bda6be4fc"
+    }
+  ],
+  "packages": [
+    {
+      "path": "data/normalized/chile-hub-publishable-bundle.zip",
+      "package_type": "zip",
+      "size_bytes": 35423,
+      "sha256": "7460580692b4edf9c4faa2eb4838d74f777b17b093783fdd77445eec405e0b0b",
+      "checksum_path": "data/normalized/chile-hub-publishable-bundle.zip.sha256"
+    }
+  ]
+}

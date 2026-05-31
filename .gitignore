@@ -7,6 +7,8 @@ data/normalized/*
 !data/normalized/*.json
 !data/normalized/*.md
 !data/normalized/*.parquet
+!data/normalized/*.zip
+!data/normalized/*.sha256
 
 # Entornos virtuales de Python
 .venv/

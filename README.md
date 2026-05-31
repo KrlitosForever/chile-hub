@@ -124,9 +124,18 @@ El pipeline actual genera entregables locales en [`data/normalized`](/home/carlo
 - `indicadores_hoy.json`
 - `pipeline_metadata.json`
 - `pipeline_status.md`
+- `hub_health.json`
+- `hub_health.md`
+- `hub_bundle.json`
+- `redistribution_report.json`
+- `redistribution_report.md`
+- `provenance_report.json`
+- `provenance_report.md`
 - `dataset_catalog.json`
 - `dataset_catalog.md`
 - `artifact_manifest.json`
+- `chile-hub-publishable-bundle.zip`
+- `chile-hub-publishable-bundle.zip.sha256`
 
 Además, los extractores dejan metadata intermedia en `data/staging` para dejar trazabilidad de:
 
@@ -138,8 +147,10 @@ Además, los extractores dejan metadata intermedia en `data/staging` para dejar 
 Política del repo:
 
 - `data/staging` y binarios pesados locales no deberían versionarse
-- artefactos livianos de `data/normalized` como catálogos, metadata, JSON y Parquet sí pueden publicarse para hacer visible el estado real del hub
+- artefactos publicables de `data/normalized` como catálogos, metadata, JSON, Parquet, el ZIP del bundle y su sidecar `.sha256` sí pueden publicarse para hacer visible el estado real del hub
 - `artifact_manifest.json` publica hashes y tamaños para esos artefactos ligeros
+- el ZIP publicable aparece como `package` dentro del manifest, no como `artifact`, para evitar autorreferencia circular
+- el ZIP publica además un sidecar `*.sha256` para verificación directa fuera del repo
 
 ## Uso rápido
 
@@ -189,11 +200,21 @@ python -m src.chile_hub example indicadores --kind duckdb
 python -m src.chile_hub artifacts comunas
 python -m src.chile_hub inventory
 python -m src.chile_hub health
+python -m src.chile_hub bundle
+python -m src.chile_hub packages
+python -m src.chile_hub redistribution
+python -m src.chile_hub provenance
 ```
 
 `summary` e `inventory` ahora exponen también `freshness_status` y `freshness_age_hours` por capa, para detectar builds envejecidos sin tener que abrir los JSON crudos.
+También exponen `reuse_status`, `reuse_license` y si la capa requiere atribución.
 Además incluyen `warning_count`, que sube automáticamente cuando una capa queda `stale`, `unknown` o entra en fallback con advertencias operativas.
 `health` entrega una vista agregada del hub con `overall_status`, counts por severidad y breakdown por capa.
+También agrega conteos de publicabilidad: cuántas capas están listas para redistribución y cuántas siguen en `review_terms`.
+`bundle` entrega un único índice machine-readable que consolida health, catálogo y artefactos publicables por dataset.
+`packages` expone los paquetes publicables del hub, incluido el ZIP listo para descarga.
+`redistribution` entrega un inventario explícito de publicabilidad por capa con licencia, acción recomendada y cautelas de redistribución.
+`provenance` entrega un inventario explícito de procedencia efectiva por capa, incluyendo fuente, modo, detalle y timestamp del último refresh.
 
 ### SQLite
 
@@ -277,10 +298,28 @@ Revisa la salud agregada del hub:
 cat data/normalized/hub_health.json
 ```
 
+O consume el entrypoint consolidado:
+
+```bash
+cat data/normalized/hub_bundle.json
+```
+
+O genera/redistribuye el paquete descargable:
+
+```bash
+make package-bundle
+```
+
 Ese manifest ahora incluye `dataset` y `output_type` para cada artefacto publicable derivado de una capa.
 La landing reutiliza esa metadata para mostrar tipo de output y hash corto junto a los links de descarga.
 La política de `freshness` también se convierte en warnings operativos dentro de `pipeline_metadata.json` y `dataset_catalog.json` cuando una capa queda envejecida o indeterminada.
 Además se consolida en `hub_health.json` y `hub_health.md` como resumen agregado del estado del hub.
+Ese resumen ahora incluye también señales de publicabilidad agregada como `publishable_count` y `review_terms_count`.
+Además, `redistribution_report.json` y `redistribution_report.md` convierten esas señales en una vista accionable por dataset.
+`provenance_report.json` y `provenance_report.md` hacen lo mismo para la procedencia efectiva del último build.
+Para consumidores externos, `hub_bundle.json` funciona como punto único de entrada para descubrir estado, datasets, outputs y artefactos sin abrir varios archivos por separado.
+La landing local ahora usa `hub_bundle.json` como fuente primaria para renderizar estado global y capas publicadas.
+El contrato del hub publica además `reuse_policy` por dataset para distinguir capas abiertas con atribución de capas públicas cuyo régimen de redistribución todavía conviene revisar.
 
 O usa el verificador local:
 
@@ -316,6 +355,11 @@ make hub-example
 make hub-artifacts
 make hub-inventory
 make hub-health
+make hub-bundle
+make hub-redistribution
+make hub-provenance
+make hub-packages
+make package-bundle
 ```
 
 Y para un resumen humano del último estado:
@@ -328,7 +372,15 @@ Ese comando también genera `data/normalized/pipeline_status.md`.
 La landing local en `index.html` consume `dataset_catalog.json` para reflejar el estado real de las capas publicadas.
 También expone links directos a documentación y artefactos `JSON`/`Parquet` por dataset usando `dataset_catalog.json` y `artifact_manifest.json`.
 Además deja accesos rápidos a `pipeline_status.md`, `hub_health.json`, `hub_health.md`, `dataset_catalog.json`, `dataset_catalog.md` y `artifact_manifest.json`, junto con la URL fuente de cada capa.
+También expone `hub_bundle.json` como punto de entrada único para consumo automatizado.
+También expone `redistribution_report.json` y `redistribution_report.md` como vista directa de publicabilidad por capa.
+También expone `provenance_report.json` y `provenance_report.md` como vista directa de procedencia efectiva por capa.
+Y muestra el `Bundle ZIP` como descarga directa del paquete publicable.
+Además dedica un bloque visible al paquete descargable, con tamaño y hash abreviado del ZIP del último build.
+Ese mismo bloque incluye una receta copiables para verificar la integridad del ZIP con `shasum -a 256`.
 También muestra `freshness` por dataset y un conteo agregado de capas `stale` para detectar drifting del hub.
+También muestra metadata de reuso por capa, incluyendo licencia o cautela de redistribución y si requiere atribución.
+Y el banner superior resume cuántas capas siguen en `review_terms`.
 También incluye recetas breves de consumo para `Python`, `DuckDB` y la `CLI` local del proyecto.
 Esas recetas en la landing son copiables directamente desde la interfaz.
 Cada dataset card además muestra ejemplos específicos por capa para `python`, `duckdb` y `cli`, tomados desde el catálogo generado.
@@ -337,7 +389,8 @@ La landing también se puede smoke-testear en navegador con `make verify-landing
 Ese smoke test cubre estado, quick-start, metadata de artefactos, recetas por dataset y flujos de copia.
 También cubre la presencia de `freshness` en la superficie visible de la landing.
 El workflow `pipeline-check` ejecuta esa verificación de landing además del build, verify y smoke tests del helper.
-El workflow de CI publica un artifact `chile-hub-publishable-bundle` con los outputs ligeros y el manifest asociado.
+El workflow de CI publica un artifact `chile-hub-publishable-bundle` con los outputs ligeros, `hub_health`, `hub_bundle`, `redistribution_report`, el ZIP publicable y su `SHA256`, además del manifest asociado.
+El `GITHUB_STEP_SUMMARY` también incluye ahora la vista agregada de redistribución junto al estado técnico del hub.
 
 ## Criterio para crecer
 

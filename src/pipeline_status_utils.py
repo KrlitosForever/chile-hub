@@ -8,6 +8,8 @@ PIPELINE_METADATA_PATH = NORMALIZED_DIR / "pipeline_metadata.json"
 STATUS_MARKDOWN_PATH = NORMALIZED_DIR / "pipeline_status.md"
 DATASET_CATALOG_MARKDOWN_PATH = NORMALIZED_DIR / "dataset_catalog.md"
 HUB_HEALTH_MARKDOWN_PATH = NORMALIZED_DIR / "hub_health.md"
+REDISTRIBUTION_REPORT_MARKDOWN_PATH = NORMALIZED_DIR / "redistribution_report.md"
+PROVENANCE_REPORT_MARKDOWN_PATH = NORMALIZED_DIR / "provenance_report.md"
 
 
 def load_metadata(path=PIPELINE_METADATA_PATH):
@@ -32,6 +34,16 @@ def format_freshness(freshness):
     return f"{status} ({age_hours}h / {max_age_hours}h)"
 
 
+def format_reuse_policy(reuse_policy):
+    if not reuse_policy:
+        return "unknown"
+    status = reuse_policy.get("status", "unknown")
+    license_name = reuse_policy.get("license")
+    if license_name:
+        return f"{status} ({license_name})"
+    return status
+
+
 def build_hub_health(metadata):
     datasets = metadata.get("datasets", {})
     validations = metadata.get("validations", {})
@@ -44,6 +56,9 @@ def build_hub_health(metadata):
         freshness_status = dataset.get("freshness", {}).get("status", "unknown")
         source_mode = dataset.get("source_mode", "unknown")
         validation_status = validation.get("status", "unknown")
+        reuse_policy = dataset.get("reuse_policy", {})
+        redistribution_ok = reuse_policy.get("redistribution_ok")
+        reuse_status = reuse_policy.get("status", "unknown")
 
         severity = "ok"
         if validation_status != "ok":
@@ -53,6 +68,12 @@ def build_hub_health(metadata):
         elif source_mode == "fallback" or warning_count > 0:
             severity = "warn"
 
+        publishability_status = "ready"
+        if redistribution_ok is False:
+            publishability_status = "review_terms"
+        elif reuse_status == "unknown":
+            publishability_status = "unknown"
+
         entries.append(
             {
                 "dataset": dataset_name,
@@ -61,6 +82,9 @@ def build_hub_health(metadata):
                 "freshness_status": freshness_status,
                 "validation_status": validation_status,
                 "warning_count": warning_count,
+                "reuse_status": reuse_status,
+                "redistribution_ok": redistribution_ok,
+                "publishability_status": publishability_status,
             }
         )
 
@@ -81,6 +105,13 @@ def build_hub_health(metadata):
         "stale_count": sum(1 for entry in entries if entry["freshness_status"] == "stale"),
         "unknown_freshness_count": sum(
             1 for entry in entries if entry["freshness_status"] == "unknown"
+        ),
+        "publishable_count": sum(1 for entry in entries if entry["publishability_status"] == "ready"),
+        "review_terms_count": sum(
+            1 for entry in entries if entry["publishability_status"] == "review_terms"
+        ),
+        "unknown_reuse_count": sum(
+            1 for entry in entries if entry["publishability_status"] == "unknown"
         ),
         "warning_count": sum(entry["warning_count"] for entry in entries),
         "datasets": entries,
@@ -201,10 +232,13 @@ def build_hub_health_markdown(health):
         f"- `live_count`: `{health.get('live_count', 0)}`",
         f"- `fallback_count`: `{health.get('fallback_count', 0)}`",
         f"- `stale_count`: `{health.get('stale_count', 0)}`",
+        f"- `publishable_count`: `{health.get('publishable_count', 0)}`",
+        f"- `review_terms_count`: `{health.get('review_terms_count', 0)}`",
+        f"- `unknown_reuse_count`: `{health.get('unknown_reuse_count', 0)}`",
         f"- `warning_count`: `{health.get('warning_count', 0)}`",
         "",
-        "| Dataset | Severity | Mode | Freshness | Validation | Warnings |",
-        "| :--- | :--- | :--- | :--- | :--- | ---: |",
+        "| Dataset | Severity | Mode | Freshness | Publishability | Validation | Warnings |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | ---: |",
     ]
 
     for entry in health.get("datasets", []):
@@ -214,6 +248,7 @@ def build_hub_health_markdown(health):
             f"`{entry.get('severity', 'unknown')}` | "
             f"`{entry.get('source_mode', 'unknown')}` | "
             f"`{entry.get('freshness_status', 'unknown')}` | "
+            f"`{entry.get('publishability_status', 'unknown')}` | "
             f"`{entry.get('validation_status', 'unknown')}` | "
             f"{entry.get('warning_count', 0)} |"
         )
@@ -226,6 +261,97 @@ def write_hub_health_markdown_file(health, path=HUB_HEALTH_MARKDOWN_PATH):
     Path(path).write_text(build_hub_health_markdown(health), encoding="utf-8")
 
 
+def build_redistribution_report_markdown(report):
+    lines = [
+        "# chile-hub redistribution report",
+        "",
+        f"- `generated_at_utc`: `{report.get('generated_at_utc', 'unknown')}`",
+        f"- `dataset_count`: `{report.get('dataset_count', 0)}`",
+        f"- `ready_count`: `{report.get('ready_count', 0)}`",
+        f"- `review_terms_count`: `{report.get('review_terms_count', 0)}`",
+        f"- `unknown_count`: `{report.get('unknown_count', 0)}`",
+        "",
+        "| Dataset | Publishability | License | Attribution | Redistribution | Action |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- |",
+    ]
+
+    for entry in report.get("datasets", []):
+        lines.append(
+            "| "
+            f"`{entry.get('dataset', 'unknown')}` | "
+            f"`{entry.get('publishability_status', 'unknown')}` | "
+            f"{entry.get('license', 'unknown')} | "
+            f"`{'yes' if entry.get('attribution_required') else 'no'}` | "
+            f"`{'ok' if entry.get('redistribution_ok') else 'review' if entry.get('redistribution_ok') is False else 'unknown'}` | "
+            f"{entry.get('recommended_action', 'unknown')} |"
+        )
+
+    lines.append("")
+    for entry in report.get("datasets", []):
+        lines.append(f"## {entry.get('dataset', 'unknown')}")
+        lines.append("")
+        lines.append(f"- `publishability_status`: `{entry.get('publishability_status', 'unknown')}`")
+        lines.append(f"- `license`: `{entry.get('license', 'unknown')}`")
+        lines.append(f"- `license_url`: {entry.get('license_url', 'unknown')}")
+        lines.append(f"- `attribution_required`: `{entry.get('attribution_required')}`")
+        lines.append(f"- `redistribution_ok`: `{entry.get('redistribution_ok')}`")
+        lines.append(f"- `recommended_action`: {entry.get('recommended_action', 'unknown')}")
+        lines.append(f"- `summary`: {entry.get('summary', 'unknown')}")
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_redistribution_report_markdown_file(report, path=REDISTRIBUTION_REPORT_MARKDOWN_PATH):
+    Path(path).write_text(build_redistribution_report_markdown(report), encoding="utf-8")
+
+
+def build_provenance_report_markdown(report):
+    lines = [
+        "# chile-hub provenance report",
+        "",
+        f"- `generated_at_utc`: `{report.get('generated_at_utc', 'unknown')}`",
+        f"- `dataset_count`: `{report.get('dataset_count', 0)}`",
+        f"- `live_count`: `{report.get('live_count', 0)}`",
+        f"- `fallback_count`: `{report.get('fallback_count', 0)}`",
+        "",
+        "| Dataset | Source | Mode | Detail | Refreshed | Freshness | Reuse |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+    ]
+
+    for entry in report.get("datasets", []):
+        lines.append(
+            "| "
+            f"`{entry.get('dataset', 'unknown')}` | "
+            f"{entry.get('source_name', 'unknown')} | "
+            f"`{entry.get('source_mode', 'unknown')}` | "
+            f"`{entry.get('source_detail', 'unknown')}` | "
+            f"`{entry.get('refreshed_at_utc', 'unknown')}` | "
+            f"`{entry.get('freshness_label', 'unknown')}` | "
+            f"`{entry.get('reuse_status', 'unknown')}` |"
+        )
+
+    lines.append("")
+    for entry in report.get("datasets", []):
+        lines.append(f"## {entry.get('dataset', 'unknown')}")
+        lines.append("")
+        lines.append(f"- `source_name`: {entry.get('source_name', 'unknown')}")
+        lines.append(f"- `source_url`: {entry.get('source_url', 'unknown')}")
+        lines.append(f"- `source_mode`: `{entry.get('source_mode', 'unknown')}`")
+        lines.append(f"- `source_detail`: `{entry.get('source_detail', 'unknown')}`")
+        lines.append(f"- `refreshed_at_utc`: `{entry.get('refreshed_at_utc', 'unknown')}`")
+        lines.append(f"- `freshness`: `{entry.get('freshness_label', 'unknown')}`")
+        lines.append(f"- `reuse_status`: `{entry.get('reuse_status', 'unknown')}`")
+        lines.append(f"- `documentation`: `{entry.get('documentation', 'unknown')}`")
+        lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_provenance_report_markdown_file(report, path=PROVENANCE_REPORT_MARKDOWN_PATH):
+    Path(path).write_text(build_provenance_report_markdown(report), encoding="utf-8")
+
+
 def build_dataset_catalog_markdown(catalog):
     lines = [
         "# chile-hub dataset catalog",
@@ -233,8 +359,8 @@ def build_dataset_catalog_markdown(catalog):
         f"- `generated_at_utc`: `{catalog.get('generated_at_utc', 'unknown')}`",
         f"- `dataset_count`: `{catalog.get('dataset_count', 0)}`",
         "",
-        "| Dataset | Source | Mode | Freshness | Records | Confidence | Join Keys | Validation |",
-        "| :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- |",
+        "| Dataset | Source | Mode | Freshness | Reuse | Records | Confidence | Join Keys | Validation |",
+        "| :--- | :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- |",
     ]
 
     for entry in catalog.get("datasets", []):
@@ -244,6 +370,7 @@ def build_dataset_catalog_markdown(catalog):
             f"{entry.get('source_name', 'unknown')} | "
             f"`{entry.get('source_mode', 'unknown')}` | "
             f"`{format_freshness(entry.get('freshness'))}` | "
+            f"`{format_reuse_policy(entry.get('reuse_policy'))}` | "
             f"{entry.get('record_count', 'unknown')} | "
             f"`{entry.get('confidence_tier', 'unknown')}` | "
             f"`{', '.join(entry.get('join_keys', []))}` | "
@@ -260,6 +387,9 @@ def build_dataset_catalog_markdown(catalog):
         lines.append(f"- `source_url`: {entry.get('source_url', 'unknown')}")
         lines.append(f"- `documentation`: `{entry.get('documentation', 'unknown')}`")
         lines.append(f"- `freshness`: `{format_freshness(entry.get('freshness'))}`")
+        lines.append(
+            f"- `reuse_policy`: `{json.dumps(entry.get('reuse_policy', {}), ensure_ascii=False)}`"
+        )
         lines.append(f"- `fields`: `{', '.join(entry.get('fields', []))}`")
         lines.append(f"- `join_keys`: `{', '.join(entry.get('join_keys', []))}`")
         lines.append(f"- `outputs`: `{json.dumps(entry.get('outputs', {}), ensure_ascii=False)}`")
