@@ -61,7 +61,7 @@ class ChileHubTests(unittest.TestCase):
                 "regiones": "open-attribution",
                 "provincias": "open-attribution",
                 "comunas": "open-attribution",
-                "indicadores": "public-api-review-terms",
+                "indicadores": "open-attribution",
             },
         )
 
@@ -100,8 +100,8 @@ class ChileHubTests(unittest.TestCase):
         self.assertEqual(health["dataset_count"], 4)
         self.assertEqual(health["warn_count"], 0)
         self.assertEqual(health["error_count"], 0)
-        self.assertEqual(health["publishable_count"], 3)
-        self.assertEqual(health["review_terms_count"], 1)
+        self.assertEqual(health["publishable_count"], 4)
+        self.assertEqual(health["review_terms_count"], 0)
         self.assertEqual(health["unknown_reuse_count"], 0)
 
     def test_bundle_summary(self):
@@ -109,8 +109,8 @@ class ChileHubTests(unittest.TestCase):
         self.assertEqual(bundle["overall_status"], "ok")
         self.assertEqual(bundle["dataset_count"], 4)
         self.assertEqual(len(bundle["datasets"]), 4)
-        self.assertEqual(bundle["health"]["publishable_count"], 3)
-        self.assertEqual(bundle["health"]["review_terms_count"], 1)
+        self.assertEqual(bundle["health"]["publishable_count"], 4)
+        self.assertEqual(bundle["health"]["review_terms_count"], 0)
         self.assertEqual(bundle["packages"][0]["package_type"], "zip")
         self.assertTrue(bundle["packages"][0]["checksum_path"].endswith(".sha256"))
         comunas = next(entry for entry in bundle["datasets"] if entry["dataset"] == "comunas")
@@ -119,17 +119,17 @@ class ChileHubTests(unittest.TestCase):
         self.assertEqual(comunas["reuse_policy"]["status"], "open-attribution")
         self.assertEqual(comunas["publishability_status"], "ready")
         indicadores = next(entry for entry in bundle["datasets"] if entry["dataset"] == "indicadores")
-        self.assertEqual(indicadores["reuse_policy"]["status"], "public-api-review-terms")
-        self.assertEqual(indicadores["publishability_status"], "review_terms")
+        self.assertEqual(indicadores["reuse_policy"]["status"], "open-attribution")
+        self.assertEqual(indicadores["publishability_status"], "ready")
 
     def test_redistribution_report(self):
         report = self.hub.redistribution()
         self.assertEqual(report["dataset_count"], 4)
-        self.assertEqual(report["ready_count"], 3)
-        self.assertEqual(report["review_terms_count"], 1)
+        self.assertEqual(report["ready_count"], 4)
+        self.assertEqual(report["review_terms_count"], 0)
         indicadores = next(entry for entry in report["datasets"] if entry["dataset"] == "indicadores")
-        self.assertEqual(indicadores["publishability_status"], "review_terms")
-        self.assertIn("Revisar terminos vigentes", indicadores["recommended_action"])
+        self.assertEqual(indicadores["publishability_status"], "ready")
+        self.assertIn("Publicable con atribucion", indicadores["recommended_action"])
 
     def test_provenance_report(self):
         report = self.hub.provenance()
@@ -259,7 +259,7 @@ class ChileHubCliTests(unittest.TestCase):
         result = self.run_cli("health")
         self.assertIn('"overall_status": "ok"', result.stdout)
         self.assertIn('"dataset_count": 4', result.stdout)
-        self.assertIn('"review_terms_count": 1', result.stdout)
+        self.assertIn('"review_terms_count": 0', result.stdout)
 
     def test_cli_bundle(self):
         result = self.run_cli("bundle")
@@ -273,7 +273,7 @@ class ChileHubCliTests(unittest.TestCase):
 
     def test_cli_redistribution(self):
         result = self.run_cli("redistribution")
-        self.assertIn('"review_terms_count": 1', result.stdout)
+        self.assertIn('"review_terms_count": 0', result.stdout)
         self.assertIn('"dataset": "indicadores"', result.stdout)
 
     def test_cli_provenance(self):

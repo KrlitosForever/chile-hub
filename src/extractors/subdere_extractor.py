@@ -31,6 +31,14 @@ SUPPLEMENTAL_COMUNAS = [
     }
 ]
 
+# Abreviaturas oficiales por código de región (2 dígitos CUT)
+REGION_ABBREVIATIONS = {
+    "01": "TA", "02": "AN", "03": "AT", "04": "CO", "05": "VS",
+    "06": "OH", "07": "ML", "08": "BI", "09": "AR", "10": "LL",
+    "11": "AI", "12": "MG", "13": "RM", "14": "LR", "15": "AP",
+    "16": "NU",
+}
+
 # Fallback local con una muestra representativa y real de comunas de Chile (con Ñuble y comunas con ceros iniciales)
 DPA_FALLBACK_DATA = [
     # Región de Arica y Parinacota (Código 15)
@@ -72,17 +80,59 @@ def write_metadata(metadata):
     with open(METADATA_PATH, "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
 
+
+def extract_coords(feature: dict) -> tuple:
+    """
+    Extrae (latitud, longitud) de un feature ArcGIS REST en WGS84 (outSR=4326).
+    Soporta geometría puntual (Point) y poligonal (Polygon).
+    Para polígonos calcula el centroide simple del anillo exterior.
+    Retorna (0.0, 0.0) si la geometría está ausente o fuera del rango de Chile.
+    """
+    geom = feature.get("geometry")
+    if not geom:
+        return 0.0, 0.0
+
+    if "x" in geom and "y" in geom:
+        # Geometría puntual: x = longitud, y = latitud en WGS84
+        lon, lat = float(geom["x"]), float(geom["y"])
+    elif "rings" in geom:
+        # Geometría poligonal: centroide simple del anillo exterior
+        rings = geom.get("rings", [])
+        if not rings or not rings[0]:
+            return 0.0, 0.0
+        exterior = rings[0]
+        lons = [pt[0] for pt in exterior]
+        lats = [pt[1] for pt in exterior]
+        lon = sum(lons) / len(lons)
+        lat = sum(lats) / len(lats)
+    else:
+        return 0.0, 0.0
+
+    # Chile: lat -90..0, lon -180..0 (incluye Isla de Pascua y Territorio Antártico)
+    if not (-90.0 <= lat <= 0.0 and -180.0 <= lon <= 0.0):
+        return 0.0, 0.0
+
+    return round(lat, 6), round(lon, 6)
+
+
 def fetch_bcn_comunas():
     print(f"Intentando descargar base territorial desde BCN ArcGIS: {BCN_COMUNAS_SERVICE_URL}")
     params = {
         "where": "1=1",
         "outFields": "nom_reg,nom_prov,nom_com,cod_comuna,codregion",
-        "returnGeometry": "false",
+        "returnGeometry": "true",   # Solicitar geometría para extraer coordenadas
+        "outSR": "4326",             # WGS84: x=longitud, y=latitud
         "f": "json",
     }
-    response = requests.get(BCN_COMUNAS_SERVICE_URL, params=params, timeout=20)
+    response = requests.get(BCN_COMUNAS_SERVICE_URL, params=params, timeout=90)
     response.raise_for_status()
     payload = response.json()
+    # Persistir snapshot raw para trazabilidad
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    raw_path = os.path.join(RAW_DIR, f"bcn_comunas_{timestamp}.json")
+    with open(raw_path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False)
+    print(f"Snapshot raw BCN guardado en: {raw_path}")
     features = payload.get("features", [])
     if not features:
         raise ValueError("BCN ArcGIS did not return features")
@@ -98,17 +148,18 @@ def fetch_bcn_comunas():
         codigo_comuna = codigo_comuna.rjust(5, "0")
         codigo_region = str(int(attrs["codregion"])).rjust(2, "0")
         codigo_provincia = codigo_comuna[:3]
+        lat, lon = extract_coords(feature)
         records.append(
             {
                 "codigo_region": codigo_region,
                 "nombre_region": attrs["nom_reg"],
-                "abreviatura": "",
+                "abreviatura": REGION_ABBREVIATIONS.get(codigo_region, ""),
                 "codigo_provincia": codigo_provincia,
                 "nombre_provincia": attrs["nom_prov"],
                 "codigo_comuna": codigo_comuna,
                 "nombre_comuna": attrs["nom_com"],
-                "latitud_cabecera": 0.0,
-                "longitud_cabecera": 0.0,
+                "latitud_cabecera": lat,
+                "longitud_cabecera": lon,
                 "poblacion_estimada": 0,
             }
         )
@@ -231,6 +282,7 @@ def normalize_dpa():
         .str.replace_all("ó", "o")
         .str.replace_all("ú", "u")
         .str.replace_all("ü", "u")
+        .str.replace_all("ñ", "n")   # Ej: "Ñuñoa" → "nunoa"
         .alias("nombre_comuna_clean")
     )
     

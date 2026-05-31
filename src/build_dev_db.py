@@ -125,12 +125,12 @@ DATASET_CATALOG_CONFIG = {
         "join_keys": ["fecha", "codigo_indicador"],
         "confidence_tier": "Tier A/B",
         "reuse_policy": {
-            "status": "public-api-review-terms",
-            "license": "No declarada explicitamente",
-            "license_url": "https://mindicador.cl/",
+            "status": "open-attribution",
+            "license": "Reproducción libre con citación (BCCh / INE)",
+            "license_url": "https://www.bcentral.cl/web/banco-central/terminos-y-condiciones",
             "attribution_required": True,
-            "redistribution_ok": False,
-            "summary": "API publica orientada a desarrolladores; antes de redistribuir fuera del repo conviene revisar terminos vigentes.",
+            "redistribution_ok": True,
+            "summary": "Datos del Banco Central de Chile (BCCh) e INE. Libre reproducción con citación. Acceso vía mindicador.cl (API pública de la comunidad).",
         },
         "freshness_policy": {
             "max_age_hours": 72,
