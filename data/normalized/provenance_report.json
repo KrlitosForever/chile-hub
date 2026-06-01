@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-01T15:38:38.360107+00:00",
+  "generated_at_utc": "2026-06-01T16:00:48.413368+00:00",
   "dataset_count": 4,
   "live_count": 4,
   "fallback_count": 0,
@@ -10,9 +10,9 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "freshness_status": "fresh",
-      "freshness_label": "fresh (0.01h / 2160h)",
+      "freshness_label": "fresh (0.02h / 2160h)",
       "reuse_status": "open-attribution",
       "documentation": "docs/datasets/regiones.md"
     },
@@ -22,9 +22,9 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "freshness_status": "fresh",
-      "freshness_label": "fresh (0.01h / 2160h)",
+      "freshness_label": "fresh (0.02h / 2160h)",
       "reuse_status": "open-attribution",
       "documentation": "docs/datasets/provincias.md"
     },
@@ -34,9 +34,9 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "freshness_status": "fresh",
-      "freshness_label": "fresh (0.01h / 2160h)",
+      "freshness_label": "fresh (0.02h / 2160h)",
       "reuse_status": "open-attribution",
       "documentation": "docs/datasets/comunas.md"
     },
@@ -48,7 +48,7 @@
       "source_detail": "public_api",
       "refreshed_at_utc": "2026-06-01T15:38:37.668778+00:00",
       "freshness_status": "fresh",
-      "freshness_label": "fresh (0.0h / 72h)",
+      "freshness_label": "fresh (0.37h / 72h)",
       "reuse_status": "open-attribution",
       "documentation": "docs/datasets/indicadores.md"
     }

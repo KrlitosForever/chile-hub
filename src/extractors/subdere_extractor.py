@@ -358,6 +358,34 @@ def normalize_dpa():
     else:
         print("Advertencia: tabla de referencia de coordenadas no encontrada.")
 
+    # ── Enriquecimiento de población desde tabla de referencia INE 2022 ───────────
+    # Fuente: INE Estimaciones y Proyecciones de Población, base Censo 2017.
+    # Aplica el valor a cualquier comuna con poblacion_estimada == 0.
+    _pob_csv = os.path.join(
+        os.path.dirname(__file__), "../data/comunas_poblacion.csv"
+    )
+    if os.path.exists(_pob_csv):
+        pob_ref = pl.read_csv(
+            _pob_csv,
+            schema_overrides={"codigo_comuna": pl.String, "poblacion_estimada": pl.Int32},
+        ).rename({"poblacion_estimada": "_pob_ref"})
+        df_clean = (
+            df_clean
+            .with_columns(pl.col("codigo_comuna").cast(pl.String))
+            .join(pob_ref, on="codigo_comuna", how="left")
+            .with_columns(
+                pl.when(pl.col("poblacion_estimada") == 0)
+                  .then(pl.col("_pob_ref"))
+                  .otherwise(pl.col("poblacion_estimada"))
+                  .alias("poblacion_estimada")
+            )
+            .drop("_pob_ref")
+        )
+        _pob_filled = df_clean.filter(pl.col("poblacion_estimada") > 0).height
+        print(f"Población: {_pob_filled}/{df_clean.height} comunas con datos INE 2022.")
+    else:
+        print("Advertencia: tabla de referencia de población INE no encontrada.")
+
     output_path = os.path.join(STAGING_DIR, "comunas.csv")
     df_clean.write_csv(output_path)
     source_name = "SUBDERE"
@@ -375,6 +403,11 @@ def normalize_dpa():
         "record_count": len(df_clean),
         "fields": df_clean.columns,
         "notes": notes,
+        "poblacion_source": (
+            "BCN ArcGIS Capa_Factores campo ppobing022 (Censo 2022)"
+            if source_detail == "bcn_arcgis"
+            else "fallback_embedded_sample_sin_poblacion"
+        ),
     }
     write_metadata(metadata)
     print(f"Guardada DPA normalizada en: {output_path} (Total registros: {len(df_clean)})")

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-01T15:38:38.360107+00:00",
+  "generated_at_utc": "2026-06-01T16:00:48.413368+00:00",
   "datasets": {
     "regiones": {
       "dataset": "regiones",
@@ -7,7 +7,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "record_count": 16,
       "fields": [
         "codigo_region",
@@ -17,6 +17,7 @@
         "bcn_skipped_null_code_records: 1",
         "bcn_supplemented_missing_comunas: 1"
       ],
+      "poblacion_source": "BCN ArcGIS Capa_Factores campo ppobing022 (Censo 2022)",
       "reuse_policy": {
         "status": "open-attribution",
         "license": "CC BY",
@@ -27,9 +28,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.01,
+        "age_hours": 0.02,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-01T15:38:38.359860+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.412876+00:00"
       },
       "degradation": {
         "status": "none",
@@ -55,7 +56,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "record_count": 56,
       "fields": [
         "codigo_region",
@@ -67,6 +68,7 @@
         "bcn_skipped_null_code_records: 1",
         "bcn_supplemented_missing_comunas: 1"
       ],
+      "poblacion_source": "BCN ArcGIS Capa_Factores campo ppobing022 (Censo 2022)",
       "reuse_policy": {
         "status": "open-attribution",
         "license": "CC BY",
@@ -77,9 +79,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.01,
+        "age_hours": 0.02,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-01T15:38:38.359886+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.412922+00:00"
       },
       "degradation": {
         "status": "none",
@@ -105,7 +107,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "record_count": 346,
       "fields": [
         "codigo_region",
@@ -124,6 +126,7 @@
         "bcn_skipped_null_code_records: 1",
         "bcn_supplemented_missing_comunas: 1"
       ],
+      "poblacion_source": "BCN ArcGIS Capa_Factores campo ppobing022 (Censo 2022)",
       "reuse_policy": {
         "status": "open-attribution",
         "license": "CC BY",
@@ -134,9 +137,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.01,
+        "age_hours": 0.02,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-01T15:38:38.359893+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.412933+00:00"
       },
       "degradation": {
         "status": "none",
@@ -189,9 +192,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.0,
+        "age_hours": 0.37,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-06-01T15:38:38.360066+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.413312+00:00"
       },
       "degradation": {
         "status": "none",
@@ -220,7 +223,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.01
+      "freshness_age_hours": 0.02
     },
     "provincias": {
       "dataset": "provincias",
@@ -229,7 +232,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.01
+      "freshness_age_hours": 0.02
     },
     "comunas": {
       "dataset": "comunas",
@@ -238,7 +241,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.01
+      "freshness_age_hours": 0.02
     },
     "indicadores": {
       "dataset": "indicadores",
@@ -254,7 +257,7 @@
         "utm"
       ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.0
+      "freshness_age_hours": 0.37
     }
   }
 }

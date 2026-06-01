@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-01T15:38:38.360107+00:00",
+  "generated_at_utc": "2026-06-01T16:00:48.413368+00:00",
   "dataset_count": 4,
   "datasets": [
     {
@@ -9,7 +9,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "record_count": 16,
       "fields": [
         "codigo_region",
@@ -29,9 +29,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.01,
+        "age_hours": 0.02,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-01T15:38:38.359860+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.412876+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -81,7 +81,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "record_count": 56,
       "fields": [
         "codigo_region",
@@ -104,9 +104,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.01,
+        "age_hours": 0.02,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-01T15:38:38.359886+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.412922+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -156,7 +156,7 @@
       "source_url": "https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query",
       "source_mode": "live",
       "source_detail": "bcn_arcgis",
-      "refreshed_at_utc": "2026-06-01T15:38:12.156192+00:00",
+      "refreshed_at_utc": "2026-06-01T15:59:50.538076+00:00",
       "record_count": 346,
       "fields": [
         "codigo_region",
@@ -186,9 +186,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.01,
+        "age_hours": 0.02,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-01T15:38:38.359893+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.412933+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -260,9 +260,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.0,
+        "age_hours": 0.37,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-06-01T15:38:38.360066+00:00"
+        "checked_at_utc": "2026-06-01T16:00:48.413312+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 72,
