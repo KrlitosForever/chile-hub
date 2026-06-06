@@ -1184,6 +1184,18 @@ make hub-list</pre>
                 : buildStatus;
         }
 
+        function computeAttentionPriority(dataset, runtimeFreshness) {
+            const warningCount = dataset.warning_count ?? 0;
+            const runtimeStatus = runtimeFreshness?.status || "unknown";
+            if (warningCount > 0 || runtimeStatus === "stale" || runtimeStatus === "unknown") {
+                return 0;
+            }
+            if (dataset.drift?.status === "drifted" || dataset.degradation?.status === "warning" || dataset.degradation?.status === "degraded") {
+                return 1;
+            }
+            return 2;
+        }
+
         function formatCoverage(coverage) {
             if (!coverage) return "N/D";
             const status = coverage.status || "unknown";
@@ -1432,7 +1444,16 @@ make hub-list</pre>
 
             catalogGeneratedAt.textContent = `Actualizado: ${formatTimestamp(bundle.generated_at_utc)}`;
 
-            catalogGrid.innerHTML = datasets.map(dataset => {
+            const orderedDatasets = [...datasets].sort((left, right) => {
+                const leftFreshness = runtimeFreshnessByDataset[left.dataset] || { status: "unknown" };
+                const rightFreshness = runtimeFreshnessByDataset[right.dataset] || { status: "unknown" };
+                const leftPriority = computeAttentionPriority(left, leftFreshness);
+                const rightPriority = computeAttentionPriority(right, rightFreshness);
+                if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+                return left.dataset.localeCompare(right.dataset, "es");
+            });
+
+            catalogGrid.innerHTML = orderedDatasets.map(dataset => {
                 const runtimeFreshness = runtimeFreshnessByDataset[dataset.dataset] || { status: "unknown" };
                 const needsAttention = (dataset.warning_count ?? 0) > 0
                     || runtimeFreshness.status === "stale"

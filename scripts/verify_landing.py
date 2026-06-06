@@ -185,7 +185,7 @@ def verify_landing():
 
         first_card = page.locator(".dataset-card").first
         first_card_name = first_card.locator(".dataset-name").inner_text()
-        if first_card_name != "regiones":
+        if first_card_name != "indicadores":
             fail(f"Unexpected first dataset card: {first_card_name}")
 
         first_card_actions = first_card.locator(".dataset-action").all_inner_texts()
@@ -197,14 +197,14 @@ def verify_landing():
             fail(f"Unexpected artifact metadata: {artifact_meta}")
 
         first_card_facts = first_card.locator(".dataset-fact").all_inner_texts()
-        expected_first_runtime_status = runtime_freshness["regiones"]["status"]
+        expected_first_runtime_status = runtime_freshness["indicadores"]["status"]
         if f"FRESHNESS\n{expected_first_runtime_status} ·" not in "\n".join(first_card_facts):
             fail(f"Freshness fact not found in first dataset card: {first_card_facts}")
         if "COVERAGE\n" not in "\n".join(first_card_facts):
             fail(f"Coverage fact not found in first dataset card: {first_card_facts}")
         if "DRIFT\n" not in "\n".join(first_card_facts):
             fail(f"Drift fact not found in first dataset card: {first_card_facts}")
-        if "REUSO\nopen-attribution · CC BY" not in "\n".join(first_card_facts):
+        if "REUSO\nopen-attribution · Reproducción libre con citación (BCCh / INE)" not in "\n".join(first_card_facts):
             fail(f"Reuse fact not found in first dataset card: {first_card_facts}")
         if "DEGRADACIÓN\n" not in "\n".join(first_card_facts):
             fail(f"Degradation fact not found in first dataset card: {first_card_facts}")
@@ -213,7 +213,7 @@ def verify_landing():
         if "Requiere atribución: sí" not in first_card_meta:
             fail(f"Reuse attribution metadata not found in first dataset card: {first_card_meta}")
         provenance_meta = first_card.locator(".dataset-meta-line").nth(1).inner_text()
-        if "Procedencia técnica:" not in provenance_meta or "bcn_arcgis" not in provenance_meta or "Warnings: 0" not in provenance_meta:
+        if "Procedencia técnica:" not in provenance_meta or "public_api" not in provenance_meta or "Warnings: 1" not in provenance_meta:
             fail(f"Technical provenance metadata not found in first dataset card: {provenance_meta}")
         freshness_meta = first_card.locator(".dataset-meta-line").nth(2).inner_text()
         if "Freshness build:" not in freshness_meta or "Freshness actual:" not in freshness_meta:
