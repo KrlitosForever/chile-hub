@@ -144,6 +144,8 @@ class ChileHubTests(unittest.TestCase):
             4,
         )
         self.assertTrue(overview["current_checked_at_utc"])
+        self.assertIsNotNone(overview["top_issue"])
+        self.assertEqual(overview["top_issue"]["dataset"], "indicadores")
         self.assertEqual(overview["primary_package"]["package_type"], "zip")
         self.assertEqual(
             overview["primary_package"]["checksum_path"],
@@ -162,6 +164,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("chile-hub overview", table)
         self.assertIn("build_overall_status", table)
         self.assertIn("current_overall_status", table)
+        self.assertIn("top_issue", table)
         self.assertIn("dataset      mode      validation", table)
         self.assertIn("indicadores", table)
 
@@ -179,6 +182,8 @@ class ChileHubTests(unittest.TestCase):
         self.assertEqual(runtime["fresh_count"] + runtime["stale_count"] + runtime["unknown_count"], 4)
         self.assertEqual(runtime["dataset_count"], 4)
         self.assertEqual(len(runtime["datasets"]), 4)
+        self.assertIsNotNone(runtime["top_issue"])
+        self.assertEqual(runtime["top_issue"]["dataset"], "indicadores")
         indicadores = next(entry for entry in runtime["datasets"] if entry["dataset"] == "indicadores")
         self.assertIn(indicadores["build_freshness_status"], {"fresh", "stale", "unknown"})
         self.assertIn(indicadores["current_freshness_status"], {"fresh", "stale", "unknown"})
@@ -190,6 +195,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("chile-hub runtime status", table)
         self.assertIn("build=", table)
         self.assertIn("current=", table)
+        self.assertIn("top_issue=indicadores", table)
         self.assertIn("dataset      mode      severity", table)
         self.assertIn("indicadores", table)
 
@@ -218,6 +224,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn(f"status_build: {self.health['overall_status']}", snapshot)
         self.assertIn("status_current:", snapshot)
         self.assertIn("current_freshness:", snapshot)
+        self.assertIn("top_issue: indicadores", snapshot)
         self.assertIn("package: data/normalized/chile-hub-publishable-bundle.zip", snapshot)
         self.assertIn("verify: shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256", snapshot)
         self.assertIn("- comunas:", snapshot)
@@ -232,6 +239,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("current_fresh", snapshot)
         self.assertIn("current_stale", snapshot)
         self.assertIn("current_unknown", snapshot)
+        self.assertIn("top_issue", snapshot)
         self.assertIn("package_path", snapshot)
         self.assertIn("dataset      mode      validation  build      current", snapshot)
         self.assertIn("comunas", snapshot)
@@ -600,6 +608,7 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn(f"status_build: {self.health['overall_status']}", result.stdout)
         self.assertIn("status_current:", result.stdout)
         self.assertIn("current_freshness:", result.stdout)
+        self.assertIn("top_issue: indicadores", result.stdout)
         self.assertIn("package: data/normalized/chile-hub-publishable-bundle.zip", result.stdout)
         self.assertIn("verify: shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256", result.stdout)
 
@@ -608,6 +617,7 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn("chile-hub snapshot table", result.stdout)
         self.assertIn("build_overall_status", result.stdout)
         self.assertIn("current_overall_status", result.stdout)
+        self.assertIn("top_issue", result.stdout)
         self.assertIn("current_fresh", result.stdout)
         self.assertIn("dataset      mode      validation  build      current", result.stdout)
         self.assertIn("comunas", result.stdout)
@@ -615,6 +625,7 @@ class ChileHubCliTests(unittest.TestCase):
     def test_cli_overview(self):
         result = self.run_cli("overview")
         self.assertIn('"overall_status":', result.stdout)
+        self.assertIn('"top_issue": {', result.stdout)
         self.assertIn('"shared_artifact_count":', result.stdout)
         self.assertIn('"primary_package": {', result.stdout)
         self.assertIn('"verification_command": "shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256"', result.stdout)
@@ -625,6 +636,7 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn("chile-hub overview", result.stdout)
         self.assertIn("build_overall_status", result.stdout)
         self.assertIn("current_overall_status", result.stdout)
+        self.assertIn("top_issue", result.stdout)
         self.assertIn("dataset      mode      validation", result.stdout)
         self.assertIn("indicadores", result.stdout)
 
@@ -658,6 +670,7 @@ class ChileHubCliTests(unittest.TestCase):
         result = self.run_cli("runtime-status")
         self.assertIn('"build_overall_status":', result.stdout)
         self.assertIn('"current_overall_status":', result.stdout)
+        self.assertIn('"top_issue": {', result.stdout)
         self.assertIn('"checked_at_utc":', result.stdout)
         self.assertIn('"dataset": "indicadores"', result.stdout)
 

@@ -252,6 +252,7 @@ Ahora también puede emitirse como tabla compacta con `--output table`.
 `overview` entrega una vista compacta del estado actual del hub: counts agregados, reportes publicados, `build_overall_status`, `current_overall_status` y estado breve por capa.
 Ahora también incluye un resumen del package principal, con checksum y comando exacto de verificación.
 También puede emitirse como tabla compacta con `overview --format table`.
+También publica `top_issue` cuando existe una capa con atención operativa prioritaria.
 `snapshot` entrega una versión humana y rápida de ese mismo estado para leer desde terminal sin navegar JSON.
 También distingue explícitamente entre `status_build` y `status_current`, para no mezclar la salud persistida del último build con la frescura recalculada contra el reloj actual.
 Ahora también deja explícita la diferencia entre la frescura persistida del último build y la frescura recalculada contra el reloj actual.
@@ -262,6 +263,7 @@ También puede emitirse como tabla compacta con `snapshot --format table`.
 También puede emitirse como tabla compacta con `freshness-audit --format table`.
 `runtime-status` combina en una sola salida el estado global del build, el estado global actual recalculado y una fila breve por dataset con build/current freshness, coverage, drift y warnings.
 También puede emitirse como tabla compacta con `runtime-status --format table`.
+Esa vista también publica `top_issue` para mantener la misma prioridad operativa que usa la landing.
 Esa misma vista también se publica como `overview.json` y `overview.md` dentro de `data/normalized/`.
 `redistribution` entrega un inventario explícito de publicabilidad por capa con licencia, acción recomendada y cautelas de redistribución.
 También puede emitirse como tabla compacta con `redistribution --format table`.
