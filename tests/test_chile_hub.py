@@ -199,6 +199,14 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("dataset      mode      severity", table)
         self.assertIn("indicadores", table)
 
+    def test_top_issue(self):
+        top_issue = self.hub.top_issue()
+        self.assertIsNotNone(top_issue)
+        self.assertEqual(top_issue["dataset"], "indicadores")
+        self.assertIn(top_issue["build_freshness_status"], {"fresh", "stale", "unknown"})
+        self.assertIn(top_issue["current_freshness_status"], {"fresh", "stale", "unknown"})
+        self.assertIn(top_issue["drift_status"], {"healthy", "drifted"})
+
     def test_primary_package_and_verification(self):
         package = self.hub.primary_package()
         verification = self.hub.package_verification()
@@ -681,6 +689,16 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn("current=", result.stdout)
         self.assertIn("dataset      mode      severity", result.stdout)
         self.assertIn("indicadores", result.stdout)
+
+    def test_cli_top_issue(self):
+        result = self.run_cli("top-issue")
+        self.assertIn('"dataset": "indicadores"', result.stdout)
+        self.assertIn('"drift_status": "drifted"', result.stdout)
+
+    def test_cli_top_issue_text(self):
+        result = self.run_cli("top-issue", "--format", "text")
+        self.assertIn("chile-hub top issue", result.stdout)
+        self.assertIn("dataset=indicadores", result.stdout)
 
     def test_cli_packages(self):
         result = self.run_cli("packages")

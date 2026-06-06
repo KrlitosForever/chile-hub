@@ -1041,6 +1041,16 @@ def build_parser():
         default="json",
         help="Formato de salida de runtime-status",
     )
+    top_issue_parser = subparsers.add_parser(
+        "top-issue",
+        help="Mostrar la capa prioritaria que requiere atención operativa",
+    )
+    top_issue_parser.add_argument(
+        "--format",
+        choices=["json", "text"],
+        default="json",
+        help="Formato de salida de top-issue",
+    )
     packages_parser = subparsers.add_parser("packages", help="Mostrar paquetes publicables del hub")
     packages_parser.add_argument(
         "--format",
@@ -1181,6 +1191,25 @@ def main():
             print(hub.runtime_status_table(), end="")
         else:
             print(json.dumps(hub.runtime_status(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "top-issue":
+        top_issue = hub.top_issue()
+        if args.format == "text":
+            if not top_issue:
+                print("chile-hub top issue\n\nSin top issue activo.\n", end="")
+            else:
+                print(
+                    "chile-hub top issue\n\n"
+                    f"dataset={top_issue.get('dataset')} | "
+                    f"build={top_issue.get('build_freshness_status', 'unknown')} | "
+                    f"current={top_issue.get('current_freshness_status', 'unknown')} | "
+                    f"drift={top_issue.get('drift_status', 'unknown')} | "
+                    f"warnings={top_issue.get('warning_count', 0)}\n",
+                    end="",
+                )
+        else:
+            print(json.dumps(top_issue, ensure_ascii=False, indent=2))
         return
 
     if args.command == "packages":

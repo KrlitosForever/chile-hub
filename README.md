@@ -220,6 +220,8 @@ python -m src.chile_hub freshness-audit
 python -m src.chile_hub freshness-audit --format table
 python -m src.chile_hub runtime-status
 python -m src.chile_hub runtime-status --format table
+python -m src.chile_hub top-issue
+python -m src.chile_hub top-issue --format text
 python -m src.chile_hub packages
 python -m src.chile_hub packages --format table
 python -m src.chile_hub package
@@ -264,6 +266,7 @@ También puede emitirse como tabla compacta con `freshness-audit --format table`
 `runtime-status` combina en una sola salida el estado global del build, el estado global actual recalculado y una fila breve por dataset con build/current freshness, coverage, drift y warnings.
 También puede emitirse como tabla compacta con `runtime-status --format table`.
 Esa vista también publica `top_issue` para mantener la misma prioridad operativa que usa la landing.
+`top-issue` expone directamente esa capa prioritaria sin tener que leer `overview` o `runtime-status` completos.
 Esa misma vista también se publica como `overview.json` y `overview.md` dentro de `data/normalized/`.
 `redistribution` entrega un inventario explícito de publicabilidad por capa con licencia, acción recomendada y cautelas de redistribución.
 También puede emitirse como tabla compacta con `redistribution --format table`.
@@ -430,6 +433,8 @@ make hub-freshness-audit
 make hub-freshness-audit-table
 make hub-runtime-status
 make hub-runtime-status-table
+make hub-top-issue
+make hub-top-issue-text
 make hub-packages
 make hub-packages-table
 make hub-package
