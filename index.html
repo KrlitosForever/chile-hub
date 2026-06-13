@@ -626,6 +626,24 @@
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
         }
 
+        .monedario-bridge {
+            padding: 0.85rem 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .monedario-bridge p { color: var(--text-secondary); font-size: 0.82rem; line-height: 1.55; }
+        .monedario-bridge strong { color: var(--text-primary); }
+        .monedario-bridge a {
+            display: inline-block;
+            margin-top: 0.55rem;
+            color: var(--accent-cyan);
+            font-size: 0.8rem;
+            font-weight: 650;
+            text-decoration: none;
+        }
+        .monedario-bridge a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
         .dataset-tag {
             font-size: 0.78rem;
             padding: 0.35rem 0.55rem;
@@ -1047,6 +1065,8 @@
         .dataset-example-code, .quickstart-code { color: #193b31; background: #f3f3ef; border-color: #deddd6; }
         .dataset-example-tab { border-radius: 4px; }
         .dataset-example-tab.active { color: #fff; background: #174f3f; border-color: #174f3f; }
+        .monedario-bridge { border-color: #deddd6; }
+        .monedario-bridge a { color: #174f3f; }
 
         .dataset-action, .quickstart-copy, .btn {
             border-radius: 6px;

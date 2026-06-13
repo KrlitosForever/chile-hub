@@ -207,6 +207,17 @@ function buildDatasetExample(dataset, preferredKind = "python") {
     `;
 }
 
+function buildMonedarioBridge(dataset) {
+    if (dataset.dataset !== "indicadores") return "";
+
+    return `
+        <aside class="monedario-bridge" aria-label="Contexto financiero en Monedario">
+            <p><strong>¿Qué significan estos indicadores para tu bolsillo?</strong> Chile Hub publica los datos; Monedario explica cómo la UF, el IPC y los reajustes aparecen en arriendos, créditos y otros gastos cotidianos.</p>
+            <a href="https://monedario.cl/guias/uf-costo-de-vida/" target="_blank" rel="noopener noreferrer">Entender la UF y la inflación en Monedario <span aria-hidden="true">→</span></a>
+        </aside>
+    `;
+}
+
 function activateDatasetExample(container, nextKind) {
     const examples = JSON.parse(container.dataset.examples || "{}");
     if (!examples[nextKind]) return;
@@ -548,6 +559,7 @@ function renderCatalog(bundle) {
                 ${buildArtifactMeta(parquetPath)}
                 ${buildArtifactMeta(jsonPath)}
                 ${buildDatasetExample(dataset)}
+                ${buildMonedarioBridge(dataset)}
                 <div class="dataset-tags">${outputs}</div>
                 <div class="dataset-tags">${warnings}</div>
                 </details>

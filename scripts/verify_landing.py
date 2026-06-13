@@ -360,6 +360,18 @@ def verify_landing():
         if not copied_class:
             fail("Dataset example copy button did not activate copied class")
 
+        monedario_bridges = page.locator(".monedario-bridge")
+        if monedario_bridges.count() != 1:
+            fail(f"Expected one Monedario bridge, found {monedario_bridges.count()}")
+        monedario_bridge = page.locator("#dataset-indicadores .monedario-bridge")
+        if monedario_bridge.count() != 1:
+            fail("Monedario bridge must belong to the indicadores card")
+        if "Chile Hub publica los datos; Monedario explica" not in monedario_bridge.inner_text():
+            fail(f"Unexpected Monedario bridge copy: {monedario_bridge.inner_text()}")
+        monedario_href = monedario_bridge.get_by_role("link").get_attribute("href")
+        if monedario_href != "https://monedario.cl/guias/uf-costo-de-vida/":
+            fail(f"Unexpected Monedario href: {monedario_href}")
+
         top_issue_card = (
             page.locator(".dataset-card")
             .filter(has=page.locator(".dataset-name", has_text=top_issue_dataset))
