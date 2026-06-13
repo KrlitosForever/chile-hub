@@ -699,6 +699,8 @@ function loadKPIs() {
             return res.json();
         })
         .then(data => {
+            // Ordenar por fecha descendente para que find() retorne el valor mas reciente
+            data.sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
             const findValue = (code) => data.find(i => i.codigo_indicador === code);
 
             updateKPICard("kpi-uf", findValue("uf"));
