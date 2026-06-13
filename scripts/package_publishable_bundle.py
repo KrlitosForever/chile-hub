@@ -33,9 +33,7 @@ def list_package_paths(manifest, root_dir=ROOT_DIR):
 
 def build_zip(manifest, output_path=OUTPUT_ZIP_PATH):
     artifact_paths = list_artifact_paths(manifest)
-    missing = [
-        str(path.relative_to(ROOT_DIR)) for path in artifact_paths if not path.exists()
-    ]
+    missing = [str(path.relative_to(ROOT_DIR)) for path in artifact_paths if not path.exists()]
     if missing:
         raise FileNotFoundError(f"Missing publishable artifacts: {', '.join(missing)}")
 
@@ -50,9 +48,7 @@ def clean_publishable(manifest, root_dir=ROOT_DIR):
     removed = []
     seen = set()
     manifest_path = Path(root_dir) / MANIFEST_PATH.relative_to(ROOT_DIR)
-    paths = list_artifact_paths(manifest, root_dir) + list_package_paths(
-        manifest, root_dir
-    )
+    paths = list_artifact_paths(manifest, root_dir) + list_package_paths(manifest, root_dir)
     ordered_paths = [path for path in paths if path != manifest_path] + [
         path for path in paths if path == manifest_path
     ]

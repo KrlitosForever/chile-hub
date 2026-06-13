@@ -82,9 +82,7 @@ class SubdereExtractorTests(unittest.TestCase):
             self.assertEqual(len(list(Path(tmpdir).glob("bcn_comunas_*.json"))), 1)
 
     def test_fetch_bcn_comunas_raises_on_http_error(self):
-        with patch.object(
-            subdere_extractor, "_stealth_get", return_value=mock_response({}, 503)
-        ):
+        with patch.object(subdere_extractor, "_stealth_get", return_value=mock_response({}, 503)):
             with self.assertRaises(HTTPError):
                 subdere_extractor.fetch_bcn_comunas()
 
@@ -97,9 +95,7 @@ class SubdereExtractorTests(unittest.TestCase):
                 patch.object(subdere_extractor, "fetch_bcn_comunas") as fetch,
             ):
                 fetch.return_value = (
-                    subdere_extractor.pl.DataFrame(
-                        subdere_extractor.DPA_FALLBACK_DATA[:2]
-                    ),
+                    subdere_extractor.pl.DataFrame(subdere_extractor.DPA_FALLBACK_DATA[:2]),
                     0,
                     0,
                     0,
@@ -136,8 +132,7 @@ class BCentralExtractorTests(unittest.TestCase):
             "codigo": codigo,
             "serie": [
                 {
-                    "fecha": datetime.date(year, 1, index + 1).isoformat()
-                    + "T00:00:00.000Z",
+                    "fecha": datetime.date(year, 1, index + 1).isoformat() + "T00:00:00.000Z",
                     "valor": 39000.0 + index,
                 }
                 for index in range(count)
@@ -158,14 +153,10 @@ class BCentralExtractorTests(unittest.TestCase):
 
             self.assertEqual(len(records), 3)
             self.assertEqual(records[0]["codigo_indicador"], "uf")
-            self.assertEqual(
-                len(list(Path(tmpdir).glob("mindicador_uf_2026_*.json"))), 1
-            )
+            self.assertEqual(len(list(Path(tmpdir).glob("mindicador_uf_2026_*.json"))), 1)
 
     def test_fetch_indicator_year_raises_on_http_error(self):
-        with patch.object(
-            bcentral_extractor.requests, "get", return_value=mock_response({}, 503)
-        ):
+        with patch.object(bcentral_extractor.requests, "get", return_value=mock_response({}, 503)):
             with self.assertRaises(HTTPError):
                 bcentral_extractor.fetch_indicator_year("uf", 2026)
 
@@ -175,9 +166,7 @@ class BCentralExtractorTests(unittest.TestCase):
         def fetch(codigo, year):
             if codigo == "uf":
                 raise HTTPError("503")
-            return [
-                {"fecha": f"{year}-01-01", "codigo_indicador": codigo, "valor": 1.0}
-            ]
+            return [{"fecha": f"{year}-01-01", "codigo_indicador": codigo, "valor": 1.0}]
 
         with (
             patch.object(
@@ -187,21 +176,15 @@ class BCentralExtractorTests(unittest.TestCase):
             ),
             patch.object(bcentral_extractor, "HISTORY_START_YEAR", current_year),
             patch.object(bcentral_extractor, "fetch_indicator_year", side_effect=fetch),
-            patch.object(
-                bcentral_extractor, "load_latest_raw_snapshot", return_value=[]
-            ),
+            patch.object(bcentral_extractor, "load_latest_raw_snapshot", return_value=[]),
             patch.object(bcentral_extractor.time, "sleep"),
         ):
             df, diagnostics = bcentral_extractor.fetch_all_history()
 
         self.assertIsNotNone(df)
-        self.assertTrue(
-            any(item.startswith("uf/") for item in diagnostics["fetch_failures"])
-        )
+        self.assertTrue(any(item.startswith("uf/") for item in diagnostics["fetch_failures"]))
         self.assertNotIn("uf", set(df["codigo_indicador"].unique()))
-        self.assertEqual(
-            set(df["codigo_indicador"].unique()), {"dolar", "euro", "utm", "ipc"}
-        )
+        self.assertEqual(set(df["codigo_indicador"].unique()), {"dolar", "euro", "utm", "ipc"})
 
 
 class BaseExtractorContractTests(unittest.TestCase):
@@ -216,9 +199,7 @@ class BaseExtractorContractTests(unittest.TestCase):
 
     def test_concrete_extractors_publish_dataset_names(self):
         self.assertEqual(subdere_extractor.SubdereExtractor().dataset_name, "comunas")
-        self.assertEqual(
-            bcentral_extractor.BCentralExtractor().dataset_name, "indicadores"
-        )
+        self.assertEqual(bcentral_extractor.BCentralExtractor().dataset_name, "indicadores")
 
     def test_concrete_write_staging_persists_csv_and_metadata(self):
         df = bcentral_extractor.generate_fallback_indicators()
