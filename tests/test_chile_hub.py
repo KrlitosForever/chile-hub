@@ -1070,6 +1070,8 @@ class ChileHubCliTests(unittest.TestCase):
 
 class WorkflowContractTests(unittest.TestCase):
     CRITICAL_UPLOAD_PATHS = {
+        "data/normalized/comunas_enriquecidas.parquet",
+        "data/normalized/comunas_enriquecidas.json",
         "data/normalized/pipeline_status.md",
         "data/normalized/hub_status.json",
         "data/normalized/hub_health.json",

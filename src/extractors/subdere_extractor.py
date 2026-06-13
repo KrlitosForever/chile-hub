@@ -668,6 +668,14 @@ class SubdereExtractor(BaseExtractor):
         ensure_directories()
         output_path = Path(STAGING_DIR) / "comunas.csv"
         df.write_csv(output_path)
+        write_metadata(
+            {
+                **metadata,
+                "dataset": self.dataset_name,
+                "record_count": df.height,
+                "fields": df.columns,
+            }
+        )
         return output_path
 
 

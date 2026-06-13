@@ -1,4 +1,5 @@
 import datetime
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -193,6 +194,24 @@ class BaseExtractorContractTests(unittest.TestCase):
     def test_concrete_extractors_publish_dataset_names(self):
         self.assertEqual(subdere_extractor.SubdereExtractor().dataset_name, "comunas")
         self.assertEqual(bcentral_extractor.BCentralExtractor().dataset_name, "indicadores")
+
+    def test_concrete_write_staging_persists_csv_and_metadata(self):
+        df = bcentral_extractor.generate_fallback_indicators()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            csv_path = Path(tmpdir) / "indicadores.csv"
+            metadata_path = Path(tmpdir) / "indicadores.metadata.json"
+            with (
+                patch.object(bcentral_extractor, "STAGING_CSV_PATH", str(csv_path)),
+                patch.object(bcentral_extractor, "METADATA_PATH", str(metadata_path)),
+            ):
+                bcentral_extractor.BCentralExtractor().write_staging(
+                    df, {"source_mode": "fallback"}
+                )
+
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            self.assertTrue(csv_path.exists())
+            self.assertEqual(metadata["dataset"], "indicadores")
+            self.assertEqual(metadata["record_count"], df.height)
 
 
 if __name__ == "__main__":

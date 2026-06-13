@@ -90,10 +90,12 @@ jobs:
             data/normalized/regiones.parquet
             data/normalized/provincias.parquet
             data/normalized/comunas.parquet
+            data/normalized/comunas_enriquecidas.parquet
             data/normalized/indicadores.parquet
             data/normalized/regiones.json
             data/normalized/provincias.json
             data/normalized/comunas.json
+            data/normalized/comunas_enriquecidas.json
             data/normalized/indicadores_hoy.json
             data/normalized/pipeline_metadata.json
             data/normalized/pipeline_status.md

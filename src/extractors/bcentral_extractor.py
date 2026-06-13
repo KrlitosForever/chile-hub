@@ -385,6 +385,15 @@ class BCentralExtractor(BaseExtractor):
         ensure_directories()
         output_path = Path(STAGING_CSV_PATH)
         df.write_csv(output_path)
+        write_metadata(
+            {
+                **metadata,
+                "dataset": self.dataset_name,
+                "record_count": df.height,
+                "fields": df.columns,
+                "reuse_policy": REUSE_POLICY,
+            }
+        )
         return output_path
 
 
