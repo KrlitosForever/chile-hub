@@ -22,9 +22,13 @@ import polars as pl
 import requests
 
 try:
-    from src.extractors.base import BaseExtractor, ensure_staging_directories
+    from src.extractors.base import (
+        BaseExtractor,
+        ensure_staging_directories,
+        write_staging_metadata,
+    )
 except ModuleNotFoundError:
-    from base import BaseExtractor, ensure_staging_directories
+    from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
 
 # ── Rutas ─────────────────────────────────────────────────────────────────────
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
@@ -71,13 +75,12 @@ def ensure_directories() -> None:
 
 
 def write_metadata(metadata: dict) -> None:
-    with open(METADATA_PATH, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    write_staging_metadata(METADATA_PATH, metadata)
 
 
 def save_raw_snapshot(payload: dict, codigo: str, year: int) -> None:
     """Persiste la respuesta cruda de la API para trazabilidad y auditoría."""
-    timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
     filename = f"mindicador_{codigo}_{year}_{timestamp}.json"
     path = os.path.join(RAW_DIR, filename)
     with open(path, "w", encoding="utf-8") as f:
@@ -364,7 +367,7 @@ def process_indicators() -> str:
         "source_origin_url": "https://www.bcentral.cl/web/banco-central/estadisticas",
         "source_mode": source_mode,
         "source_detail": source_detail,
-        "refreshed_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "indicator_codes": indicator_codes,

@@ -4,8 +4,9 @@ import subprocess
 import sys
 import unittest
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import ClassVar
 
 import polars as pl
 
@@ -436,9 +437,9 @@ class ChileHubTests(unittest.TestCase):
             entry for entry in audit["datasets"] if entry["dataset"] == "indicadores"
         )
         refreshed_at = datetime.fromisoformat(indicadores["refreshed_at_utc"]).astimezone(
-            timezone.utc
+            UTC
         )
-        age_hours = max((datetime.now(timezone.utc) - refreshed_at).total_seconds() / 3600, 0)
+        age_hours = max((datetime.now(UTC) - refreshed_at).total_seconds() / 3600, 0)
         expected_status = "fresh" if age_hours <= indicadores["max_age_hours"] else "stale"
         self.assertEqual(indicadores["current_freshness_status"], expected_status)
 
@@ -1098,7 +1099,7 @@ class ChileHubCliTests(unittest.TestCase):
 
 
 class WorkflowContractTests(unittest.TestCase):
-    CRITICAL_UPLOAD_PATHS = {
+    CRITICAL_UPLOAD_PATHS: ClassVar[set[str]] = {
         "data/normalized/comunas_enriquecidas.parquet",
         "data/normalized/comunas_enriquecidas.json",
         "data/normalized/pipeline_status.md",
@@ -1115,12 +1116,12 @@ class WorkflowContractTests(unittest.TestCase):
         "data/normalized/chile-hub-publishable-bundle.zip",
         "data/normalized/chile-hub-publishable-bundle.zip.sha256",
     }
-    QUICK_STATUS_PATHS = {
+    QUICK_STATUS_PATHS: ClassVar[set[str]] = {
         "data/normalized/hub_status.json",
         "data/normalized/hub_health.json",
         "data/normalized/hub_bundle.json",
     }
-    HUMAN_SUMMARY_PATHS_IN_ORDER = [
+    HUMAN_SUMMARY_PATHS_IN_ORDER: ClassVar[list[str]] = [
         "data/normalized/overview.md",
         "data/normalized/hub_health.md",
         "data/normalized/redistribution_report.md",
@@ -1129,7 +1130,7 @@ class WorkflowContractTests(unittest.TestCase):
         "data/normalized/pipeline_status.md",
         "data/normalized/dataset_catalog.md",
     ]
-    CRITICAL_STEP_NAMES_IN_ORDER = [
+    CRITICAL_STEP_NAMES_IN_ORDER: ClassVar[list[str]] = [
         "Run extractors",
         "Build outputs",
         "Verify pipeline artifacts",

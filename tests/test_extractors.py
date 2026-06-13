@@ -82,9 +82,11 @@ class SubdereExtractorTests(unittest.TestCase):
             self.assertEqual(len(list(Path(tmpdir).glob("bcn_comunas_*.json"))), 1)
 
     def test_fetch_bcn_comunas_raises_on_http_error(self):
-        with patch.object(subdere_extractor, "_stealth_get", return_value=mock_response({}, 503)):
-            with self.assertRaises(HTTPError):
-                subdere_extractor.fetch_bcn_comunas()
+        with (
+            patch.object(subdere_extractor, "_stealth_get", return_value=mock_response({}, 503)),
+            self.assertRaises(HTTPError),
+        ):
+            subdere_extractor.fetch_bcn_comunas()
 
     def test_normalize_dpa_writes_required_columns(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -156,9 +158,11 @@ class BCentralExtractorTests(unittest.TestCase):
             self.assertEqual(len(list(Path(tmpdir).glob("mindicador_uf_2026_*.json"))), 1)
 
     def test_fetch_indicator_year_raises_on_http_error(self):
-        with patch.object(bcentral_extractor.requests, "get", return_value=mock_response({}, 503)):
-            with self.assertRaises(HTTPError):
-                bcentral_extractor.fetch_indicator_year("uf", 2026)
+        with (
+            patch.object(bcentral_extractor.requests, "get", return_value=mock_response({}, 503)),
+            self.assertRaises(HTTPError),
+        ):
+            bcentral_extractor.fetch_indicator_year("uf", 2026)
 
     def test_fetch_all_history_continues_after_one_indicator_fails(self):
         current_year = datetime.date.today().year

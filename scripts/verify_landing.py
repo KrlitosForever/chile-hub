@@ -2,7 +2,7 @@ import contextlib
 import json
 import socket
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -37,8 +37,8 @@ def parse_iso_datetime(value):
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
+        return parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
 def compute_runtime_freshness(dataset):
@@ -46,7 +46,7 @@ def compute_runtime_freshness(dataset):
     max_age_hours = dataset.get("freshness", {}).get("max_age_hours")
     if refreshed_at is None or not isinstance(max_age_hours, (int, float)):
         return {"status": "unknown", "age_hours": None, "max_age_hours": max_age_hours}
-    age_hours = max((datetime.now(timezone.utc) - refreshed_at).total_seconds() / 3600, 0)
+    age_hours = max((datetime.now(UTC) - refreshed_at).total_seconds() / 3600, 0)
     return {
         "status": "fresh" if age_hours <= max_age_hours else "stale",
         "age_hours": round(age_hours, 2),
@@ -78,11 +78,9 @@ def get_free_port():
 
 @contextlib.contextmanager
 def local_server():
-    handler = lambda *args, **kwargs: LandingRequestHandler(  # noqa: E731
-        *args,
-        directory=str(ROOT_DIR),
-        **kwargs,
-    )
+    def handler(*args, **kwargs):
+        return LandingRequestHandler(*args, directory=str(ROOT_DIR), **kwargs)
+
     port = get_free_port()
     server = ThreadingHTTPServer(("127.0.0.1", port), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)

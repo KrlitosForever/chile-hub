@@ -1,6 +1,6 @@
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import polars as pl
@@ -790,7 +790,7 @@ class ChileHub:
         return "\n".join(lines) + "\n"
 
     def freshness_audit(self):
-        checked_at = datetime.now(timezone.utc)
+        checked_at = datetime.now(UTC)
         datasets = []
         fresh_count = 0
         stale_count = 0

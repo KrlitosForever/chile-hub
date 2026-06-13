@@ -1,15 +1,19 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import polars as pl
 import requests
 
 try:
-    from src.extractors.base import BaseExtractor, ensure_staging_directories
+    from src.extractors.base import (
+        BaseExtractor,
+        ensure_staging_directories,
+        write_staging_metadata,
+    )
 except ModuleNotFoundError:
-    from base import BaseExtractor, ensure_staging_directories
+    from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
 
 # curl_cffi impersona el fingerprint TLS de Chrome, evitando bloqueos a nivel de TLS
 # que rechazan al user-agent por defecto de la librería requests de Python.
@@ -325,8 +329,7 @@ def ensure_directories():
 
 
 def write_metadata(metadata):
-    with open(METADATA_PATH, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    write_staging_metadata(METADATA_PATH, metadata)
 
 
 def extract_coords(feature: dict) -> tuple:
@@ -375,7 +378,7 @@ def fetch_bcn_comunas():
     response.raise_for_status()
     payload = response.json()
     # Persistir snapshot raw para trazabilidad
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     raw_path = os.path.join(RAW_DIR, f"bcn_comunas_{timestamp}.json")
     with open(raw_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False)
@@ -634,7 +637,7 @@ def normalize_dpa():
         "source_url": source_url,
         "source_mode": source_mode,
         "source_detail": source_detail,
-        "refreshed_at_utc": datetime.now(timezone.utc).isoformat(),
+        "refreshed_at_utc": datetime.now(UTC).isoformat(),
         "record_count": len(df_clean),
         "fields": df_clean.columns,
         "notes": notes,

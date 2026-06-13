@@ -1,5 +1,6 @@
 """Contrato comun para extractores de chile-hub."""
 
+import json
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -13,6 +14,12 @@ def ensure_staging_directories() -> None:
     """Crea data/raw/ y data/staging/ si no existen."""
     os.makedirs(_RAW_DIR, exist_ok=True)
     os.makedirs(_STAGING_DIR, exist_ok=True)
+
+
+def write_staging_metadata(path: str, metadata: dict) -> None:
+    """Persiste el metadata.json de un dataset en staging."""
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False, indent=2)
 
 
 class BaseExtractor(ABC):

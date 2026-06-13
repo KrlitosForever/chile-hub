@@ -46,9 +46,9 @@ class PipelineLogicTests(unittest.TestCase):
             with (
                 patch("src.build_dev_db.NORMALIZED_DIR", str(normalized_dir)),
                 patch("src.build_dev_db.DATA_DIR", str(data_dir)),
+                self.assertRaisesRegex(SystemExit, "no-existe.parquet"),
             ):
-                with self.assertRaisesRegex(SystemExit, "no-existe.parquet"):
-                    write_publishable_bundle_zip()
+                write_publishable_bundle_zip()
 
             self.assertFalse((normalized_dir / "chile-hub-publishable-bundle.zip").exists())
 
