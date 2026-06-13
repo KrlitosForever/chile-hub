@@ -9,6 +9,20 @@ from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 BUNDLE_PATH = ROOT_DIR / "data" / "normalized" / "hub_bundle.json"
+PRODUCTION_CSP = (
+    "default-src 'self'; base-uri 'self'; form-action 'self' https://formspree.io; "
+    "frame-ancestors 'none'; object-src 'none'; "
+    "script-src 'self' https://analytics.ahrefs.com; style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: https:; font-src 'self'; "
+    "connect-src 'self' https://analytics.ahrefs.com https://formspree.io; "
+    "manifest-src 'self'; media-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
+)
+
+
+class LandingRequestHandler(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Content-Security-Policy", PRODUCTION_CSP)
+        super().end_headers()
 
 
 def fail(message):
@@ -65,7 +79,7 @@ def get_free_port():
 
 @contextlib.contextmanager
 def local_server():
-    handler = lambda *args, **kwargs: SimpleHTTPRequestHandler(  # noqa: E731
+    handler = lambda *args, **kwargs: LandingRequestHandler(  # noqa: E731
         *args,
         directory=str(ROOT_DIR),
         **kwargs,
@@ -145,7 +159,18 @@ def verify_landing():
     with local_server() as url, sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1440, "height": 1600})
+        browser_errors = []
+        page.on(
+            "console",
+            lambda message: (
+                browser_errors.append(message.text) if message.type == "error" else None
+            ),
+        )
+        page.on("pageerror", lambda error: browser_errors.append(str(error)))
         page.goto(url, wait_until="networkidle")
+
+        if browser_errors:
+            fail(f"Browser errors while rendering landing: {browser_errors}")
 
         repo_href = page.get_by_role("link", name="GitHub Repo").get_attribute("href")
         if repo_href != "https://github.com/cortega26/chile-hub":
