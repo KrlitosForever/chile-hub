@@ -133,13 +133,16 @@ def load_existing_staging():
     Retorna `(DataFrame, año_a_refrescar, published_backfills)` o
     `(None, None, [])` si no existe o no puede leerse.
     """
-    if not os.path.exists(STAGING_CSV_PATH):
-        return None, None, []
     try:
-        df = pl.read_csv(
-            STAGING_CSV_PATH,
-            schema_overrides={"fecha": pl.String},
-        ).with_columns(pl.col("fecha").str.to_date("%Y-%m-%d"))
+        if os.path.exists(STAGING_CSV_PATH):
+            df = pl.read_csv(
+                STAGING_CSV_PATH,
+                schema_overrides={"fecha": pl.String},
+            ).with_columns(pl.col("fecha").str.to_date("%Y-%m-%d"))
+        elif os.path.exists(PUBLISHED_INDICATORS_PATH):
+            df = pl.read_parquet(PUBLISHED_INDICATORS_PATH)
+        else:
+            return None, None, []
         missing_codes = sorted(
             set(INDICATOR_CODES) - set(df["codigo_indicador"].unique().to_list())
         )
@@ -203,7 +206,14 @@ def fetch_all_history():
                     new_records.extend(records)
                     refreshed_pairs.add((codigo, year))
                 else:
-                    diagnostics["empty_live_pairs"].append(f"{codigo}/{year}")
+                    pair = f"{codigo}/{year}"
+                    diagnostics["empty_live_pairs"].append(pair)
+                    if existing_df is not None:
+                        has_published_history = existing_df.filter(
+                            pl.col("codigo_indicador") == codigo
+                        ).height > 0
+                        if has_published_history:
+                            diagnostics["published_backfills"].append(codigo)
             except Exception as e:
                 diagnostics["fetch_failures"].append(f"{codigo}/{year}: {e}")
                 print(f"  Advertencia: no se pudo obtener {codigo}/{year}: {e}")
@@ -220,6 +230,8 @@ def fetch_all_history():
     if not new_records:
         print("Error: no se obtuvieron datos de mindicador.cl.")
         return None, diagnostics
+
+    diagnostics["published_backfills"] = sorted(set(diagnostics["published_backfills"]))
 
     new_df = pl.DataFrame(new_records).with_columns(
         pl.col("fecha").str.to_date("%Y-%m-%d"),

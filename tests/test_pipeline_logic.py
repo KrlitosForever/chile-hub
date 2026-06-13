@@ -536,6 +536,57 @@ class IndicatorFallbackTests(unittest.TestCase):
         self.assertEqual(metadata["source_detail"], "public_api_with_published_backfill")
         self.assertEqual(metadata["indicator_delivery"]["ipc"], "published_backfill")
 
+    def test_empty_live_series_reuses_published_pair(self):
+        today = datetime.date.today()
+        published = self._make_minimal_df()
+        live_records = [
+            {
+                "fecha": today.strftime("%Y-%m-%d"),
+                "codigo_indicador": code,
+                "valor": 2.0,
+            }
+            for code in sorted(EXPECTED_INDICATOR_CODES - {"ipc"})
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            published_path = Path(tmpdir) / "indicadores.parquet"
+            published.write_parquet(published_path)
+            with (
+                patch.object(
+                    bcentral_extractor,
+                    "STAGING_CSV_PATH",
+                    str(Path(tmpdir) / "missing.csv"),
+                ),
+                patch.object(
+                    bcentral_extractor,
+                    "PUBLISHED_INDICATORS_PATH",
+                    str(published_path),
+                ),
+                patch.object(
+                    bcentral_extractor,
+                    "INDICATOR_CODES",
+                    sorted(EXPECTED_INDICATOR_CODES),
+                ),
+                patch.object(
+                    bcentral_extractor,
+                    "fetch_indicator_year",
+                    side_effect=lambda code, year: (
+                        []
+                        if code == "ipc"
+                        else [
+                            record
+                            for record in live_records
+                            if record["codigo_indicador"] == code
+                        ]
+                    ),
+                ),
+                patch.object(bcentral_extractor.time, "sleep"),
+            ):
+                df, diagnostics = bcentral_extractor.fetch_all_history()
+
+        self.assertEqual(set(df["codigo_indicador"].unique()), EXPECTED_INDICATOR_CODES)
+        self.assertEqual(diagnostics["empty_live_pairs"], [f"ipc/{today.year}"])
+        self.assertEqual(diagnostics["published_backfills"], ["ipc"])
+
 
 if __name__ == "__main__":
     unittest.main()
