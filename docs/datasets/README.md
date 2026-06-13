@@ -15,6 +15,7 @@ Cada ficha busca responder cinco preguntas rápido:
 - [regiones](./regiones.md)
 - [provincias](./provincias.md)
 - [comunas](./comunas.md)
+- [comunas_enriquecidas](./comunas_enriquecidas.md)
 - [indicadores](./indicadores.md)
 
 ## Convenciones de confianza

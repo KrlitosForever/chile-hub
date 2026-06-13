@@ -1,6 +1,6 @@
 # 🇨🇱 chile-hub
 
-[![Status](https://img.shields.io/badge/status-alpha-orange.svg)]()
+[![Status](https://img.shields.io/badge/status-v0.1-0ea5e9.svg)]()
 [![License](https://img.shields.io/badge/license-CC--BY--4.0-blue.svg)]()
 [![Website](https://img.shields.io/badge/website-cortega26.github.io%2Fchile-hub-0ea5e9.svg)](https://cortega26.github.io/chile-hub/)
 
@@ -45,11 +45,11 @@ El valor del proyecto está en transformar esas fuentes en capas listas para usa
 
 ## Estado actual
 
-El repo hoy parte con un MVP acotado:
+El repo hoy publica cinco datasets curados:
 
-- capas territoriales derivadas: regiones, provincias y comunas
-- capa territorial base: regiones, provincias y comunas
-- indicadores económicos diarios de alta reutilización
+- regiones, provincias y comunas (DPA territorial con códigos CUT)
+- comunas enriquecidas (coordenadas y población INE, listas para análisis)
+- indicadores económicos diarios (UF, Dólar, Euro, UTM, IPC desde 2010)
 
 Eso no define el límite del producto. Define el punto de partida.
 
@@ -109,6 +109,23 @@ Serie de indicadores económicos diarios de referencia.
 | `fecha` | `DATE` | Fecha de aplicación (YYYY-MM-DD) | `2026-05-30` |
 | `codigo_indicador` | `VARCHAR` | Identificador corto (`uf`, `dolar`, `utm`, `euro`) | `"uf"` |
 | `valor` | `DOUBLE` | Valor del indicador | `39420.50` |
+
+### 5. `comunas_enriquecidas`
+
+Capa lista para análisis territorial sin necesidad de joins adicionales. Incluye coordenadas de cabecera y población estimada INE para cada comuna.
+
+| Columna | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| `codigo_comuna` | `VARCHAR` | Código CUT de la comuna (5 chars) | `"01101"` |
+| `nombre_comuna` | `VARCHAR` | Nombre oficial normalizado | `"Iquique"` |
+| `nombre_comuna_clean` | `VARCHAR` | Nombre sin acentos para búsquedas | `"iquique"` |
+| `codigo_provincia` | `VARCHAR` | Código CUT de la provincia (3 chars) | `"011"` |
+| `nombre_provincia` | `VARCHAR` | Nombre oficial de la provincia | `"Iquique"` |
+| `codigo_region` | `VARCHAR` | Código CUT de la región (2 chars) | `"01"` |
+| `nombre_region` | `VARCHAR` | Nombre oficial de la región | `"Tarapacá"` |
+| `latitud_cabecera` | `DOUBLE` | Latitud de la capital comunal | `-20.2138` |
+| `longitud_cabecera` | `DOUBLE` | Longitud de la capital comunal | `-70.1508` |
+| `poblacion_estimada` | `INTEGER` | Población estimada INE (base Censo 2017) | `223400` |
 
 ## Outputs disponibles
 
