@@ -456,7 +456,7 @@ function renderCatalog(bundle) {
                         ${needsAttention ? `<span class="dataset-badge attention">atención</span>` : ""}
                     </div>
                 </div>
-                <div class="dataset-facts">
+                <div class="dataset-facts dataset-facts-primary">
                     <div class="dataset-fact">
                         <span class="dataset-fact-label">Fuente</span>
                         <span class="dataset-fact-value">${escapeHtml(dataset.source_name || "N/D")}</span>
@@ -466,16 +466,25 @@ function renderCatalog(bundle) {
                         <span class="dataset-fact-value">${escapeHtml(recordCount)}</span>
                     </div>
                     <div class="dataset-fact">
+                        <span class="dataset-fact-label">Freshness</span>
+                        <span class="dataset-fact-value">${escapeHtml(formatFreshness(runtimeFreshness))}</span>
+                    </div>
+                </div>
+                <div class="dataset-actions">
+                    ${buildArtifactLink(parquetPath, "Parquet")}
+                    ${buildArtifactLink(jsonPath, "JSON")}
+                    ${docsPath ? `<a class="dataset-action muted" href="${escapeHtml(docsPath)}" target="_blank" rel="noopener noreferrer">Docs</a>` : ""}
+                </div>
+                <details class="dataset-details">
+                    <summary>Metadatos, fuente y recetas</summary>
+                    <div class="dataset-facts">
+                    <div class="dataset-fact">
                         <span class="dataset-fact-label">Join keys</span>
                         <span class="dataset-fact-value">${escapeHtml((dataset.join_keys || []).join(", ") || "N/D")}</span>
                     </div>
                     <div class="dataset-fact">
                         <span class="dataset-fact-label">Confianza</span>
                         <span class="dataset-fact-value">${escapeHtml(dataset.confidence_tier || "N/D")}</span>
-                    </div>
-                    <div class="dataset-fact">
-                        <span class="dataset-fact-label">Freshness</span>
-                        <span class="dataset-fact-value">${escapeHtml(formatFreshness(runtimeFreshness))}</span>
                     </div>
                     <div class="dataset-fact">
                         <span class="dataset-fact-label">Coverage</span>
@@ -511,16 +520,14 @@ function renderCatalog(bundle) {
                 ${dataset.coverage?.summary ? `<div class="dataset-meta-line">Cobertura: ${escapeHtml(dataset.coverage.summary)}</div>` : ""}
                 ${dataset.degradation?.impact ? `<div class="dataset-meta-line">Impacto: ${escapeHtml(dataset.degradation.impact)}</div>` : ""}
                 <div class="dataset-actions">
-                    ${docsPath ? `<a class="dataset-action muted" href="${escapeHtml(docsPath)}" target="_blank" rel="noopener noreferrer">Docs</a>` : ""}
                     ${sourceUrl ? `<a class="dataset-action muted" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Fuente</a>` : ""}
-                    ${buildArtifactLink(parquetPath, "Parquet")}
-                    ${buildArtifactLink(jsonPath, "JSON")}
                 </div>
                 ${buildArtifactMeta(parquetPath)}
                 ${buildArtifactMeta(jsonPath)}
                 ${buildDatasetExample(dataset)}
                 <div class="dataset-tags">${outputs}</div>
                 <div class="dataset-tags">${warnings}</div>
+                </details>
             </article>
         `;
     }).join("");

@@ -176,6 +176,7 @@ def verify_landing():
         if repo_href != "https://github.com/cortega26/chile-hub":
             fail(f"Unexpected repo href: {repo_href}")
 
+        page.locator(".technical-details").click()
         status_actions = page.locator("#status-actions .dataset-action").all_inner_texts()
         expected_status_actions = [
             "Status",
@@ -259,6 +260,7 @@ def verify_landing():
         if package_verify_line != expected_verification_command:
             fail(f"Unexpected package verify command: {package_verify_line}")
 
+        page.locator(".package-verify").click()
         package_copy = page.locator("#package-verify-copy")
         package_copy.click()
         page.wait_for_timeout(150)
@@ -276,12 +278,14 @@ def verify_landing():
 
         first_card_actions = first_card.locator(".dataset-action").all_inner_texts()
         if (
-            len(first_card_actions) < 4
-            or first_card_actions[0:2] != ["Docs", "Fuente"]
-            or not first_card_actions[2].startswith("PARQUET · ")
-            or not first_card_actions[3].startswith("JSON · ")
+            len(first_card_actions) < 3
+            or not first_card_actions[0].startswith("PARQUET · ")
+            or not first_card_actions[1].startswith("JSON · ")
+            or first_card_actions[2] != "Docs"
         ):
             fail(f"Unexpected first dataset actions: {first_card_actions}")
+
+        first_card.locator(".dataset-details").click()
 
         artifact_meta = first_card.locator(".dataset-artifact-meta").all_inner_texts()
         if (
