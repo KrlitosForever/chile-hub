@@ -1339,8 +1339,9 @@ def main():
     indicadores_csv = os.path.join(STAGING_DIR, "indicadores.csv")
 
     if not os.path.exists(comunas_csv) or not os.path.exists(indicadores_csv):
-        print("Error: No se encuentran los archivos CSV en staging. Corre los extractores primero.")
-        return
+        raise SystemExit(
+            "Error: No se encuentran los archivos CSV en staging. Corre los extractores primero."
+        )
 
     comunas_metadata = load_metadata(COMUNAS_METADATA_PATH)
     indicadores_metadata = load_metadata(INDICADORES_METADATA_PATH)
@@ -1381,11 +1382,11 @@ def main():
         result["dataset"] for result in validations.values() if result["status"] == "error"
     ]
     if failed_validations:
-        print(f"Error: Validaciones fallidas para {', '.join(failed_validations)}.")
+        messages = [f"Validaciones fallidas para {', '.join(failed_validations)}."]
         for result in validations.values():
             for error in result["errors"]:
-                print(f" - {result['dataset']}: {error}")
-        return
+                messages.append(f" - {result['dataset']}: {error}")
+        raise SystemExit("\n".join(messages))
 
     # Compilar entregables
     build_duckdb(

@@ -1,3 +1,4 @@
+import argparse
 import sys
 import zipfile
 from pathlib import Path
@@ -61,6 +62,52 @@ REQUIRED_DATASETS = set(DATASET_CATALOG_CONFIG)
 def fail(message):
     print(f"ERROR: {message}")
     raise SystemExit(1)
+
+
+def verify_publication_policy(metadata=None):
+    if metadata is None:
+        metadata = load_json(NORMALIZED_DIR / "pipeline_metadata.json")
+
+    violations = []
+    for dataset_name in sorted(REQUIRED_DATASETS):
+        dataset = metadata.get("datasets", {}).get(dataset_name, {})
+        freshness = dataset.get("freshness", {})
+        if dataset.get("source_mode") != "live":
+            violations.append(f"{dataset_name}: source_mode={dataset.get('source_mode')}")
+        if freshness.get("status") != "fresh":
+            violations.append(f"{dataset_name}: freshness={freshness.get('status')}")
+
+    indicadores = metadata.get("datasets", {}).get("indicadores", {})
+    allowed_indicator_source_details = {
+        "public_api",
+        "public_api_with_published_backfill",
+    }
+    if indicadores.get("source_detail") not in allowed_indicator_source_details:
+        violations.append(f"indicadores: source_detail={indicadores.get('source_detail')}")
+    failed_diagnostics = {
+        field: indicadores.get(field, [])
+        for field in (
+            "fetch_failures",
+            "raw_recoveries",
+            "preserved_existing_pairs",
+            "empty_live_pairs",
+        )
+        if indicadores.get(field)
+    }
+    if failed_diagnostics:
+        violations.append(f"indicadores: recovery diagnostics={failed_diagnostics}")
+    unsafe_delivery = {
+        code: status
+        for code, status in indicadores.get("indicator_delivery", {}).items()
+        if status not in {"live", "published_backfill"}
+    }
+    if unsafe_delivery:
+        violations.append(f"indicadores: unsafe delivery={unsafe_delivery}")
+
+    if violations:
+        fail("Publication policy rejected this build: " + "; ".join(violations))
+
+    print("Publication policy passed: all datasets are fresh and publication-safe.")
 
 
 def verify_indicadores_diagnostics(dataset_metadata, validation, origin):
@@ -988,7 +1035,18 @@ def verify_publishable_zip():
         fail("publishable bundle checksum file has unexpected contents")
 
 
+def build_parser():
+    parser = argparse.ArgumentParser(description="Verify generated chile-hub pipeline artifacts.")
+    parser.add_argument(
+        "--require-live",
+        action="store_true",
+        help="Reject fallback, failed recovery, preserved, unexpected-empty, or stale data.",
+    )
+    return parser
+
+
 def main():
+    args = build_parser().parse_args()
     verify_required_files()
     verify_pipeline_metadata()
     verify_hub_health()
@@ -1001,6 +1059,8 @@ def main():
     verify_dataset_catalog()
     verify_artifact_manifest()
     verify_publishable_zip()
+    if args.require_live:
+        verify_publication_policy()
 
 
 if __name__ == "__main__":

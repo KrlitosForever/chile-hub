@@ -340,34 +340,23 @@ python -m unittest tests.test_chile_hub.ChileHubTests.test_load_polars -v
 
 ## 9. CI/CD
 
-El workflow `.github/workflows/pipeline-check.yml` corre en `push` y `pull_request`.
+El workflow `.github/workflows/pipeline-check.yml` corre en `push` a `main`,
+`pull_request`, `schedule` diario y `workflow_dispatch` manual.
 
-### Pasos del workflow (en orden)
+### Jobs del workflow
 
-1. `python src/extractors/subdere_extractor.py` — fetch DPA
-2. `python src/extractors/bcentral_extractor.py` — fetch indicadores
-3. `python src/build_dev_db.py` — construir artefactos
-4. `python scripts/verify_pipeline.py` — verificar integridad
-5. `python -m unittest discover -s tests` — tests unitarios
-6. `python scripts/verify_landing.py` — smoke tests de la landing
-7. `python scripts/pipeline_status.py` — generar status
-8. Publicar resumen en GitHub Job Summary
-9. Subir bundle como artefacto de CI
+1. `quality` — Ruff lint y format check.
+2. `build-and-test` — extractores, build, verificación, tests y status.
+3. `landing` — smoke test Playwright usando exactamente los outputs del job anterior.
+4. `publish` — solo en `schedule` o dispatch con `publish=true`; exige
+   `verify_pipeline.py --require-live` y publica `data/normalized/` en `main`.
 
-### Agregar trigger de cron (pendiente)
-
-Para actualización diaria automática, agregar al workflow:
-
-```yaml
-on:
-  push:
-  pull_request:
-  schedule:
-    - cron: '0 10 * * *'   # 06:00 CLT (UTC-4) todos los días
-```
-
-**Importante:** separar el job de publicación del job de verificación para evitar
-loops de commits que disparen nuevas ejecuciones.
+El cron corre a las `10:00 UTC`: `06:00 CLT` o `07:00 CLST`. La publicación rechaza
+fallbacks, datos stale, fallas de fetch, recuperación raw y preservación de staging. Solo permite
+backfill del último valor publicado cuando la consulta live fue exitosa y una serie mensual aún no
+publicó un valor nuevo. Los commits automáticos usan
+`[skip ci]` para evitar loops. Los artefactos de CI se suben como un directorio generado único,
+sin mantener una segunda lista manual de archivos.
 
 ---
 

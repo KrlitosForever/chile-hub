@@ -16,6 +16,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from scripts import package_publishable_bundle
+from scripts.verify_pipeline import verify_publication_policy
 from src.build_dev_db import (
     EXPECTED_INDICATOR_CODES,
     EXPECTED_LIVE_COMUNAS_COUNT,
@@ -28,11 +29,105 @@ from src.build_dev_db import (
     validate_regiones,
     write_publishable_bundle_zip,
 )
+from src.build_dev_db import (
+    main as build_main,
+)
 from src.extractors import bcentral_extractor
 from src.pipeline_status_utils import build_hub_health, build_status_text
 
 
 class PipelineLogicTests(unittest.TestCase):
+    def test_build_main_fails_when_staging_inputs_are_missing(self):
+        with (
+            patch("src.build_dev_db.ensure_directories"),
+            patch("src.build_dev_db.os.path.exists", return_value=False),
+            self.assertRaisesRegex(SystemExit, "No se encuentran los archivos CSV"),
+        ):
+            build_main()
+
+    def test_publication_policy_accepts_fresh_live_data(self):
+        datasets = {
+            name: {
+                "source_mode": "live",
+                "source_detail": "public_api",
+                "freshness": {"status": "fresh"},
+            }
+            for name in [
+                "regiones",
+                "provincias",
+                "comunas",
+                "comunas_enriquecidas",
+                "indicadores",
+            ]
+        }
+        datasets["indicadores"]["indicator_delivery"] = {
+            code: "live" for code in EXPECTED_INDICATOR_CODES
+        }
+
+        verify_publication_policy({"datasets": datasets})
+
+    def test_publication_policy_accepts_clean_published_monthly_backfill(self):
+        datasets = {
+            name: {
+                "source_mode": "live",
+                "source_detail": "public_api",
+                "freshness": {"status": "fresh"},
+            }
+            for name in [
+                "regiones",
+                "provincias",
+                "comunas",
+                "comunas_enriquecidas",
+                "indicadores",
+            ]
+        }
+        datasets["indicadores"].update(
+            {
+                "source_detail": "public_api_with_published_backfill",
+                "indicator_delivery": {"ipc": "published_backfill", "uf": "live"},
+                "published_backfills": ["ipc"],
+                "fetch_failures": [],
+                "raw_recoveries": [],
+                "preserved_existing_pairs": [],
+                "empty_live_pairs": [],
+            }
+        )
+
+        verify_publication_policy({"datasets": datasets})
+
+    def test_publication_policy_rejects_fallback_and_partial_delivery(self):
+        datasets = {
+            name: {
+                "source_mode": "live",
+                "source_detail": "public_api",
+                "freshness": {"status": "fresh"},
+            }
+            for name in [
+                "regiones",
+                "provincias",
+                "comunas",
+                "comunas_enriquecidas",
+                "indicadores",
+            ]
+        }
+        datasets["comunas"]["source_mode"] = "fallback"
+        datasets["indicadores"].update(
+            {
+                "source_detail": "public_api_partial",
+                "indicator_delivery": {"uf": "preserved_existing"},
+                "fetch_failures": ["uf/2026: timeout"],
+                "preserved_existing_pairs": ["uf/2026"],
+            }
+        )
+
+        with (
+            patch("builtins.print") as print_mock,
+            self.assertRaisesRegex(SystemExit, "1"),
+        ):
+            verify_publication_policy({"datasets": datasets})
+
+        self.assertIn("Publication policy rejected", print_mock.call_args.args[0])
+
     def test_write_publishable_bundle_zip_fails_before_creating_partial_zip(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             data_dir = Path(tmpdir) / "data"

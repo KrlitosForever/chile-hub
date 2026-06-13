@@ -504,8 +504,9 @@ Esos ejemplos por dataset también son copiables y responden al tab activo en ca
 La landing también se puede smoke-testear en navegador con `make verify-landing`.
 Ese smoke test cubre estado, quick-start, metadata de artefactos, recetas por dataset y flujos de copia.
 También cubre la presencia de `freshness`, `coverage` y `degradation` en la superficie visible de la landing.
-El workflow `pipeline-check` ejecuta esa verificación de landing además del build, verify y smoke tests del helper.
-El workflow de CI publica un artifact `chile-hub-publishable-bundle` con los outputs ligeros, `hub_status`, `hub_health`, `hub_bundle`, `redistribution_report`, `provenance_report`, `drift_report`, el ZIP publicable y su `SHA256`, además del manifest asociado.
+El workflow `pipeline-check` separa calidad, build/contratos, smoke test de landing y publicación.
+Cada ejecución comparte un único artifact `pipeline-output-<run_id>` con `data/normalized/`, evitando listas duplicadas de outputs entre el build y los consumidores posteriores.
+Los refreshes programados y los dispatch manuales con `publish=true` aplican `verify_pipeline.py --require-live`: solo datos frescos y seguros para publicación pueden actualizar `main`. Se rechazan fallbacks, fallas de fetch, recuperación raw y preservación de staging; se admite el último valor publicado de una serie mensual cuando la consulta live fue exitosa pero aún no existe una observación nueva. Ante una caída de fuente, CI conserva la última publicación válida.
 Ahora ese artifact también incluye `overview.json` y `overview.md`.
 El `GITHUB_STEP_SUMMARY` también incluye ahora un bloque de quick links para `hub_status.json`, `hub_health.json` y `hub_bundle.json`, además de `overview.md` y las vistas agregadas de redistribución, procedencia y drift.
 

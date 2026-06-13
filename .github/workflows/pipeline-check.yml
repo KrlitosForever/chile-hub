@@ -2,50 +2,77 @@ name: Pipeline Check
 
 on:
   push:
+    branches: [main]
   pull_request:
   schedule:
-    - cron: "0 10 * * *"  # 06:00 CLT (UTC-4) todos los días
+    # GitHub cron is UTC: 06:00 CLT or 07:00 CLST.
+    - cron: "0 10 * * *"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish fresh live artifacts to main
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  PYTHON_VERSION: "3.13"
+  PIPELINE_ARTIFACT: pipeline-output-${{ github.run_id }}
+
+concurrency:
+  group: pipeline-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify-pipeline:
-    runs-on: ubuntu-latest
+  quality:
+    name: Python quality
     if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
-
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          python-version: "3.13"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+          cache-dependency-path: requirements.txt
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      - name: Install Ruff
+        run: python -m pip install "$(grep '^ruff==' requirements.txt)"
 
-      - name: Lint with ruff
+      - name: Check Python style
         run: |
           python -m ruff check src/ tests/ scripts/
           python -m ruff format --check src/ tests/ scripts/
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
+  build-and-test:
+    name: Build and verify data
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]')
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            playwright-chromium-${{ runner.os }}-
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
 
-      - name: Install Chromium for landing verification
-        run: python -m playwright install --with-deps chromium
+      - name: Install dependencies
+        run: python -m pip install --requirement requirements.txt
 
-      - name: Run extractors
+      - name: Extract source data
         run: |
           python src/extractors/subdere_extractor.py
           python src/extractors/bcentral_extractor.py
@@ -54,68 +81,109 @@ jobs:
         run: python src/build_dev_db.py
 
       - name: Verify pipeline artifacts
-        run: python scripts/verify_pipeline.py
+        run: |
+          args=()
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ inputs.publish }}" == "true" ]]; then
+            args+=(--require-live)
+          fi
+          python scripts/verify_pipeline.py "${args[@]}"
 
-      - name: Run hub smoke tests
-        run: python -m unittest discover -s tests
-
-      - name: Run landing smoke verification
-        run: python scripts/verify_landing.py
+      - name: Run unit and contract tests
+        run: python -m unittest discover -s tests -v
 
       - name: Generate pipeline status
         run: python scripts/pipeline_status.py
 
       - name: Publish job summary
         run: |
-          printf "## Quick Status Entry Points\n\n" >> "$GITHUB_STEP_SUMMARY"
-          printf -- "- \`data/normalized/hub_status.json\`: compact status for polling, dashboards and CI checks.\n" >> "$GITHUB_STEP_SUMMARY"
-          printf -- "- \`data/normalized/hub_health.json\`: aggregated health report with per-dataset breakdown.\n" >> "$GITHUB_STEP_SUMMARY"
-          printf -- "- \`data/normalized/hub_bundle.json\`: consolidated machine-readable index of datasets, reports and artifacts.\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/overview.md >> "$GITHUB_STEP_SUMMARY"
-          printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/hub_health.md >> "$GITHUB_STEP_SUMMARY"
-          printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/redistribution_report.md >> "$GITHUB_STEP_SUMMARY"
-          printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/provenance_report.md >> "$GITHUB_STEP_SUMMARY"
-          printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/drift_report.md >> "$GITHUB_STEP_SUMMARY"
-          printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/pipeline_status.md >> "$GITHUB_STEP_SUMMARY"
-          printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
-          cat data/normalized/dataset_catalog.md >> "$GITHUB_STEP_SUMMARY"
+          for report in \
+            overview.md \
+            hub_health.md \
+            redistribution_report.md \
+            provenance_report.md \
+            drift_report.md \
+            pipeline_status.md \
+            dataset_catalog.md
+          do
+            cat "data/normalized/$report" >> "$GITHUB_STEP_SUMMARY"
+            printf "\n\n" >> "$GITHUB_STEP_SUMMARY"
+          done
 
-      - name: Upload publishable data bundle
-        uses: actions/upload-artifact@v4
+      - name: Upload generated pipeline output
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: chile-hub-publishable-bundle
-          path: |
-            data/normalized/regiones.parquet
-            data/normalized/provincias.parquet
-            data/normalized/comunas.parquet
-            data/normalized/comunas_enriquecidas.parquet
-            data/normalized/indicadores.parquet
-            data/normalized/regiones.json
-            data/normalized/provincias.json
-            data/normalized/comunas.json
-            data/normalized/comunas_enriquecidas.json
-            data/normalized/indicadores_hoy.json
-            data/normalized/pipeline_metadata.json
-            data/normalized/pipeline_status.md
-            data/normalized/hub_health.json
-            data/normalized/hub_health.md
-            data/normalized/hub_status.json
-            data/normalized/hub_bundle.json
-            data/normalized/redistribution_report.json
-            data/normalized/redistribution_report.md
-            data/normalized/provenance_report.json
-            data/normalized/provenance_report.md
-            data/normalized/drift_report.json
-            data/normalized/drift_report.md
-            data/normalized/overview.json
-            data/normalized/overview.md
-            data/normalized/chile-hub-publishable-bundle.zip
-            data/normalized/chile-hub-publishable-bundle.zip.sha256
-            data/normalized/dataset_catalog.json
-            data/normalized/dataset_catalog.md
-            data/normalized/artifact_manifest.json
+          name: ${{ env.PIPELINE_ARTIFACT }}
+          path: data/normalized/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+
+  landing:
+    name: Landing smoke test
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Playwright
+        run: python -m pip install "$(grep '^playwright==' requirements.txt)"
+
+      - name: Cache Chromium
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          restore-keys: playwright-chromium-${{ runner.os }}-
+
+      - name: Install Chromium system dependencies
+        run: python -m playwright install --with-deps chromium
+
+      - name: Download generated pipeline output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ env.PIPELINE_ARTIFACT }}
+          path: data/normalized/
+
+      - name: Verify landing page
+        run: python scripts/verify_landing.py
+
+  publish:
+    name: Publish verified data
+    if: github.event_name == 'schedule' || inputs.publish == true
+    needs: [build-and-test, landing]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download verified pipeline output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ env.PIPELINE_ARTIFACT }}
+          path: data/normalized/
+
+      - name: Commit refreshed artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all data/normalized/
+          if git diff --cached --quiet; then
+            echo "No publishable data changes."
+            exit 0
+          fi
+          git commit -m "chore(data): daily refresh [skip ci]"
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
