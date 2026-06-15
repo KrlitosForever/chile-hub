@@ -100,6 +100,7 @@ jobs:
           python src/extractors/censo_hogares_viviendas_extractor.py
           python src/extractors/salud_extractor.py
           python src/extractors/electoral_extractor.py
+          python src/extractors/mineduc_establecimientos_extractor.py
 
       - name: Build outputs
         run: python src/build_dev_db.py

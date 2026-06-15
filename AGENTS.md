@@ -12,7 +12,7 @@ entender la arquitectura, las reglas no negociables y las convenciones del proye
 ## 1. Propósito del proyecto
 
 `chile-hub` es una capa de datos pública, curada y reproducible sobre **datos oficiales de Chile**.
-Actualmente publica nueve capas:
+Actualmente publica diez capas:
 
 | Capa | Fuente | Descripción |
 |:---|:---|:---|
@@ -23,6 +23,7 @@ Actualmente publica nueve capas:
 | **Censo Hogares y Viviendas 2024** | INE | Viviendas y hogares por comuna, incluyendo promedios de personas por hogar |
 | **Establecimientos de Salud** | MINSAL / datos.gob.cl | Directorio vigente con tipo, dependencia, urgencia, estado y coordenadas |
 | **Distritos Electorales** | BCN / SERVEL | Asociación de comunas a distritos electorales de diputados y circunscripciones senatoriales |
+| **Establecimientos Educacionales** | MINEDUC | Directorio oficial con RBD, dependencia, ubicación y estado de funcionamiento |
 
 **El objetivo no es tener todos los datos de Chile. Es entregar un número pequeño de datasets
 limpios, versionados, validados y consumibles en una línea de código.**
@@ -43,7 +44,8 @@ chile-hub/
 │   │   ├── censo_extractor.py     Extrae perfil comunal Censo 2024 desde INE → data/staging/
 │   │   ├── censo_hogares_viviendas_extractor.py Extrae hogares y viviendas INE → data/staging/
 │   │   ├── salud_extractor.py     Extrae establecimientos desde MINSAL → data/staging/
-│   │   └── electoral_extractor.py Extrae distritos electorales desde BCN → data/staging/
+│   │   ├── electoral_extractor.py Extrae distritos electorales desde BCN → data/staging/
+│   │   └── mineduc_establecimientos_extractor.py Extrae establecimientos educacionales desde MINEDUC → data/staging/
 │   ├── build_dev_db.py            Construye todos los artefactos desde staging/
 │   ├── pipeline_status_utils.py   Genera reportes Markdown de salud, catálogo y redistribución
 │   └── chile_hub.py               API Python (ChileHub) + CLI
@@ -76,6 +78,7 @@ chile-hub/
              src/extractors/censo_hogares_viviendas_extractor.py
              src/extractors/salud_extractor.py
              src/extractors/electoral_extractor.py
+             src/extractors/mineduc_establecimientos_extractor.py
              → Produce: data/staging/{dataset}.csv + data/staging/{dataset}.metadata.json
              → Produce: data/raw/{source}_{timestamp}.json  (snapshot crudo)
 
@@ -330,6 +333,7 @@ python src/extractors/censo_extractor.py
 python src/extractors/censo_hogares_viviendas_extractor.py
 python src/extractors/salud_extractor.py
 python src/extractors/electoral_extractor.py
+python src/extractors/mineduc_establecimientos_extractor.py
 python src/build_dev_db.py
 
 # Suite completa
@@ -440,6 +444,7 @@ python src/extractors/censo_extractor.py
 python src/extractors/censo_hogares_viviendas_extractor.py
 python src/extractors/salud_extractor.py
 python src/extractors/electoral_extractor.py
+python src/extractors/mineduc_establecimientos_extractor.py
 python src/build_dev_db.py
 
 # Verificar artefactos

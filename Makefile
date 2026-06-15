@@ -82,6 +82,8 @@ extract:
 	$(PYTHON) src/extractors/censo_extractor.py
 	$(PYTHON) src/extractors/censo_hogares_viviendas_extractor.py
 	$(PYTHON) src/extractors/salud_extractor.py
+	$(PYTHON) src/extractors/electoral_extractor.py
+	$(PYTHON) src/extractors/mineduc_establecimientos_extractor.py
 
 build:
 	$(PYTHON) src/build_dev_db.py
