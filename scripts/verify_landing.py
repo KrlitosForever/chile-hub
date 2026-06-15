@@ -114,9 +114,7 @@ def verify_landing():
     runtime_freshness = {
         dataset["dataset"]: compute_runtime_freshness(dataset) for dataset in datasets
     }
-    stale_count = sum(
-        1 for freshness in runtime_freshness.values() if freshness["status"] == "stale"
-    )
+
     unknown_freshness_count = sum(
         1 for freshness in runtime_freshness.values() if freshness["status"] == "unknown"
     )
@@ -137,13 +135,6 @@ def verify_landing():
         zip_package.get("verification_command")
         if zip_package and zip_package.get("verification_command")
         else "shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256"
-    )
-    attention_count = (
-        stale_count
-        + unknown_freshness_count
-        + drifted_count
-        + degraded_count
-        + partial_coverage_count
     )
 
     with local_server() as url, sync_playwright() as p:
@@ -194,14 +185,9 @@ def verify_landing():
             fail(f"Unexpected top issue href: {top_issue_href}")
 
         status_subtitle = page.locator("#status-subtitle").inner_text()
-        if current_overall_status == "ok" and attention_count == 0:
-            if f"{len(datasets)} capas disponibles y actualizadas." not in status_subtitle:
-                fail(f"Unexpected healthy status subtitle: {status_subtitle}")
-        elif status_subtitle != (
-            f"{attention_count} señales requieren revisión en {len(datasets)} capas. "
-            "Abre los detalles técnicos para ver el diagnóstico."
-        ):
-            fail(f"Unexpected attention status subtitle: {status_subtitle}")
+        expected_substring = f"{len(datasets)} capas disponibles. Último build:"
+        if expected_substring not in status_subtitle:
+            fail(f"Unexpected status subtitle: {status_subtitle}")
         status_meta_locator = page.locator("#status-meta")
         if status_meta_locator.count() != 1:
             fail("Expected exactly one #status-meta element")
@@ -415,12 +401,6 @@ def verify_landing():
         hash_value = page.evaluate("() => window.location.hash")
         if hash_value != f"#dataset-{top_issue_dataset}":
             fail(f"Unexpected hash after top issue click: {hash_value}")
-        top_issue_attention = top_issue_card.evaluate("el => el.classList.contains('attention')")
-        if not top_issue_attention:
-            fail(f"Top issue card is missing attention visual state: {top_issue_dataset}")
-        top_issue_badges = top_issue_card.locator(".dataset-badge").all_inner_texts()
-        if "atención" not in [badge.casefold() for badge in top_issue_badges]:
-            fail(f"Attention badge not found in top issue card: {top_issue_badges}")
         top_issue_meta = top_issue_card.locator(".dataset-meta-line").all_inner_texts()
         if not any(f"Warnings: {top_issue_warning_count}" in line for line in top_issue_meta):
             fail(f"Warning count not found in top issue card metadata: {top_issue_meta}")

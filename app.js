@@ -806,13 +806,15 @@ function renderTable() {
 
     paginatedRows.forEach(c => {
         const tr = document.createElement("tr");
+        const lat = c.latitud_cabecera?.toFixed(4) ?? "N/D";
+        const lon = c.longitud_cabecera?.toFixed(4) ?? "N/D";
         tr.innerHTML = `
             <td><span class="comuna-code">${escapeHtml(c.codigo_comuna)}</span></td>
             <td style="font-weight: 500; color: var(--text-primary);">${escapeHtml(c.nombre_comuna)}</td>
             <td>${escapeHtml(c.nombre_provincia)}</td>
             <td>${escapeHtml(c.nombre_region)}</td>
             <td>${formatNum.format(c.poblacion_estimada)}</td>
-            <td style="font-size: 0.85rem; font-family: monospace;">${c.latitud_cabecera.toFixed(4)}, ${c.longitud_cabecera.toFixed(4)}</td>
+            <td style="font-size: 0.85rem; font-family: monospace;">${lat}, ${lon}</td>
         `;
         tableBody.appendChild(tr);
     });

@@ -9,7 +9,7 @@ Los planes 005–007 tienen dependencias.
 
 | # | Plan | Esfuerzo | Riesgo | Depende de | Estado |
 |---|------|----------|--------|-----------|--------|
-| 001 | [Fix landing page bugs — KPIs antiguos y crash de coordenadas](001-fix-landing-page-bugs.md) | S | LOW | — | TODO |
+| 001 | [Fix landing page bugs — KPIs antiguos y crash de coordenadas](001-fix-landing-page-bugs.md) | S | LOW | — | DONE |
 | 002 | [Agregar CSP a la landing page](002-csp-landing-page.md) | S | LOW | — | TODO |
 | 003 | [Validar metadata JSON antes del build](003-guard-metadata-json.md) | S | LOW | — | TODO |
 | 004 | [Limpiar dependencias — pyarrow, dev/prod, curl_cffi](004-cleanup-dependencies.md) | S | LOW | — | TODO |
