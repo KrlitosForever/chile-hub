@@ -17,6 +17,9 @@ Cada ficha busca responder cinco preguntas rápido:
 - [comunas](./comunas.md)
 - [comunas_enriquecidas](./comunas_enriquecidas.md)
 - [indicadores](./indicadores.md)
+- [censo_comunal](./censo_comunal.md)
+- [censo_hogares_viviendas](./censo_hogares_viviendas.md)
+- [establecimientos_salud](./establecimientos_salud.md)
 
 ## Convenciones de confianza
 

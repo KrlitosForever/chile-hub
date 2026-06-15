@@ -45,11 +45,14 @@ El valor del proyecto está en transformar esas fuentes en capas listas para usa
 
 ## Estado actual
 
-El repo hoy publica cinco datasets curados:
+El repo hoy publica ocho datasets curados:
 
 - regiones, provincias y comunas (DPA territorial con códigos CUT)
 - comunas enriquecidas (coordenadas y población INE, listas para análisis)
 - indicadores económicos diarios (UF, Dólar, Euro, UTM, IPC desde 2010)
+- censo comunal 2024 (población por sexo y cinco grandes grupos de edad)
+- censo 2024: hogares y viviendas (viviendas censadas, particulares, colectivas y hogares)
+- establecimientos de salud (directorio vigente de MINSAL con tipo, dependencia, urgencia y coordenadas)
 
 Eso no define el límite del producto. Define el punto de partida.
 
@@ -126,6 +129,68 @@ Capa lista para análisis territorial sin necesidad de joins adicionales. Incluy
 | `latitud_cabecera` | `DOUBLE` | Latitud de la capital comunal | `-20.2138` |
 | `longitud_cabecera` | `DOUBLE` | Longitud de la capital comunal | `-70.1508` |
 | `poblacion_estimada` | `INTEGER` | Población estimada INE (base Censo 2017) | `223400` |
+
+### 6. `censo_comunal`
+
+Perfil demográfico por sexo y edad de las 346 comunas de Chile según el Censo de Población y Vivienda 2024 del INE.
+
+| Columna | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| `codigo_region` | `VARCHAR` | Código CUT de la región (2 chars) | `"01"` |
+| `nombre_region` | `VARCHAR` | Nombre oficial de la región | `"Tarapacá"` |
+| `codigo_provincia` | `VARCHAR` | Código CUT de la provincia (3 chars) | `"011"` |
+| `nombre_provincia` | `VARCHAR` | Nombre oficial de la provincia | `"Iquique"` |
+| `codigo_comuna` | `VARCHAR` | Código CUT de la comuna (5 chars) | `"01101"` |
+| `nombre_comuna` | `VARCHAR` | Nombre oficial de la comuna | `"Iquique"` |
+| `poblacion_censada` | `INTEGER` | Población total censada | `223400` |
+| `hombres` | `INTEGER` | Población masculina censada | `111200` |
+| `mujeres` | `INTEGER` | Población femenina censada | `112200` |
+| `razon_hombre_mujer` | `DOUBLE` | Razón de masculinidad | `99.11` |
+| `poblacion_0_14` | `INTEGER` | Población de 0 a 14 años | `45000` |
+| `poblacion_15_29` | `INTEGER` | Población de 15 a 29 años | `50000` |
+| `poblacion_30_44` | `INTEGER` | Población de 30 a 44 años | `52000` |
+| `poblacion_45_64` | `INTEGER` | Población de 45 a 64 años | `48000` |
+| `poblacion_65_mas` | `INTEGER` | Población de 65 años o más | `28400` |
+
+### 7. `censo_hogares_viviendas`
+
+Medidas de viviendas y hogares por comuna del Censo de Población y Vivienda 2024 del INE.
+
+| Columna | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| `codigo_region` | `VARCHAR` | Código CUT de la región (2 chars) | `"01"` |
+| `nombre_region` | `VARCHAR` | Nombre oficial de la región | `"Tarapacá"` |
+| `codigo_provincia` | `VARCHAR` | Código CUT de la provincia (3 chars) | `"011"` |
+| `nombre_provincia` | `VARCHAR` | Nombre oficial de la provincia | `"Iquique"` |
+| `codigo_comuna` | `VARCHAR` | Código CUT de la comuna (5 chars) | `"01101"` |
+| `nombre_comuna` | `VARCHAR` | Nombre oficial de la comuna | `"Iquique"` |
+| `viviendas_censadas` | `INTEGER` | Total de viviendas censadas | `85000` |
+| `viviendas_particulares_ocupadas` | `INTEGER` | Viviendas particulares ocupadas | `75000` |
+| `viviendas_particulares_desocupadas` | `INTEGER` | Viviendas particulares desocupadas | `9800` |
+| `viviendas_colectivas` | `INTEGER` | Viviendas colectivas | `200` |
+| `hogares_censados` | `INTEGER` | Total de hogares censados | `73000` |
+| `promedio_personas_hogar` | `DOUBLE` | Promedio de personas por hogar | `3.06` |
+
+### 8. `establecimientos_salud`
+
+Directorio nacional de establecimientos de salud del Ministerio de Salud (MINSAL).
+
+| Columna | Tipo | Descripción | Ejemplo |
+| :--- | :--- | :--- | :--- |
+| `codigo_establecimiento` | `VARCHAR` | Código único de establecimiento | `"101101"` |
+| `nombre_establecimiento` | `VARCHAR` | Nombre oficial del establecimiento | `"Hospital Dr. Ernesto Torres Galdames"` |
+| `tipo_establecimiento` | `VARCHAR` | Clasificación / tipo de establecimiento | `"Hospital"` |
+| `dependencia_administrativa` | `VARCHAR` | Dependencia o sostenedor | `"Servicio de Salud Tarapacá"` |
+| `nivel_atencion` | `VARCHAR` | Nivel de complejidad / atención | `"Alta Complejidad"` |
+| `codigo_region` | `VARCHAR` | Código CUT de la región (2 chars) | `"01"` |
+| `nombre_region` | `VARCHAR` | Nombre oficial de la región | `"Tarapacá"` |
+| `codigo_comuna` | `VARCHAR` | Código CUT de la comuna (5 chars) | `"01101"` |
+| `nombre_comuna` | `VARCHAR` | Nombre oficial de la comuna | `"Iquique"` |
+| `tiene_servicio_urgencia` | `VARCHAR` | Indica si cuenta con urgencia (`"SI"`/`"NO"`) | `"SI"` |
+| `tipo_urgencia` | `VARCHAR` | Tipo de urgencia si corresponde | `"SAPU"` |
+| `latitud` | `DOUBLE` | Latitud del establecimiento | `-20.2214` |
+| `longitud` | `DOUBLE` | Longitud del establecimiento | `-70.1425` |
+| `estado_funcionamiento` | `VARCHAR` | Estado actual | `"Vigente"` |
 
 ## Outputs disponibles
 

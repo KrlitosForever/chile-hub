@@ -12,7 +12,7 @@ entender la arquitectura, las reglas no negociables y las convenciones del proye
 ## 1. Propósito del proyecto
 
 `chile-hub` es una capa de datos pública, curada y reproducible sobre **datos oficiales de Chile**.
-Actualmente publica siete capas:
+Actualmente publica ocho capas:
 
 | Capa | Fuente | Descripción |
 |:---|:---|:---|
@@ -20,6 +20,7 @@ Actualmente publica siete capas:
 | **Comunas Enriquecidas** | BCN ArcGIS + INE | Comunas con coordenadas de cabecera y población estimada INE, listas para análisis territorial |
 | **Indicadores Económicos** | mindicador.cl (datos BCCh / INE) | UF, Dólar, Euro, UTM, IPC — histórico desde 2010, actualización diaria |
 | **Censo Comunal 2024** | INE | Población por sexo y cinco grandes grupos de edad para las 346 comunas |
+| **Censo Hogares y Viviendas 2024** | INE | Viviendas y hogares por comuna, incluyendo promedios de personas por hogar |
 | **Establecimientos de Salud** | MINSAL / datos.gob.cl | Directorio vigente con tipo, dependencia, urgencia, estado y coordenadas |
 
 **El objetivo no es tener todos los datos de Chile. Es entregar un número pequeño de datasets
@@ -69,6 +70,7 @@ chile-hub/
 1. EXTRACT   src/extractors/subdere_extractor.py
              src/extractors/bcentral_extractor.py
              src/extractors/censo_extractor.py
+             src/extractors/censo_hogares_viviendas_extractor.py
              src/extractors/salud_extractor.py
              → Produce: data/staging/{dataset}.csv + data/staging/{dataset}.metadata.json
              → Produce: data/raw/{source}_{timestamp}.json  (snapshot crudo)
@@ -321,6 +323,7 @@ DATA_DIR = "data"
 python src/extractors/subdere_extractor.py
 python src/extractors/bcentral_extractor.py
 python src/extractors/censo_extractor.py
+python src/extractors/censo_hogares_viviendas_extractor.py
 python src/extractors/salud_extractor.py
 python src/build_dev_db.py
 
