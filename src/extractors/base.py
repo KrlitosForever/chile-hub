@@ -18,8 +18,10 @@ def ensure_staging_directories() -> None:
 
 def write_staging_metadata(path: str, metadata: dict) -> None:
     """Persiste el metadata.json de un dataset en staging."""
-    with open(path, "w", encoding="utf-8") as f:
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
+    os.replace(tmp_path, path)
 
 
 class BaseExtractor(ABC):

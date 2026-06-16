@@ -530,11 +530,50 @@ def ensure_directories():
     os.makedirs(NORMALIZED_DIR, exist_ok=True)
 
 
+def validate_metadata_schema(path, content):
+    """
+    Valida que el archivo JSON de metadatos de staging no sea nulo, sea un JSON válido
+    y contenga todos los campos obligatorios del contrato de datos.
+    """
+    required_fields = {
+        "dataset",
+        "source_name",
+        "source_url",
+        "source_mode",
+        "refreshed_at_utc",
+        "record_count",
+        "fields",
+        "reuse_policy",
+    }
+    if not isinstance(content, dict):
+        raise SystemExit(f"Error: Metadatos en {path} no es un objeto JSON (dict).")
+
+    missing_fields = required_fields - set(content.keys())
+    if missing_fields:
+        raise SystemExit(
+            f"Error: Metadatos en {path} no cumple con el esquema obligatorio.\n"
+            f"Campos faltantes: {', '.join(sorted(missing_fields))}"
+        )
+
+
 def load_metadata(path):
     if not os.path.exists(path):
         return None
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            content = json.load(f)
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"Error: Archivo de metadatos {path} contiene un JSON malformado: {e}")
+
+    validate_metadata_schema(path, content)
+    return content
+
+
+def write_json_atomic(data, path, **kwargs):
+    tmp_path = path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, **kwargs)
+    os.replace(tmp_path, path)
 
 
 def write_pipeline_metadata(dataset_metadata, validations):
@@ -544,8 +583,7 @@ def write_pipeline_metadata(dataset_metadata, validations):
         "validations": validations,
     }
     output_path = os.path.join(NORMALIZED_DIR, "pipeline_metadata.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(pipeline_metadata, f, ensure_ascii=False, indent=2)
+    write_json_atomic(pipeline_metadata, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -591,8 +629,7 @@ def write_dataset_catalog(pipeline_metadata):
         "datasets": datasets,
     }
     output_path = os.path.join(NORMALIZED_DIR, "dataset_catalog.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(catalog, f, ensure_ascii=False, indent=2)
+    write_json_atomic(catalog, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -718,15 +755,13 @@ def write_artifact_manifest():
         "packages": [],
     }
     output_path = os.path.join(NORMALIZED_DIR, "artifact_manifest.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    write_json_atomic(manifest, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
 def write_hub_health_json(health):
     output_path = os.path.join(NORMALIZED_DIR, "hub_health.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(health, f, ensure_ascii=False, indent=2)
+    write_json_atomic(health, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -748,8 +783,7 @@ def build_hub_status(hub_health):
 
 def write_hub_status_json(hub_status):
     output_path = os.path.join(NORMALIZED_DIR, "hub_status.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(hub_status, f, ensure_ascii=False, indent=2)
+    write_json_atomic(hub_status, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -804,8 +838,7 @@ def build_redistribution_report(dataset_catalog):
 
 def write_redistribution_report_json(report):
     output_path = os.path.join(NORMALIZED_DIR, "redistribution_report.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, ensure_ascii=False, indent=2)
+    write_json_atomic(report, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -856,8 +889,7 @@ def build_provenance_report(dataset_catalog):
 
 def write_provenance_report_json(report):
     output_path = os.path.join(NORMALIZED_DIR, "provenance_report.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, ensure_ascii=False, indent=2)
+    write_json_atomic(report, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -912,8 +944,7 @@ def build_drift_report(dataset_catalog):
 
 def write_drift_report_json(report):
     output_path = os.path.join(NORMALIZED_DIR, "drift_report.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, ensure_ascii=False, indent=2)
+    write_json_atomic(report, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -972,8 +1003,7 @@ def build_overview(hub_health, hub_bundle, artifact_manifest):
 
 def write_overview_json(overview):
     output_path = os.path.join(NORMALIZED_DIR, "overview.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(overview, f, ensure_ascii=False, indent=2)
+    write_json_atomic(overview, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -1091,8 +1121,7 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
         )
 
     output_path = os.path.join(NORMALIZED_DIR, "hub_bundle.json")
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(bundle, f, ensure_ascii=False, indent=2)
+    write_json_atomic(bundle, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -1116,13 +1145,14 @@ def write_publishable_bundle_zip():
         )
 
     output_path = os.path.join(NORMALIZED_DIR, PUBLISHABLE_BUNDLE_ZIP_NAME)
-    with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+    tmp_path = output_path + ".tmp"
+    with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for artifact in artifacts:
             relative_path = artifact["path"]
             absolute_path = os.path.join(DATA_DIR, os.path.relpath(relative_path, "data"))
             archive.write(absolute_path, arcname=relative_path)
 
-    with zipfile.ZipFile(output_path, "r") as archive:
+    with zipfile.ZipFile(tmp_path, "r") as archive:
         bad_file = archive.testzip()
         if bad_file is not None:
             raise SystemExit(f"Error: ZIP corrupto; primer archivo fallido: {bad_file}")
@@ -1131,6 +1161,7 @@ def write_publishable_bundle_zip():
                 f"Error: ZIP incompleto; esperados {len(artifacts)} archivos, "
                 f"encontrados {len(archive.namelist())}"
             )
+    os.replace(tmp_path, output_path)
     return output_path
 
 
@@ -1138,8 +1169,10 @@ def write_publishable_bundle_sha256(zip_path):
     output_path = os.path.join(NORMALIZED_DIR, PUBLISHABLE_BUNDLE_SHA256_NAME)
     relative_zip_path = f"data/normalized/{os.path.basename(zip_path)}"
     sha256 = compute_sha256(zip_path)
-    with open(output_path, "w", encoding="utf-8") as f:
+    tmp_path = output_path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
         f.write(f"{sha256}  {relative_zip_path}\n")
+    os.replace(tmp_path, output_path)
     return output_path
 
 
@@ -1162,8 +1195,7 @@ def attach_publishable_package_to_manifest(zip_path, sha256_path):
         }
     ]
 
-    with open(manifest_path, "w", encoding="utf-8") as f:
-        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    write_json_atomic(manifest, manifest_path, ensure_ascii=False, indent=2)
     return manifest_path
 
 
@@ -1192,11 +1224,11 @@ def build_duckdb(
     output_path,
 ):
     print(f"Compilando base de datos DuckDB en: {output_path}")
-    # Si la base de datos ya existe, la eliminamos para reconstruirla limpia
-    if os.path.exists(output_path):
-        os.remove(output_path)
+    tmp_path = output_path + ".tmp"
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
 
-    con = duckdb.connect(output_path)
+    con = duckdb.connect(tmp_path)
     try:
         # Registrar los DataFrames de Polars como vistas temporales en DuckDB
         con.register("df_regiones_view", df_regiones)
@@ -1235,6 +1267,8 @@ def build_duckdb(
     finally:
         con.close()
 
+    os.replace(tmp_path, output_path)
+
 
 def build_sqlite(
     df_regiones,
@@ -1247,8 +1281,9 @@ def build_sqlite(
     output_path,
 ):
     print(f"Compilando base de datos SQLite en: {output_path}")
-    if os.path.exists(output_path):
-        os.remove(output_path)
+    tmp_path = output_path + ".tmp"
+    if os.path.exists(tmp_path):
+        os.remove(tmp_path)
 
     # Convertimos a Pandas para inserción rápida con to_sql de pandas
     df_regiones_pd = df_regiones.to_pandas()
@@ -1263,7 +1298,7 @@ def build_sqlite(
     # Por lo tanto, convertimos las fechas a string ISO antes de guardar
     df_indicadores_pd["fecha"] = df_indicadores_pd["fecha"].astype(str)
 
-    conn = sqlite3.connect(output_path)
+    conn = sqlite3.connect(tmp_path)
     try:
         df_regiones_pd.to_sql("regiones", conn, index=False, if_exists="replace")
         df_provincias_pd.to_sql("provincias", conn, index=False, if_exists="replace")
@@ -1295,6 +1330,8 @@ def build_sqlite(
     finally:
         conn.close()
 
+    os.replace(tmp_path, output_path)
+
 
 def build_excel(
     df_regiones,
@@ -1319,7 +1356,8 @@ def build_excel(
     # Limpieza visual y formateo para Excel
     # En Excel, queremos que el Código Comuna siga siendo un string para que no se pierdan los ceros iniciales
     # XlsxWriter nos permite definir formatos específicos por columna
-    with pd_excel_writer(output_path) as writer:
+    tmp_path = output_path + ".tmp.xlsx"
+    with pd_excel_writer(tmp_path) as writer:
         df_regiones_pd.to_excel(writer, sheet_name="Regiones", index=False)
         df_provincias_pd.to_excel(writer, sheet_name="Provincias", index=False)
         df_comunas_pd.to_excel(writer, sheet_name="Comunas y Regiones", index=False)
@@ -1367,6 +1405,7 @@ def build_excel(
         worksheet_educacionales.set_column("D:D", 12, text_format)  # codigo_region
         worksheet_educacionales.set_column("E:E", 12, text_format)  # codigo_comuna
 
+    os.replace(tmp_path, output_path)
     print("Archivo Excel multi-pestaña generado con éxito.")
 
 
@@ -1376,11 +1415,15 @@ def pd_excel_writer(path):
     return pd.ExcelWriter(path, engine="xlsxwriter")
 
 
+def write_parquet_atomic(df, path):
+    tmp_path = path + ".tmp"
+    df.write_parquet(tmp_path)
+    os.replace(tmp_path, path)
+
+
 def build_flat_files(
     df_regiones, df_provincias, df_comunas, df_indicadores, df_censo, df_salud, df_educacionales
 ):
-    import json
-
     # Generamos archivos Parquet
     regiones_parquet = os.path.join(NORMALIZED_DIR, "regiones.parquet")
     provincias_parquet = os.path.join(NORMALIZED_DIR, "provincias.parquet")
@@ -1388,15 +1431,15 @@ def build_flat_files(
     comunas_enriquecidas_parquet = os.path.join(NORMALIZED_DIR, "comunas_enriquecidas.parquet")
     indicadores_parquet = os.path.join(NORMALIZED_DIR, "indicadores.parquet")
 
-    df_regiones.write_parquet(regiones_parquet)
-    df_provincias.write_parquet(provincias_parquet)
-    df_comunas.write_parquet(comunas_parquet)
-    df_comunas.write_parquet(comunas_enriquecidas_parquet)
-    df_indicadores.write_parquet(indicadores_parquet)
-    df_censo.write_parquet(os.path.join(NORMALIZED_DIR, "censo_comunal.parquet"))
-    df_salud.write_parquet(os.path.join(NORMALIZED_DIR, "establecimientos_salud.parquet"))
-    df_educacionales.write_parquet(
-        os.path.join(NORMALIZED_DIR, "establecimientos_educacionales.parquet")
+    write_parquet_atomic(df_regiones, regiones_parquet)
+    write_parquet_atomic(df_provincias, provincias_parquet)
+    write_parquet_atomic(df_comunas, comunas_parquet)
+    write_parquet_atomic(df_comunas, comunas_enriquecidas_parquet)
+    write_parquet_atomic(df_indicadores, indicadores_parquet)
+    write_parquet_atomic(df_censo, os.path.join(NORMALIZED_DIR, "censo_comunal.parquet"))
+    write_parquet_atomic(df_salud, os.path.join(NORMALIZED_DIR, "establecimientos_salud.parquet"))
+    write_parquet_atomic(
+        df_educacionales, os.path.join(NORMALIZED_DIR, "establecimientos_educacionales.parquet")
     )
     print(f"Archivos Parquet exportados a: {NORMALIZED_DIR}")
 
@@ -1411,33 +1454,33 @@ def build_flat_files(
     # SQLite/DuckDB maneja fechas como objetos datetime.date, por lo que convertimos a str para serialización JSON
     df_indicadores_serializable = df_indicadores.with_columns(pl.col("fecha").cast(pl.String))
 
-    with open(regiones_json, "w", encoding="utf-8") as f:
-        json.dump(df_regiones.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(provincias_json, "w", encoding="utf-8") as f:
-        json.dump(df_provincias.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(comunas_json, "w", encoding="utf-8") as f:
-        json.dump(df_comunas.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(comunas_enriquecidas_json, "w", encoding="utf-8") as f:
-        json.dump(df_comunas.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(indicadores_json, "w", encoding="utf-8") as f:
-        json.dump(df_indicadores_serializable.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(os.path.join(NORMALIZED_DIR, "censo_comunal.json"), "w", encoding="utf-8") as f:
-        json.dump(df_censo.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(
-        os.path.join(NORMALIZED_DIR, "establecimientos_salud.json"), "w", encoding="utf-8"
-    ) as f:
-        json.dump(df_salud.to_dicts(), f, ensure_ascii=False, indent=2)
-
-    with open(
-        os.path.join(NORMALIZED_DIR, "establecimientos_educacionales.json"), "w", encoding="utf-8"
-    ) as f:
-        json.dump(df_educacionales.to_dicts(), f, ensure_ascii=False, indent=2)
+    write_json_atomic(df_regiones.to_dicts(), regiones_json, ensure_ascii=False, indent=2)
+    write_json_atomic(df_provincias.to_dicts(), provincias_json, ensure_ascii=False, indent=2)
+    write_json_atomic(df_comunas.to_dicts(), comunas_json, ensure_ascii=False, indent=2)
+    write_json_atomic(
+        df_comunas.to_dicts(), comunas_enriquecidas_json, ensure_ascii=False, indent=2
+    )
+    write_json_atomic(
+        df_indicadores_serializable.to_dicts(), indicadores_json, ensure_ascii=False, indent=2
+    )
+    write_json_atomic(
+        df_censo.to_dicts(),
+        os.path.join(NORMALIZED_DIR, "censo_comunal.json"),
+        ensure_ascii=False,
+        indent=2,
+    )
+    write_json_atomic(
+        df_salud.to_dicts(),
+        os.path.join(NORMALIZED_DIR, "establecimientos_salud.json"),
+        ensure_ascii=False,
+        indent=2,
+    )
+    write_json_atomic(
+        df_educacionales.to_dicts(),
+        os.path.join(NORMALIZED_DIR, "establecimientos_educacionales.json"),
+        ensure_ascii=False,
+        indent=2,
+    )
 
     print(f"Endpoints JSON de prueba exportados a: {NORMALIZED_DIR}")
 
@@ -1467,6 +1510,30 @@ def main():
         raise SystemExit(
             "Error: No se encuentran los archivos CSV en staging. Corre los extractores primero."
         )
+
+    metadata_checks = [
+        ("comunas.metadata.json", COMUNAS_METADATA_PATH, "subdere_extractor.py"),
+        ("indicadores.metadata.json", INDICADORES_METADATA_PATH, "bcentral_extractor.py"),
+        ("censo_comunal.metadata.json", CENSO_METADATA_PATH, "censo_extractor.py"),
+        ("establecimientos_salud.metadata.json", SALUD_METADATA_PATH, "salud_extractor.py"),
+        (
+            "censo_hogares_viviendas.metadata.json",
+            CENSO_HOGARES_METADATA_PATH,
+            "censo_hogares_viviendas_extractor.py",
+        ),
+        ("distritos_electorales.metadata.json", ELECTORAL_METADATA_PATH, "electoral_extractor.py"),
+        (
+            "establecimientos_educacionales.metadata.json",
+            os.path.join(STAGING_DIR, "establecimientos_educacionales.metadata.json"),
+            "mineduc_establecimientos_extractor.py",
+        ),
+    ]
+    for filename, path, extractor in metadata_checks:
+        if not os.path.exists(path):
+            raise SystemExit(
+                f"Error: No se encuentra {filename} en data/staging/. "
+                f"Corre el extractor primero: python src/extractors/{extractor}"
+            )
 
     comunas_metadata = load_metadata(COMUNAS_METADATA_PATH)
     indicadores_metadata = load_metadata(INDICADORES_METADATA_PATH)
@@ -1608,17 +1675,25 @@ def main():
     build_flat_files(
         df_regiones, df_provincias, df_comunas, df_indicadores, df_censo, df_salud, df_educacionales
     )
-    df_censo_hogares.write_parquet(os.path.join(NORMALIZED_DIR, "censo_hogares_viviendas.parquet"))
-    with open(
-        os.path.join(NORMALIZED_DIR, "censo_hogares_viviendas.json"), "w", encoding="utf-8"
-    ) as f:
-        json.dump(df_censo_hogares.to_dicts(), f, ensure_ascii=False, indent=2)
+    write_parquet_atomic(
+        df_censo_hogares, os.path.join(NORMALIZED_DIR, "censo_hogares_viviendas.parquet")
+    )
+    write_json_atomic(
+        df_censo_hogares.to_dicts(),
+        os.path.join(NORMALIZED_DIR, "censo_hogares_viviendas.json"),
+        ensure_ascii=False,
+        indent=2,
+    )
 
-    df_electoral.write_parquet(os.path.join(NORMALIZED_DIR, "distritos_electorales.parquet"))
-    with open(
-        os.path.join(NORMALIZED_DIR, "distritos_electorales.json"), "w", encoding="utf-8"
-    ) as f:
-        json.dump(df_electoral.to_dicts(), f, ensure_ascii=False, indent=2)
+    write_parquet_atomic(
+        df_electoral, os.path.join(NORMALIZED_DIR, "distritos_electorales.parquet")
+    )
+    write_json_atomic(
+        df_electoral.to_dicts(),
+        os.path.join(NORMALIZED_DIR, "distritos_electorales.json"),
+        ensure_ascii=False,
+        indent=2,
+    )
 
     dataset_metadata = {
         "regiones": {

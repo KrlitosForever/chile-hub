@@ -1,14 +1,14 @@
 # chile-hub dataset catalog
 
-- `generated_at_utc`: `2026-06-15T23:53:16.011279+00:00`
+- `generated_at_utc`: `2026-06-16T00:13:53.370709+00:00`
 - `dataset_count`: `10`
 
 | Dataset | Source | Mode | Freshness | Reuse | Records | Confidence | Join Keys | Validation |
 | :--- | :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- |
-| `regiones` | BCN ArcGIS | `live` | `fresh (0.0h / 2160h)` | `open-attribution (CC BY)` | 16 | `Tier B` | `codigo_region` | `ok` |
-| `provincias` | BCN ArcGIS | `live` | `fresh (0.0h / 2160h)` | `open-attribution (CC BY)` | 56 | `Tier B` | `codigo_provincia, codigo_region` | `ok` |
-| `comunas` | BCN ArcGIS | `live` | `fresh (0.0h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna, codigo_region` | `ok` |
-| `comunas_enriquecidas` | BCN ArcGIS | `live` | `fresh (0.0h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna` | `ok` |
+| `regiones` | BCN ArcGIS | `live` | `fresh (0.01h / 2160h)` | `open-attribution (CC BY)` | 16 | `Tier B` | `codigo_region` | `ok` |
+| `provincias` | BCN ArcGIS | `live` | `fresh (0.01h / 2160h)` | `open-attribution (CC BY)` | 56 | `Tier B` | `codigo_provincia, codigo_region` | `ok` |
+| `comunas` | BCN ArcGIS | `live` | `fresh (0.01h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna, codigo_region` | `ok` |
+| `comunas_enriquecidas` | BCN ArcGIS | `live` | `fresh (0.01h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna` | `ok` |
 | `indicadores` | Banco Central de Chile (via mindicador.cl) | `live` | `fresh (0.0h / 72h)` | `open-attribution (Reproducción libre con citación (BCCh / INE))` | 427 | `Tier A/B` | `fecha, codigo_indicador` | `ok` |
 | `censo_comunal` | Instituto Nacional de Estadisticas - Censo 2024 | `live` | `fresh (0.0h / 87600h)` | `open-attribution (CC BY 4.0)` | 346 | `Tier A` | `codigo_comuna, codigo_region` | `ok` |
 | `establecimientos_salud` | Ministerio de Salud - Establecimientos de Salud | `live` | `fresh (0.0h / 1080h)` | `open-attribution (CC0)` | 5643 | `Tier A` | `codigo_establecimiento, codigo_comuna` | `ok` |
@@ -22,7 +22,7 @@ Capa derivada de regiones para filtros, joins y referencias administrativas de a
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/regiones.md`
-- `freshness`: `fresh (0.0h / 2160h)`
+- `freshness`: `fresh (0.01h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."}`
 - `fields`: `codigo_region, nombre_region`
 - `join_keys`: `codigo_region`
@@ -37,7 +37,7 @@ Capa derivada de provincias para cruces intermedios entre region y comuna.
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/provincias.md`
-- `freshness`: `fresh (0.0h / 2160h)`
+- `freshness`: `fresh (0.01h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."}`
 - `fields`: `codigo_region, nombre_region, codigo_provincia, nombre_provincia`
 - `join_keys`: `codigo_provincia, codigo_region`
@@ -52,7 +52,7 @@ Base territorial normalizada para cruces por region, provincia y comuna.
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/comunas.md`
-- `freshness`: `fresh (0.0h / 2160h)`
+- `freshness`: `fresh (0.01h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida."}`
 - `fields`: `codigo_region, nombre_region, abreviatura, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, nombre_comuna_clean, latitud_cabecera, longitud_cabecera, poblacion_estimada`
 - `join_keys`: `codigo_comuna, codigo_region`
@@ -67,7 +67,7 @@ Comunas con coordenadas de cabecera y poblacion estimada INE, listas para analis
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/comunas_enriquecidas.md`
-- `freshness`: `fresh (0.0h / 2160h)`
+- `freshness`: `fresh (0.01h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN con coordenadas e informacion INE."}`
 - `fields`: `codigo_region, nombre_region, abreviatura, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, nombre_comuna_clean, latitud_cabecera, longitud_cabecera, poblacion_estimada`
 - `join_keys`: `codigo_comuna`

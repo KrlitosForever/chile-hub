@@ -21,6 +21,7 @@ from src.build_dev_db import (
     build_coverage,
     build_degradation,
     build_drift,
+    load_metadata,
     write_publishable_bundle_zip,
 )
 from src.build_dev_db import (
@@ -46,6 +47,38 @@ class PipelineLogicTests(unittest.TestCase):
             self.assertRaisesRegex(SystemExit, "No se encuentran los archivos CSV"),
         ):
             build_main()
+
+    def test_build_main_fails_when_metadata_inputs_are_missing(self):
+        def mock_exists(path):
+            if str(path).endswith(".csv"):
+                return True
+            return False
+
+        with (
+            patch("src.build_dev_db.ensure_directories"),
+            patch("src.build_dev_db.os.path.exists", side_effect=mock_exists),
+            self.assertRaisesRegex(SystemExit, "No se encuentra comunas.metadata.json"),
+        ):
+            build_main()
+
+    def test_load_metadata_fails_on_malformed_json(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            bad_json_file = Path(tmpdir) / "bad.json"
+            bad_json_file.write_text("{invalid json", encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "contiene un JSON malformado"):
+                load_metadata(str(bad_json_file))
+
+    def test_load_metadata_fails_on_missing_required_fields(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            incomplete_json_file = Path(tmpdir) / "incomplete.json"
+            incomplete_metadata = {
+                "dataset": "comunas",
+                "source_name": "SUBDERE",
+                # missing other fields
+            }
+            incomplete_json_file.write_text(json.dumps(incomplete_metadata), encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "no cumple con el esquema obligatorio"):
+                load_metadata(str(incomplete_json_file))
 
     def test_publication_policy_accepts_fresh_live_data(self):
         datasets = {

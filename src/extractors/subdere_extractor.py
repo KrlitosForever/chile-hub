@@ -72,6 +72,16 @@ SUPPLEMENTAL_COMUNAS = [
     }
 ]
 
+
+REUSE_POLICY = {
+    "status": "open-attribution",
+    "license": "CC BY",
+    "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
+    "attribution_required": True,
+    "redistribution_ok": True,
+    "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
+}
+
 # Abreviaturas oficiales por código de región (2 dígitos CUT)
 REGION_ABBREVIATIONS = {
     "01": "TA",
@@ -646,6 +656,7 @@ def normalize_dpa():
             if source_detail == "bcn_arcgis"
             else "fallback_embedded_sample_sin_poblacion"
         ),
+        "reuse_policy": REUSE_POLICY,
     }
     write_metadata(metadata)
     print(f"Guardada DPA normalizada en: {output_path} (Total registros: {len(df_clean)})")
@@ -680,6 +691,7 @@ class SubdereExtractor(BaseExtractor):
                 "dataset": self.dataset_name,
                 "record_count": df.height,
                 "fields": df.columns,
+                "reuse_policy": REUSE_POLICY,
             }
         )
         return output_path

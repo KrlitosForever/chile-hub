@@ -1,6 +1,15 @@
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
+
+
+def write_text_atomic(content, path):
+    path_obj = Path(path)
+    tmp_path = path_obj.with_suffix(path_obj.suffix + ".tmp")
+    tmp_path.write_text(content, encoding="utf-8")
+    os.replace(str(tmp_path), str(path_obj))
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
@@ -387,7 +396,7 @@ def build_status_markdown(metadata, health=None):
 
 
 def write_status_markdown_file(metadata, path=STATUS_MARKDOWN_PATH, health=None):
-    Path(path).write_text(build_status_markdown(metadata, health=health), encoding="utf-8")
+    write_text_atomic(build_status_markdown(metadata, health=health), path)
 
 
 def build_hub_health_markdown(health):
@@ -454,7 +463,7 @@ def build_hub_health_markdown(health):
 
 
 def write_hub_health_markdown_file(health, path=HUB_HEALTH_MARKDOWN_PATH):
-    Path(path).write_text(build_hub_health_markdown(health), encoding="utf-8")
+    write_text_atomic(build_hub_health_markdown(health), path)
 
 
 def build_redistribution_report_markdown(report):
@@ -501,7 +510,7 @@ def build_redistribution_report_markdown(report):
 
 
 def write_redistribution_report_markdown_file(report, path=REDISTRIBUTION_REPORT_MARKDOWN_PATH):
-    Path(path).write_text(build_redistribution_report_markdown(report), encoding="utf-8")
+    write_text_atomic(build_redistribution_report_markdown(report), path)
 
 
 def build_provenance_report_markdown(report):
@@ -550,7 +559,7 @@ def build_provenance_report_markdown(report):
 
 
 def write_provenance_report_markdown_file(report, path=PROVENANCE_REPORT_MARKDOWN_PATH):
-    Path(path).write_text(build_provenance_report_markdown(report), encoding="utf-8")
+    write_text_atomic(build_provenance_report_markdown(report), path)
 
 
 def build_drift_report_markdown(report):
@@ -598,7 +607,7 @@ def build_drift_report_markdown(report):
 
 
 def write_drift_report_markdown_file(report, path=DRIFT_REPORT_MARKDOWN_PATH):
-    Path(path).write_text(build_drift_report_markdown(report), encoding="utf-8")
+    write_text_atomic(build_drift_report_markdown(report), path)
 
 
 def build_overview_markdown(overview):
@@ -676,7 +685,7 @@ def build_overview_markdown(overview):
 
 
 def write_overview_markdown_file(overview, path=OVERVIEW_MARKDOWN_PATH):
-    Path(path).write_text(build_overview_markdown(overview), encoding="utf-8")
+    write_text_atomic(build_overview_markdown(overview), path)
 
 
 def build_dataset_catalog_markdown(catalog):
@@ -748,4 +757,4 @@ def build_dataset_catalog_markdown(catalog):
 
 
 def write_dataset_catalog_markdown_file(catalog, path=DATASET_CATALOG_MARKDOWN_PATH):
-    Path(path).write_text(build_dataset_catalog_markdown(catalog), encoding="utf-8")
+    write_text_atomic(build_dataset_catalog_markdown(catalog), path)

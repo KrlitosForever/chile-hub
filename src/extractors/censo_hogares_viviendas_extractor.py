@@ -12,7 +12,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from src.extractors.base import ensure_staging_directories, write_staging_metadata
+from src.extractors.base import BaseExtractor, ensure_staging_directories, write_staging_metadata
 from src.validation import validate_censo_hogares_viviendas
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
@@ -31,6 +31,36 @@ REUSE_POLICY = {
     "redistribution_ok": True,
     "summary": "Resultados oficiales del Censo 2024; atribucion requerida.",
 }
+
+
+class CensoHogaresViviendasExtractor(BaseExtractor):
+    @property
+    def dataset_name(self) -> str:
+        return "censo_hogares_viviendas"
+
+    def fetch(self, **kwargs):
+        return fetch_workbook()
+
+    def normalize(self, raw_data):
+        path, _ = raw_data
+        return parse_workbook(path)
+
+    def validate(self, df, metadata: dict) -> dict:
+        return validate_censo_hogares_viviendas(df, metadata)
+
+    def write_staging(self, df, metadata: dict) -> Path:
+        ensure_staging_directories()
+        output = Path(STAGING_CSV_PATH)
+        df.write_csv(output)
+        full_metadata = {
+            **metadata,
+            "dataset": self.dataset_name,
+            "record_count": df.height,
+            "fields": df.columns,
+            "reuse_policy": REUSE_POLICY,
+        }
+        write_staging_metadata(str(METADATA_PATH), full_metadata)
+        return output
 
 
 def fetch_workbook():
@@ -86,25 +116,24 @@ def parse_workbook(path):
 def process():
     path, source_mode = fetch_workbook()
     df = parse_workbook(path)
-    validation = validate_censo_hogares_viviendas(df, {"source_mode": source_mode})
+    extractor = CensoHogaresViviendasExtractor()
+    validation = extractor.validate(df, {"source_mode": source_mode})
     if validation["status"] == "error":
         raise SystemExit(f"Validacion fallida: {validation['errors']}")
-    df.write_csv(STAGING_CSV_PATH)
-    write_staging_metadata(
-        str(METADATA_PATH),
-        {
-            "dataset": "censo_hogares_viviendas",
-            "source_name": "Instituto Nacional de Estadisticas - Censo 2024",
-            "source_url": SOURCE_URL,
-            "source_mode": source_mode,
-            "source_detail": "official_xlsx" if source_mode == "live" else "raw_snapshot_recovery",
-            "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
-            "record_count": df.height,
-            "fields": df.columns,
-            "notes": [],
-            "reuse_policy": REUSE_POLICY,
-        },
-    )
+
+    metadata = {
+        "dataset": "censo_hogares_viviendas",
+        "source_name": "Instituto Nacional de Estadisticas - Censo 2024",
+        "source_url": SOURCE_URL,
+        "source_mode": source_mode,
+        "source_detail": "official_xlsx" if source_mode == "live" else "raw_snapshot_recovery",
+        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "record_count": df.height,
+        "fields": df.columns,
+        "notes": [],
+        "reuse_policy": REUSE_POLICY,
+    }
+    extractor.write_staging(df, metadata)
     print(f"Censo hogares y viviendas guardado: {df.height} registros ({source_mode})")
 
 
