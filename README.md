@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/cortega26/chile-hub/actions/workflows/pipeline-check.yml/badge.svg)](https://github.com/cortega26/chile-hub/actions)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?style=flat&logo=python&logoColor=white)]()
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB.svg?style=flat&logo=python&logoColor=white)]()
 [![Formats](https://img.shields.io/badge/Formats-Parquet%20%7C%20DuckDB%20%7C%20SQLite%20%7C%20JSON%20%7C%20Excel-orange.svg)]()
 [![Website](https://img.shields.io/badge/Website-cortega26.github.io%2Fchile--hub-0ea5e9.svg)](https://cortega26.github.io/chile-hub/)
 
@@ -65,11 +65,11 @@ El proyecto está diseñado bajo un pipeline lineal y determinista que asegura q
 
 ```mermaid
 graph TD
-    classDef extract fill:#e0f2fe,stroke:#0284c7,stroke-width:2px;
-    classDef build fill:#fef9c3,stroke:#ca8a04,stroke-width:2px;
-    classDef verify fill:#f0fdf4,stroke:#16a34a,stroke-width:2px;
-    classDef test fill:#fae8ff,stroke:#c084fc,stroke-width:2px;
-    classDef publish fill:#ffe4e6,stroke:#f43f5e,stroke-width:2px;
+    classDef extract fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0f172a;
+    classDef build fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#0f172a;
+    classDef verify fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#0f172a;
+    classDef test fill:#fae8ff,stroke:#c084fc,stroke-width:2px,color:#0f172a;
+    classDef publish fill:#ffe4e6,stroke:#f43f5e,stroke-width:2px,color:#0f172a;
 
     subgraph 1 [1. EXTRACT]
         E1[subdere_extractor.py]:::extract
