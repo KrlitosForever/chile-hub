@@ -1,3 +1,5 @@
+from typing import Any
+
 import polars as pl
 
 EXPECTED_INDICATOR_CODES = {"uf", "dolar", "euro", "utm", "ipc"}
@@ -5,7 +7,7 @@ FALLBACK_COMUNAS_COUNT = 18
 EXPECTED_LIVE_COMUNAS_COUNT = 346
 
 
-def validate_comunas(df_comunas, metadata):
+def validate_comunas(df_comunas: pl.DataFrame, metadata: dict[str, Any] | None) -> dict[str, Any]:
     errors = []
     warnings = []
     row_count = df_comunas.height
@@ -39,7 +41,7 @@ def validate_comunas(df_comunas, metadata):
     }
 
 
-def validate_regiones(df_regiones):
+def validate_regiones(df_regiones: pl.DataFrame) -> dict[str, Any]:
     errors = []
     if df_regiones.height == 0:
         errors.append("regiones dataset is empty")
@@ -55,7 +57,7 @@ def validate_regiones(df_regiones):
     }
 
 
-def validate_provincias(df_provincias):
+def validate_provincias(df_provincias: pl.DataFrame) -> dict[str, Any]:
     errors = []
     if df_provincias.height == 0:
         errors.append("provincias dataset is empty")
@@ -71,7 +73,9 @@ def validate_provincias(df_provincias):
     }
 
 
-def validate_censo_comunal(df_censo, metadata):
+def validate_censo_comunal(
+    df_censo: pl.DataFrame, metadata: dict[str, Any] | None
+) -> dict[str, Any]:
     errors = []
     row_count = df_censo.height
     if row_count == 0:
@@ -101,7 +105,11 @@ def validate_censo_comunal(df_censo, metadata):
     }
 
 
-def validate_establecimientos_salud(df_salud, metadata, valid_commune_codes=None):
+def validate_establecimientos_salud(
+    df_salud: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
     errors = []
     row_count = df_salud.height
     if row_count == 0:
@@ -126,7 +134,11 @@ def validate_establecimientos_salud(df_salud, metadata, valid_commune_codes=None
     }
 
 
-def validate_censo_hogares_viviendas(df, metadata, valid_commune_codes=None):
+def validate_censo_hogares_viviendas(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
     errors = []
     if df.height != 346:
         errors.append(f"censo_hogares_viviendas expected 346 communes, found {df.height}")
@@ -153,7 +165,11 @@ def validate_censo_hogares_viviendas(df, metadata, valid_commune_codes=None):
     }
 
 
-def validate_establecimientos_educacionales(df, metadata, valid_commune_codes=None):
+def validate_establecimientos_educacionales(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
     errors = []
     if df.height == 0:
         errors.append("establecimientos_educacionales dataset is empty")
@@ -175,7 +191,9 @@ def validate_establecimientos_educacionales(df, metadata, valid_commune_codes=No
     }
 
 
-def validate_indicadores(df_indicadores, metadata):
+def validate_indicadores(
+    df_indicadores: pl.DataFrame, metadata: dict[str, Any] | None
+) -> dict[str, Any]:
     errors = []
     warnings = []
     row_count = df_indicadores.height
@@ -223,7 +241,11 @@ def validate_indicadores(df_indicadores, metadata):
     }
 
 
-def validate_distritos_electorales(df, metadata, valid_commune_codes=None):
+def validate_distritos_electorales(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
     errors = []
     if df.height == 0:
         errors.append("distritos_electorales dataset is empty")

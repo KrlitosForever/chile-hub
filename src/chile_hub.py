@@ -2,6 +2,7 @@ import argparse
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import polars as pl
 
@@ -24,55 +25,55 @@ DRIFT_REPORT_PATH = NORMALIZED_DIR / "drift_report.json"
 
 
 class ChileHub:
-    def __init__(self, catalog_path=DATASET_CATALOG_PATH):
+    def __init__(self, catalog_path: str | Path = DATASET_CATALOG_PATH) -> None:
         self.catalog_path = Path(catalog_path)
         self.root_dir = self.catalog_path.resolve().parents[2]
         self.catalog = self._load_catalog()
 
-    def _load_catalog(self):
+    def _load_catalog(self) -> dict[str, Any]:
         with self.catalog_path.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_artifact_manifest(self):
+    def _load_artifact_manifest(self) -> dict[str, Any]:
         with ARTIFACT_MANIFEST_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_hub_health(self):
+    def _load_hub_health(self) -> dict[str, Any]:
         with HUB_HEALTH_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_hub_status(self):
+    def _load_hub_status(self) -> dict[str, Any]:
         with HUB_STATUS_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_hub_bundle(self):
+    def _load_hub_bundle(self) -> dict[str, Any]:
         with HUB_BUNDLE_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_redistribution_report(self):
+    def _load_redistribution_report(self) -> dict[str, Any]:
         with REDISTRIBUTION_REPORT_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_provenance_report(self):
+    def _load_provenance_report(self) -> dict[str, Any]:
         with PROVENANCE_REPORT_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _load_drift_report(self):
+    def _load_drift_report(self) -> dict[str, Any]:
         with DRIFT_REPORT_PATH.open("r", encoding="utf-8") as f:
             return json.load(f)
 
     @staticmethod
-    def _status_rank(status):
+    def _status_rank(status: str) -> int:
         return {"ok": 0, "warn": 1, "error": 2}.get(status, 1)
 
     @classmethod
-    def _max_status(cls, *statuses):
+    def _max_status(cls, *statuses: str) -> str:
         filtered = [status for status in statuses if status]
         if not filtered:
             return "unknown"
         return max(filtered, key=cls._status_rank)
 
-    def top_issue(self):
+    def top_issue(self) -> dict[str, Any] | None:
         provenance_by_dataset = {
             entry.get("dataset"): entry for entry in self.provenance().get("datasets", [])
         }
@@ -109,7 +110,7 @@ class ChileHub:
 
         return compute_top_issue(entries)
 
-    def top_issue_table(self):
+    def top_issue_table(self) -> str:
         top_issue = self.top_issue()
         lines = ["chile-hub top issue", ""]
         if not top_issue:
@@ -138,17 +139,17 @@ class ChileHub:
         lines.extend(f"{label.ljust(label_width)} : {value}" for label, value in rows)
         return "\n".join(lines) + "\n"
 
-    def list_datasets(self):
+    def list_datasets(self) -> list[str]:
         return [entry["dataset"] for entry in self.catalog.get("datasets", [])]
 
-    def get_dataset(self, dataset_name):
+    def get_dataset(self, dataset_name: str) -> dict[str, Any]:
         for entry in self.catalog.get("datasets", []):
             if entry["dataset"] == dataset_name:
                 return entry
         available = ", ".join(self.list_datasets())
         raise KeyError(f"Dataset '{dataset_name}' no existe. Disponibles: {available}")
 
-    def get_output_path(self, dataset_name, output_type="parquet"):
+    def get_output_path(self, dataset_name: str, output_type: str = "parquet") -> Path:
         dataset = self.get_dataset(dataset_name)
         outputs = dataset.get("outputs", {})
         if output_type not in outputs:
@@ -158,11 +159,11 @@ class ChileHub:
             )
         return self.root_dir / outputs[output_type]
 
-    def load_polars(self, dataset_name):
+    def load_polars(self, dataset_name: str) -> pl.DataFrame:
         path = self.get_output_path(dataset_name, "parquet")
         return pl.read_parquet(path)
 
-    def example_usage(self, dataset_name, kind="python"):
+    def example_usage(self, dataset_name: str, kind: str = "python") -> str:
         dataset = self.get_dataset(dataset_name)
         examples = dataset.get("usage_examples", {})
         if kind not in examples:
@@ -172,7 +173,7 @@ class ChileHub:
             )
         return examples[kind]
 
-    def summary(self):
+    def summary(self) -> list[dict[str, Any]]:
         return [
             {
                 "dataset": entry["dataset"],

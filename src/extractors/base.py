@@ -4,6 +4,9 @@ import json
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any
+
+import polars as pl
 
 _BASE_DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 _RAW_DIR = os.path.join(_BASE_DATA_DIR, "raw")
@@ -16,7 +19,7 @@ def ensure_staging_directories() -> None:
     os.makedirs(_STAGING_DIR, exist_ok=True)
 
 
-def write_staging_metadata(path: str, metadata: dict) -> None:
+def write_staging_metadata(path: str, metadata: dict[str, Any]) -> None:
     """Persiste el metadata.json de un dataset en staging."""
     tmp_path = path + ".tmp"
     with open(tmp_path, "w", encoding="utf-8") as f:
@@ -31,22 +34,22 @@ class BaseExtractor(ABC):
         """Nombre canonico registrado en el catalogo de datasets."""
 
     @abstractmethod
-    def fetch(self, **kwargs):
+    def fetch(self, **kwargs: Any) -> Any:
         """Obtiene datos desde la fuente o su estrategia de fallback."""
 
     @abstractmethod
-    def normalize(self, raw_data):
+    def normalize(self, raw_data: Any) -> pl.DataFrame:
         """Convierte los datos obtenidos al schema canonico."""
 
     @abstractmethod
-    def validate(self, df, metadata: dict) -> dict:
+    def validate(self, df: pl.DataFrame, metadata: dict[str, Any]) -> dict[str, Any]:
         """Retorna el resultado de validacion del dataset."""
 
     @abstractmethod
-    def write_staging(self, df, metadata: dict) -> Path:
+    def write_staging(self, df: pl.DataFrame, metadata: dict[str, Any]) -> Path:
         """Persiste el dataset normalizado y sus metadatos en staging."""
 
-    def run(self, dry_run: bool = False, **kwargs) -> dict:
+    def run(self, dry_run: bool = False, **kwargs: Any) -> dict[str, Any]:
         raw_data = self.fetch(**kwargs)
         df = self.normalize(raw_data)
         metadata = {"dataset": self.dataset_name, "dry_run": dry_run}
