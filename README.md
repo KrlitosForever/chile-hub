@@ -29,7 +29,7 @@ Trabajar con datos públicos chilenos implica enfrentar los mismos obstáculos u
 | Enlaces rotos y APIs inconsistentes | Pipeline automatizado con fallbacks y verificación de integridad |
 | Planillas Excel deformes con celdas combinadas | Parquet, DuckDB y JSON listos para producción |
 | Códigos CUT que pierden ceros al leerse como `int` | CUT garantizados como `VARCHAR` de largo fijo (`"01101"`) |
-| Nombres de comunas imposibles de cruzar (_Ñuñoa_ vs _Nunoa_) | Columna `nombre_comuna_clean` normalizada para joins exactos |
+| Nombres de comunas imposibles de cruzar (_Ñuñoa_ vs _Nunoa_) | Columna `nombre_comuna_clean` normalizada para cruces exactos |
 | Cero trazabilidad sobre origen y vigencia del dato | Metadatos con fuente, fecha de extracción, licencia y modo |
 
 ---
@@ -44,19 +44,19 @@ Cada capa pasa por validaciones automáticas de integridad referencial, cardinal
 
 </td><td>
 
-**Crucable por diseño**  
+**Cruzable por diseño**  
 Todos los datasets se vinculan mediante códigos CUT (`codigo_comuna`, `codigo_provincia`, `codigo_region`). Una sola clave une demografía, salud, educación y distritos electorales.
 
 </td></tr>
 <tr><td>
 
 **Múltiples formatos**  
-Parquet para analítica veloz, DuckDB para consultas SQL locales, SQLite para apps embebidas, JSON para pipelines y Excel para usuarios de planillas. Todos generados desde la misma fuente.
+Parquet para analítica de alto rendimiento, DuckDB para consultas SQL locales, SQLite para aplicaciones embebidas, JSON para pipelines y Excel para usuarios de planillas. Todos generados desde la misma fuente.
 
 </td><td>
 
 **Trazabilidad total**  
-Cada artefacto incluye: fuente original, fecha de extracción, modo (live/fallback), hash SHA256, licencia y estatus de redistribución. Sabes exactamente qué estás consumiendo.
+Cada artefacto incluye: fuente original, fecha de extracción, modo (en vivo/respaldo), hash SHA256, licencia y estatus de redistribución. Sabes exactamente qué estás consumiendo.
 
 </td></tr>
 <tr><td>
@@ -70,7 +70,7 @@ df = pl.read_parquet("data/normalized/comunas.parquet")
 </td><td>
 
 **CI/CD transparente**  
-Pipeline determinista en GitHub Actions: extracción → build → verificación → tests → smoke tests. Todo reproducible en local con `make refresh`.
+Pipeline determinista en GitHub Actions: extracción → build → verificación → tests → pruebas de humo. Todo reproducible en local con `make refresh`.
 
 </td></tr>
 </table>
@@ -202,7 +202,7 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 
 ---
 
-## Quick Start
+## Inicio rápido
 
 ### 1. Clonar y preparar el entorno
 
@@ -215,7 +215,7 @@ make bootstrap    # Crea .venv, instala dependencias y Playwright
 ### 2. Ejecutar el pipeline completo
 
 ```bash
-make refresh      # extract → build → verify → test → landing smoke tests
+make refresh      # extract → build → verify → test → pruebas de humo
 ```
 
 ### 3. Consumir los datos
@@ -238,7 +238,7 @@ JOIN 'data/normalized/distritos_electorales.parquet' e
 WHERE c.nombre_region = 'Valparaíso';
 ```
 
-**Python + Polars** — dataframes tipados y veloces:
+**Python + Polars** — dataframes tipados y rápidos:
 
 ```python
 import polars as pl
@@ -246,12 +246,12 @@ import polars as pl
 comunas = pl.read_parquet("data/normalized/comunas.parquet")
 censo = pl.read_parquet("data/normalized/censo_comunal.parquet")
 
-# Join garantizado: códigos CUT son VARCHAR, no int
+# Cruce garantizado: códigos CUT son VARCHAR, no int
 df = comunas.join(censo, on="codigo_comuna")
 print(df.head())
 ```
 
-**Python API (ChileHub)** — helper oficial del proyecto:
+**Python API (ChileHub)** — módulo oficial del proyecto:
 
 ```python
 from src.chile_hub import ChileHub
@@ -436,7 +436,7 @@ El proyecto expone una CLI completa para administrar y diagnosticar el hub:
 |:---|:---|
 | `python -m src.chile_hub health` | Reporte consolidado de salud del hub |
 | `python -m src.chile_hub freshness-audit` | Auditoría de frescura contra el reloj actual |
-| `python -m src.chile_hub runtime-status` | Salud persistida + frescura en vivo |
+| `python -m src.chile_hub runtime-status` | Salud registrada + vigencia en vivo |
 | `python -m src.chile_hub top-issue` | Capa con mayor degradación operativa |
 | `python -m src.chile_hub drift` | Desvíos, fallbacks activos y regresiones |
 | `python -m src.chile_hub status` | JSON ultraliviano para CI/CD |
@@ -467,7 +467,7 @@ make extract            # Ejecuta los 8 extractores → data/staging/
 make build              # Compila artefactos → data/normalized/
 make verify             # Verifica integridad (SHA256, conteos, schema)
 make test               # pytest (lee data/normalized/, no corre el pipeline)
-make verify-landing     # Smoke tests de landing page con Playwright
+make verify-landing     # Pruebas de humo de landing page con Playwright
 
 # Tests
 ./.venv/bin/pytest -v
@@ -492,9 +492,9 @@ El código del pipeline y los metadatos se distribuyen bajo **[CC BY 4.0](https:
 
 ---
 
-## Próximo foco
+## Próximos pasos
 
-El roadmap actual prioriza **robustecer la estabilidad operacional** de las 10 capas activas frente a caídas de APIs, antes de agregar volumen. El criterio para incorporar nuevas capas exige justificar:
+El roadmap actual prioriza **fortalecer la estabilidad operacional** de las 10 capas activas frente a caídas de APIs, antes de agregar volumen. El criterio para incorporar nuevas capas exige justificar:
 
 - Dolor de usuario recurrente y documentado
 - Valor de cruce con la División Político-Administrativa (CUT)
@@ -509,7 +509,7 @@ El roadmap actual prioriza **robustecer la estabilidad operacional** de las 10 c
 
 Revisa [`AGENTS.md`](./AGENTS.md) para entender la arquitectura, las reglas no negociables y el flujo de trabajo. El punto de partida rápido es [`SOURCE_OF_TRUTH.md`](./SOURCE_OF_TRUTH.md).
 
-**¿Encontraste un bug o tienes un caso de uso?** Abre un [issue](https://github.com/cortega26/chile-hub/issues) — ayuda a priorizar el roadmap.
+**¿Encontraste un error o tienes un caso de uso?** Abre un [issue](https://github.com/cortega26/chile-hub/issues) — ayuda a priorizar el roadmap.
 
 ---
 
