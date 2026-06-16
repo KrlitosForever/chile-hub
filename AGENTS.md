@@ -39,14 +39,17 @@ chile-hub/
 │
 ├── src/
 │   ├── extractors/
-│   │   ├── subdere_extractor.py   Extrae DPA desde BCN ArcGIS → data/staging/
-│   │   ├── bcentral_extractor.py  Extrae indicadores desde mindicador.cl → data/staging/
-│   │   ├── censo_extractor.py     Extrae perfil comunal Censo 2024 desde INE → data/staging/
-│   │   ├── censo_hogares_viviendas_extractor.py Extrae hogares y viviendas INE → data/staging/
-│   │   ├── salud_extractor.py     Extrae establecimientos desde MINSAL → data/staging/
-│   │   ├── electoral_extractor.py Extrae distritos electorales desde BCN → data/staging/
-│   │   └── mineduc_establecimientos_extractor.py Extrae establecimientos educacionales desde MINEDUC → data/staging/
-│   ├── build_dev_db.py            Construye todos los artefactos desde staging/
+│   │   ├── base.py                              BaseExtractor ABC (contrato para todos los extractores)
+│   │   ├── subdere_extractor.py                 DPA desde BCN ArcGIS → data/staging/
+│   │   ├── bcentral_extractor.py                Indicadores desde mindicador.cl → data/staging/
+│   │   ├── censo_extractor.py                   Censo 2024 — población comunal (INE) → data/staging/
+│   │   ├── censo_hogares_viviendas_extractor.py Censo 2024 — hogares y viviendas (INE) → data/staging/
+│   │   ├── salud_extractor.py                   Establecimientos de salud (MINSAL) → data/staging/
+│   │   ├── electoral_extractor.py               Distritos electorales (BCN/SERVEL) → data/staging/
+│   │   ├── mineduc_establecimientos_extractor.py Establecimientos educacionales (MINEDUC) → data/staging/
+│   │   └── sinim_finanzas_extractor.py          Finanzas municipales SINIM (en desarrollo)
+│   ├── validation.py              Todas las funciones validate_*() — módulo independiente
+│   ├── build_dev_db.py            Lee staging/, llama validate_*(), escribe todos los artefactos en normalized/
 │   ├── pipeline_status_utils.py   Genera reportes Markdown de salud, catálogo y redistribución
 │   └── chile_hub.py               API Python (ChileHub) + CLI
 │
@@ -56,7 +59,10 @@ chile-hub/
 │   └── normalized/   Artefactos finales publicables (Parquet, JSON, DuckDB, Excel, ZIP, reportes).
 │
 ├── tests/
-│   └── test_chile_hub.py   Suite completa: ChileHubTests, ArtifactContractTests, ChileHubCliTests
+│   ├── test_chile_hub.py        ChileHubTests · ArtifactContractTests · ChileHubCliTests
+│   │                            WorkflowContractTests · MakefileContractTests
+│   ├── test_extractors.py       SubdereExtractorTests · BCentralExtractorTests · BaseExtractorContractTests
+│   └── test_pipeline_logic.py   PipelineLogicTests · ValidatorTests · CUTInvariantTests · IndicatorFallbackTests
 │
 ├── scripts/
 │   ├── verify_pipeline.py  Verifica integridad de artefactos post-build
@@ -66,6 +72,30 @@ chile-hub/
 ├── docs/datasets/          Documentación por dataset (fuente, schema, licencia, recetas)
 └── examples/               Notebooks y scripts de demostración para usuarios
 ```
+
+---
+
+## Navegar el código — CodeGraph y lecturas acotadas
+
+CodeGraph está instalado (`.codegraph/codegraph.db`). Úsalo antes de abrir archivos grandes.
+
+```bash
+codegraph search "<query>"                         # Buscar símbolo, función o concepto
+codegraph refs src/build_dev_db.py::validate_comunas  # Callers y callees de una función
+codegraph graph src/chile_hub.py                   # Grafo de imports del módulo
+codegraph find <symbol_name>                       # En qué archivo está definido
+```
+
+**Reglas para acotar lecturas y ahorrar tokens:**
+- Usar `view_file` con `StartLine`/`EndLine` — nunca leer archivos grandes enteros de golpe.
+- `validation.py` (248 líneas) y `base.py` (57 líneas) son seguros de leer completos.
+- `build_dev_db.py` (~2 300 líneas) y `chile_hub.py` (~1 400 líneas) — usar estas áncoras:
+
+| Archivo | Líneas de interés |
+|---|---|
+| `src/build_dev_db.py` | L27-35 (imports de validators) · L1610+ (bloque `validations = {…}`) |
+| `src/chile_hub.py` | L26 (clase ChileHub) · L26-150 (superficie pública de la API) |
+| `tests/test_chile_hub.py` | Requiere `data/normalized/` — correr `make build` antes |
 
 ---
 
@@ -218,10 +248,13 @@ de los datasets existentes (`regiones`, `provincias`, `comunas`, `indicadores`).
 
 ### Paso 4 — Agregar validaciones
 
-Agregar una función `validate_{nombre}(df, metadata)` en `build_dev_db.py` con al menos:
+Agregar una función `validate_{nombre}(df, metadata)` en **`src/validation.py`** (no en
+`build_dev_db.py`) con al menos:
 - Verificar que el DataFrame no está vacío.
 - Verificar unicidad de la clave primaria.
 - Verificar integridad referencial con la DPA si el dataset tiene `codigo_comuna` o `codigo_region`.
+
+Luego importarla en `build_dev_db.py` y llamarla dentro del bloque `validations = {…}` al final del build.
 
 ### Paso 5 — Agregar tests
 
@@ -229,6 +262,13 @@ En `tests/test_chile_hub.py`, agregar tests para:
 - `hub.load_polars('{nombre}')` retorna filas.
 - `hub.summary()` incluye el nuevo dataset con `validation_status: "ok"`.
 - Los contratos de artefactos en `ArtifactContractTests`.
+
+En `tests/test_extractors.py`, agregar una clase `{Nombre}ExtractorTests` con al menos:
+- Smoke test del método `run()` en modo dry-run.
+- Verificación de que el CSV y `metadata.json` de staging tienen el schema esperado.
+
+En `tests/test_pipeline_logic.py`, agregar casos en `ValidatorTests` que cubran
+borde vacío y clave primaria duplicada para `validate_{nombre}()`.
 
 ### Paso 6 — Actualizar el workflow de CI
 
@@ -345,11 +385,32 @@ pytest tests/test_chile_hub.py::ChileHubTests::test_load_polars -v
 
 ### Qué cubren los tests
 
+**`tests/test_chile_hub.py`** — requiere `data/normalized/` (ejecutar `make build` antes)
+
 | Clase | Qué verifica |
 |:---|:---|
 | `ChileHubTests` | API Python: `load_polars`, `health`, `bundle`, `redistribution`, `provenance` |
 | `ArtifactContractTests` | Contratos de artefactos: SHA256, catálogo, ZIP, metadatos de redistribución |
 | `ChileHubCliTests` | CLI: todos los subcomandos (`list`, `path`, `show`, `health`, `bundle`, etc.) |
+| `WorkflowContractTests` | Contratos del workflow CI: estructura del YAML, steps esperados |
+| `MakefileContractTests` | Targets del Makefile: existencia y coherencia de comandos |
+
+**`tests/test_extractors.py`** — no requiere datos normalizados
+
+| Clase | Qué verifica |
+|:---|:---|
+| `SubdereExtractorTests` | Fetch, normalización y staging del extractor DPA |
+| `BCentralExtractorTests` | Fetch, normalización y staging del extractor de indicadores |
+| `BaseExtractorContractTests` | Contrato ABC de `BaseExtractor`: interfaz y métodos obligatorios |
+
+**`tests/test_pipeline_logic.py`** — no requiere datos normalizados
+
+| Clase | Qué verifica |
+|:---|:---|
+| `PipelineLogicTests` | Lógica interna de `build_dev_db.py`: enriquecimiento, degradación, metadata |
+| `ValidatorTests` | Funciones `validate_*()` de `src/validation.py`: bordes vacíos, claves duplicadas |
+| `CUTInvariantTests` | Invariante de longitud fija de códigos CUT en transformaciones |
+| `IndicatorFallbackTests` | Comportamiento del fallback de indicadores y backfill |
 
 ### Reglas al agregar tests
 
@@ -429,46 +490,58 @@ Las versiones flotantes pueden romper el pipeline silenciosamente en CI.
 
 ### ❌ Publicar datos sin pasar por validate_*()
 
-Las funciones `validate_comunas()`, `validate_indicadores()`, etc. en `build_dev_db.py`
-son la última línea de defensa antes de publicar. No bypassear estas validaciones.
+Las funciones `validate_comunas()`, `validate_indicadores()`, etc. viven en `src/validation.py`
+y son importadas por `build_dev_db.py`. Son la última línea de defensa antes de publicar.
+No bypassear estas validaciones ni mover su lógica a otro módulo.
 
 ---
 
 ## 11. Referencia rápida de comandos
 
 ```bash
-# Correr el pipeline completo
-python src/extractors/subdere_extractor.py
-python src/extractors/bcentral_extractor.py
-python src/extractors/censo_extractor.py
-python src/extractors/censo_hogares_viviendas_extractor.py
-python src/extractors/salud_extractor.py
-python src/extractors/electoral_extractor.py
-python src/extractors/mineduc_establecimientos_extractor.py
-python src/build_dev_db.py
+# Entorno
+make bootstrap          # Crea .venv, instala deps + Playwright/Chromium
+make doctor             # Python efectivo y dependencias clave
 
-# Verificar artefactos
-python scripts/verify_pipeline.py
+# Pipeline completo (lo más común)
+make refresh            # extract → build → verify → test → verify-landing → lint + format-check
 
-# Correr tests
-pytest -v
+# Pasos individuales
+make extract            # Corre los 8 extractores → data/staging/
+make build              # Compila todos los artefactos → data/normalized/
+make verify             # Integridad de artefactos (SHA-256, conteos, schema)
+make test               # pytest — lee data/normalized/, NO corre el pipeline
+make verify-landing     # Playwright smoke tests de index.html
 
-# Usar la API Python
+# Diagnóstico del hub
+make hub-health-table
+make hub-top-issue-table
+make hub-runtime-status-table
+
+# Bundle publicable
+make package-bundle     # ZIP desde artifact_manifest.json
+
+# API Python
 from src.chile_hub import ChileHub
 hub = ChileHub()
-hub.health()                        # Estado general del hub
-hub.load_polars("comunas")          # DataFrame Polars con 346 comunas
-hub.load_polars("indicadores")      # Serie histórica de indicadores
-hub.redistribution()                # Reporte legal por dataset
+hub.health()                     # Estado general del hub
+hub.load_polars("comunas")       # DataFrame Polars con 346 comunas
+hub.load_polars("indicadores")   # Serie histórica de indicadores
+hub.redistribution()             # Reporte legal por dataset
 
 # CLI
 python -m src.chile_hub list
-python -m src.chile_hub health
+python -m src.chile_hub health --format table
 python -m src.chile_hub show comunas
 python -m src.chile_hub path comunas --output parquet
 python -m src.chile_hub redistribution
 python -m src.chile_hub provenance
 python -m src.chile_hub bundle
+
+# Tests individuales
+./.venv/bin/pytest tests/test_chile_hub.py::ChileHubTests::test_load_polars -v
+./.venv/bin/pytest tests/test_extractors.py -v      # No requiere data/normalized/
+./.venv/bin/pytest tests/test_pipeline_logic.py -v  # No requiere data/normalized/
 ```
 
 ---
