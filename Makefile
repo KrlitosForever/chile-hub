@@ -1,7 +1,7 @@
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 VENV_DIR ?= .venv
 
-.PHONY: help bootstrap install-browsers doctor extract build verify verify-live verify-landing test lint lint-fix format format-check package package-check package-smoke check refresh status catalog hub-list hub-summary hub-summary-table hub-example hub-artifacts hub-shared-artifacts hub-shared-artifacts-table hub-reports hub-reports-table hub-report hub-inventory hub-inventory-table hub-snapshot hub-snapshot-table hub-overview hub-overview-table hub-status hub-status-table hub-health hub-health-table hub-bundle hub-freshness-audit hub-freshness-audit-table hub-runtime-status hub-runtime-status-table hub-top-issue hub-top-issue-text hub-top-issue-table hub-packages hub-packages-table hub-package hub-package-verify hub-redistribution hub-redistribution-table hub-provenance hub-provenance-table hub-drift hub-drift-table package-bundle clean-publishable
+.PHONY: help bootstrap install-browsers doctor extract build verify verify-live verify-landing test coverage lint lint-fix format format-check package package-check package-smoke check refresh status catalog hub-list hub-summary hub-summary-table hub-example hub-artifacts hub-shared-artifacts hub-shared-artifacts-table hub-reports hub-reports-table hub-report hub-inventory hub-inventory-table hub-snapshot hub-snapshot-table hub-overview hub-overview-table hub-status hub-status-table hub-health hub-health-table hub-bundle hub-freshness-audit hub-freshness-audit-table hub-runtime-status hub-runtime-status-table hub-top-issue hub-top-issue-text hub-top-issue-table hub-packages hub-packages-table hub-package hub-package-verify hub-redistribution hub-redistribution-table hub-provenance hub-provenance-table hub-drift hub-drift-table package-bundle clean-publishable
 
 help:
 	@printf "Targets disponibles:\n"
@@ -14,6 +14,7 @@ help:
 	@printf "  make verify-live      Exige datos live y frescos aptos para publicación\n"
 	@printf "  make verify-landing   Corre smoke check de la landing en navegador\n"
 	@printf "  make test             Corre smoke tests\n"
+	@printf "  make coverage         Corre tests con reporte de cobertura\n"
 	@printf "  make package          Construye wheel + sdist\n"
 	@printf "  make package-check    Valida dist/* con twine\n"
 	@printf "  make package-smoke    Instala wheel local y prueba import + CLI\n"
@@ -102,6 +103,9 @@ verify-landing:
 
 test:
 	$(PYTHON) -m pytest
+
+coverage:
+	$(PYTHON) -m pytest --cov=src --cov-report=term-missing --cov-report=xml
 
 lint:
 	$(PYTHON) -m ruff check src/ tests/ scripts/

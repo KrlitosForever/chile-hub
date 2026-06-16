@@ -7,6 +7,7 @@
 [![CI/CD](https://github.com/cortega26/chile-hub/actions/workflows/pipeline-check.yml/badge.svg)](https://github.com/cortega26/chile-hub/actions)
 [![PyPI](https://img.shields.io/pypi/v/chile-hub.svg)](https://pypi.org/project/chile-hub/)
 [![Wheel](https://img.shields.io/pypi/wheel/chile-hub.svg)](https://pypi.org/project/chile-hub/)
+[![Coverage](https://img.shields.io/badge/coverage-pytest--cov-16a34a.svg)](#desarrollo-local)
 [![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB.svg?style=flat&logo=python&logoColor=white)]()
 [![Formats](https://img.shields.io/badge/Formats-Parquet%20%7C%20DuckDB%20%7C%20SQLite%20%7C%20JSON%20%7C%20Excel-orange.svg)]()
@@ -492,10 +493,12 @@ make extract            # Ejecuta los 8 extractores → data/staging/
 make build              # Compila artefactos → data/normalized/
 make verify             # Verifica integridad (SHA256, conteos, schema)
 make test               # pytest (lee data/normalized/, no corre el pipeline)
+make coverage           # pytest + cobertura de src/ (term-missing + coverage.xml)
 make verify-landing     # Pruebas de humo de landing page con Playwright
 
 # Tests
 ./.venv/bin/pytest -v
+./.venv/bin/pytest --cov=src --cov-report=term-missing --cov-report=xml
 ./.venv/bin/pytest tests/test_chile_hub.py::ChileHubTests::test_load_polars -v
 ```
 
