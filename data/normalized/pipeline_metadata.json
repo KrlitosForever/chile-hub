@@ -1,6 +1,6 @@
 {
   "version": "0.1.0",
-  "generated_at_utc": "2026-06-16T19:40:24.888324+00:00",
+  "generated_at_utc": "2026-06-16T19:58:31.354921+00:00",
   "datasets": {
     "regiones": {
       "dataset": "regiones",
@@ -29,9 +29,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-16T19:40:24.887403+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.351359+00:00"
       },
       "degradation": {
         "status": "none",
@@ -80,9 +80,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-16T19:40:24.887436+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.351548+00:00"
       },
       "degradation": {
         "status": "none",
@@ -138,9 +138,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-16T19:40:24.887444+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.351577+00:00"
       },
       "degradation": {
         "status": "none",
@@ -196,9 +196,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-16T19:40:24.887451+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.351594+00:00"
       },
       "degradation": {
         "status": "none",
@@ -267,9 +267,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-06-16T19:40:24.887639+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.353201+00:00"
       },
       "degradation": {
         "status": "warning",
@@ -327,9 +327,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-16T19:40:24.887653+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.353305+00:00"
       },
       "degradation": {
         "status": "none",
@@ -384,9 +384,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.44,
+        "age_hours": 19.75,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-16T19:40:24.887660+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.353339+00:00"
       },
       "degradation": {
         "status": "none",
@@ -436,9 +436,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.44,
+        "age_hours": 19.75,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-16T19:40:24.887666+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.353366+00:00"
       },
       "degradation": {
         "status": "none",
@@ -491,9 +491,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.45,
+        "age_hours": 19.75,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-16T19:40:24.887671+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.353388+00:00"
       },
       "degradation": {
         "status": "none",
@@ -538,9 +538,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 19.44,
+        "age_hours": 19.75,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-16T19:40:24.887675+00:00"
+        "checked_at_utc": "2026-06-16T19:58:31.353409+00:00"
       },
       "degradation": {
         "status": "none",
@@ -569,7 +569,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "provincias": {
       "dataset": "provincias",
@@ -578,7 +578,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "comunas": {
       "dataset": "comunas",
@@ -587,7 +587,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "comunas_enriquecidas": {
       "dataset": "comunas_enriquecidas",
@@ -596,7 +596,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "indicadores": {
       "dataset": "indicadores",
@@ -614,7 +614,7 @@
         "utm"
       ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "censo_comunal": {
       "dataset": "censo_comunal",
@@ -623,7 +623,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "establecimientos_salud": {
       "dataset": "establecimientos_salud",
@@ -632,7 +632,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.44
+      "freshness_age_hours": 19.75
     },
     "censo_hogares_viviendas": {
       "dataset": "censo_hogares_viviendas",
@@ -641,7 +641,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.45
+      "freshness_age_hours": 19.75
     },
     "distritos_electorales": {
       "dataset": "distritos_electorales",
@@ -650,7 +650,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.44
+      "freshness_age_hours": 19.75
     },
     "establecimientos_educacionales": {
       "dataset": "establecimientos_educacionales",
@@ -659,7 +659,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 19.44
+      "freshness_age_hours": 19.75
     }
   }
 }

@@ -1037,6 +1037,7 @@
         .status-banner { padding: 1rem 1.25rem; }
         .status-title, .catalog-title, .package-title, .quickstart-title, .dataset-name {
             font-family: inherit;
+            margin: 0;
         }
 
         .status-subtitle { max-width: 820px; line-height: 1.55; }
@@ -1128,7 +1129,11 @@
         .comuna-code { color: #174f3f; background: #eef3f0; }
         footer { text-align: left; flex-direction: row; justify-content: space-between; }
 
-        :focus-visible { outline: 3px solid rgba(23,79,63,.32); outline-offset: 2px; }
+        :focus-visible { outline: 2px solid #174f3f; outline-offset: 2px; }
+
+        main#main-content:focus {
+            outline: none;
+        }
 
         @media (max-width: 800px) {
             header { align-items: flex-start; gap: 1rem; }
@@ -1167,7 +1172,8 @@
             border: 1px solid var(--border-color); border-radius: 6px; background: #fff;
             color: var(--text-primary); font: inherit;
         }
-        .catalog-search input:focus { outline: 3px solid rgba(23,79,63,.15); border-color: #174f3f; }
+        .catalog-search input:focus { outline: none; border-color: #174f3f; }
+        .catalog-search input:focus-visible { outline: 2px solid #174f3f; outline-offset: 2px; }
         .catalog-count { display: flex; align-items: center; color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap; }
         .dataset-card[hidden] { display: none; }
 
@@ -1269,8 +1275,21 @@
         }
         .skip-link:focus {
             top: 0;
-            outline: 2px solid var(--accent-cyan);
-            outline-offset: 2px;
+            outline: 2px solid var(--bg-color);
+            outline-offset: -4px;
+        }
+
+        /* Utility class for screen readers only */
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
         }
     </style>
 </head>
@@ -1291,7 +1310,7 @@
         </nav>
     </header>
 
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
         <section class="intro">
             <div class="intro-copy">
                 <h2>Un punto de partida curado para datos abiertos de Chile.</h2>
@@ -1335,7 +1354,7 @@
 
         <section class="status-banner" id="status-banner">
             <div class="status-copy">
-                <span class="status-title">Estado del pipeline</span>
+                <h2 class="status-title">Estado del pipeline</h2>
                 <span class="status-subtitle" id="status-subtitle">Cargando estado del hub...</span>
             </div>
             <details class="technical-details">
@@ -1349,7 +1368,7 @@
         <section class="package-section" id="package-section">
             <div class="package-card">
                 <div class="package-copy">
-                    <div class="package-title">Paquete descargable</div>
+                    <h2 class="package-title">Paquete descargable</h2>
                     <div class="package-desc">ZIP reproducible del hub listo para mover, adjuntar o consumir fuera del repo.</div>
                     <div class="package-meta" id="package-meta">Cargando...</div>
                     <details class="package-verify">
@@ -1371,13 +1390,14 @@
         <section class="catalog-section" id="catalogo">
             <div class="catalog-header">
                 <div>
-                    <div class="catalog-title">Capas publicadas</div>
+                    <h2 class="catalog-title">Capas publicadas</h2>
                     <div class="catalog-meta">Formatos abiertos, procedencia y ejemplos de uso por dataset.</div>
                 </div>
                 <div class="catalog-meta" id="catalog-generated-at">Cargando...</div>
             </div>
             <div class="catalog-toolbar">
                 <label class="catalog-search" for="catalog-search-input">
+                    <span class="visually-hidden">Filtrar catálogo de capas</span>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 3a6.5 6.5 0 104.03 11.6L19.94 21 21 19.94l-6.4-6.41A6.5 6.5 0 009.5 3zm0 1.5a5 5 0 110 10 5 5 0 010-10z"/></svg>
                     <input id="catalog-search-input" type="search" placeholder="Buscar datos por nombre, fuente o campo" autocomplete="off" aria-label="Filtrar catálogo de capas">
                 </label>
@@ -1422,14 +1442,14 @@
         <section class="quickstart-section" id="uso">
             <div class="catalog-header">
                 <div>
-                    <div class="catalog-title">Uso rápido</div>
+                    <h2 class="catalog-title">Uso rápido</h2>
                     <div class="catalog-meta">Consume archivos publicados sin clonar el repositorio ni instalar el helper.</div>
                 </div>
             </div>
             <div class="quickstart-grid">
                 <article class="quickstart-card">
                     <div class="quickstart-head">
-                        <div class="quickstart-title">Python + Polars</div>
+                        <h3 class="quickstart-title">Python + Polars</h3>
                         <button class="quickstart-copy" data-copy-target="quickstart-python" aria-label="Copiar código de integración para Python y Polars">Copiar</button>
                     </div>
                     <div class="quickstart-desc">Carga el Parquet publicado directamente desde cualquier notebook o servicio.</div>
@@ -1440,7 +1460,7 @@ df = pl.read_parquet(url)</pre>
                 </article>
                 <article class="quickstart-card">
                     <div class="quickstart-head">
-                        <div class="quickstart-title">DuckDB directo</div>
+                        <h3 class="quickstart-title">DuckDB directo</h3>
                         <button class="quickstart-copy" data-copy-target="quickstart-duckdb" aria-label="Copiar consulta SQL para DuckDB">Copiar</button>
                     </div>
                     <div class="quickstart-desc">Consulta el archivo remoto con SQL, sin descargarlo manualmente.</div>
@@ -1450,7 +1470,7 @@ LIMIT 10;</pre>
                 </article>
                 <article class="quickstart-card">
                     <div class="quickstart-head">
-                        <div class="quickstart-title">JSON + curl</div>
+                        <h3 class="quickstart-title">JSON + curl</h3>
                         <button class="quickstart-copy" data-copy-target="quickstart-cli" aria-label="Copiar comando de terminal curl">Copiar</button>
                     </div>
                     <div class="quickstart-desc">Descarga un artefacto abierto con una herramienta disponible en cualquier entorno.</div>
@@ -1490,10 +1510,12 @@ LIMIT 10;</pre>
         <section class="search-section">
             <div class="search-inputs">
                 <div class="input-group">
-                    <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <label for="search-input" class="visually-hidden">Buscar comuna, provincia o región</label>
+                    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                     <input type="text" id="search-input" placeholder="Buscar comuna, provincia o región..." aria-label="Buscar comuna, provincia o región">
                 </div>
                 <div style="max-width: 220px; flex: 1;">
+                    <label for="region-filter" class="visually-hidden">Filtrar comunas por región</label>
                     <select id="region-filter" aria-label="Filtrar comunas por región">
                         <option value="">Todas las regiones</option>
                     </select>
@@ -1501,7 +1523,7 @@ LIMIT 10;</pre>
             </div>
             <div class="actions-group">
                 <button class="btn btn-primary" id="export-csv-btn">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
                     Exportar Filtro CSV
                 </button>
             </div>
@@ -1511,6 +1533,7 @@ LIMIT 10;</pre>
         <section class="table-container">
             <div class="table-wrapper">
                 <table id="comunas-table">
+                    <caption class="visually-hidden">Listado de comunas de Chile con códigos CUT, población y coordenadas</caption>
                     <thead>
                         <tr>
                             <th>Código CUT</th>
@@ -1532,7 +1555,7 @@ LIMIT 10;</pre>
             </div>
 
             <div class="pagination">
-                <div class="page-info" id="page-info">Mostrando 0 - 0 de 0 comunas</div>
+                <div class="page-info" id="page-info" aria-live="polite">Mostrando 0 - 0 de 0 comunas</div>
                 <div class="page-controls">
                     <button class="btn-page" id="prev-page-btn" disabled>Anterior</button>
                     <button class="btn-page" id="next-page-btn" disabled>Siguiente</button>

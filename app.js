@@ -202,7 +202,7 @@ function buildDatasetExample(dataset, preferredKind = "python") {
     const activeKind = kinds.includes(preferredKind) ? preferredKind : kinds[0];
     const exampleId = `dataset-example-${escapeHtml(dataset.dataset)}`;
     const tabs = kinds.map(kind => `
-        <button class="dataset-example-tab ${kind === activeKind ? "active" : ""}" data-kind="${escapeHtml(kind)}">
+        <button class="dataset-example-tab ${kind === activeKind ? "active" : ""}" data-kind="${escapeHtml(kind)}" role="tab" aria-selected="${kind === activeKind ? "true" : "false"}" tabindex="${kind === activeKind ? "0" : "-1"}">
             ${escapeHtml(kind)}
         </button>
     `).join("");
@@ -211,12 +211,12 @@ function buildDatasetExample(dataset, preferredKind = "python") {
         <div class="dataset-example" data-dataset-example data-examples='${escapeHtml(JSON.stringify(examples))}'>
             <div class="dataset-example-head">
                 <span class="dataset-example-title">Receta de uso</span>
-                <div class="dataset-example-tabs">
+                <div class="dataset-example-tabs" role="tablist" aria-label="Formatos de recetas de uso">
                     ${tabs}
                     <button class="dataset-example-copy" data-copy-target="${exampleId}">Copiar</button>
                 </div>
             </div>
-            <pre class="dataset-example-code" id="${exampleId}">${escapeHtml(examples[activeKind])}</pre>
+            <pre class="dataset-example-code" id="${exampleId}" role="tabpanel" tabindex="0">${escapeHtml(examples[activeKind])}</pre>
         </div>
     `;
 }
@@ -289,7 +289,10 @@ function activateDatasetExample(container, nextKind) {
     if (!examples[nextKind]) return;
 
     container.querySelectorAll(".dataset-example-tab").forEach(tab => {
-        tab.classList.toggle("active", tab.dataset.kind === nextKind);
+        const isActive = tab.dataset.kind === nextKind;
+        tab.classList.toggle("active", isActive);
+        tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        tab.setAttribute("tabindex", isActive ? "0" : "-1");
     });
 
     const code = container.querySelector(".dataset-example-code");
@@ -542,7 +545,7 @@ function renderCatalog(bundle) {
             <article class="dataset-card" id="dataset-${escapeHtml(dataset.dataset)}" data-search="${escapeHtml([dataset.dataset, dataset.description, dataset.source_name, ...(dataset.join_keys || []), ...Object.keys(dataset.outputs || {})].filter(Boolean).join(" "))}">
                 <div class="dataset-card-top">
                     <div>
-                        <div class="dataset-name">${escapeHtml(dataset.dataset)}</div>
+                        <h3 class="dataset-name">${escapeHtml(dataset.dataset)}</h3>
                         <div class="dataset-desc">${escapeHtml(dataset.description || "")}</div>
                     </div>
                     <div class="dataset-badges">
