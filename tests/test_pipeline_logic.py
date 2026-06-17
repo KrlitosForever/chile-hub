@@ -643,6 +643,212 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(result["status"], "error")
         self.assertTrue(any("expected 346" in error for error in result["errors"]))
 
+    def test_validate_empresas_accepts_valid_data(self):
+        """DataFrame con columnas requeridas y datos validos pasa la validacion."""
+        from src.validation import validate_empresas
+
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K", "96567890-1", "12345678-5"],
+                "razon_social": ["Empresa Uno SpA", "Empresa Dos EIRL", "Empresa Tres SRL"],
+                "codigo_sociedad": ["SPA", "EIRL", "SRL"],
+                "tipo_actuacion": ["CONSTITUCION", "CONSTITUCION", "CONSTITUCION"],
+                "capital": [7000000, 25000000, 5000000],
+                "fecha_registro": [None, None, None],
+                "anio": [2022, 2023, 2024],
+                "mes": ["Mayo", "Junio", "Julio"],
+                "comuna_tributaria": ["Providencia", "Las Condes", "Valparaiso"],
+                "region_tributaria": ["13", "13", "05"],
+                "comuna_social": ["Providencia", "Las Condes", "Valparaiso"],
+                "region_social": ["13", "13", "05"],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["record_count"], 3)
+        # Debe tener warning sobre cobertura limitada al regimen simplificado
+        self.assertGreater(len(result["warnings"]), 0)
+
+    def test_validate_empresas_rejects_empty(self):
+        """DataFrame vacio es rechazado."""
+        from src.validation import validate_empresas
+
+        df = pl.DataFrame()
+        result = validate_empresas(df, None)
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("empty" in e for e in result["errors"]))
+
+    def test_validate_empresas_rejects_negative_capital(self):
+        """Capital negativo es rechazado."""
+        from src.validation import validate_empresas
+
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K"],
+                "razon_social": ["Test SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2022],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [-1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("negative capital" in e for e in result["errors"]))
+
+    def test_validate_empresas_rejects_anio_before_2013(self):
+        """Anio anterior a 2013 (inicio del RES) es rechazado."""
+        from src.validation import validate_empresas
+
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K"],
+                "razon_social": ["Antigua SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2010],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("anio < 2013" in e for e in result["errors"]))
+
+    def test_validate_empresas_warns_unknown_sociedad(self):
+        """Codigo de sociedad desconocido genera warning."""
+        from src.validation import validate_empresas
+
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K"],
+                "razon_social": ["Misteriosa Ltda"],
+                "codigo_sociedad": ["XYZ"],
+                "fecha_registro": [None],
+                "anio": [2024],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(any("XYZ" in str(w) for w in result["warnings"]))
+
+    def test_validate_puntos_interes_accepts_valid_data(self):
+        """DataFrame con columnas requeridas y datos validos pasa la validacion."""
+        from src.validation import validate_puntos_interes
+
+        df = pl.DataFrame(
+            {
+                "osm_id": [1, 2, 3],
+                "nombre": ["Restaurante A", "Supermercado B", "Hotel C"],
+                "categoria": ["amenidad", "comercio", "turismo"],
+                "tipo": ["restaurante", "supermercado", "hotel"],
+                "latitud": [-33.44, -33.42, -33.43],
+                "longitud": [-70.65, -70.60, -70.64],
+                "direccion": [
+                    "Av. Providencia 1300",
+                    "Av. Apoquindo 4500",
+                    "Alameda 800",
+                ],
+                "comuna": ["Providencia", "Las Condes", "Santiago"],
+                "codigo_comuna": ["13123", "13114", "13101"],
+                "codigo_region": ["13", "13", "13"],
+            }
+        )
+        result = validate_puntos_interes(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["record_count"], 3)
+
+    def test_validate_puntos_interes_rejects_empty(self):
+        """DataFrame vacio es rechazado."""
+        from src.validation import validate_puntos_interes
+
+        df = pl.DataFrame()
+        result = validate_puntos_interes(df, None)
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("empty" in e for e in result["errors"]))
+
+    def test_validate_puntos_interes_rejects_duplicate_ids(self):
+        """osm_id duplicado es rechazado."""
+        from src.validation import validate_puntos_interes
+
+        df = pl.DataFrame(
+            {
+                "osm_id": [1, 1],
+                "nombre": ["A", "B"],
+                "categoria": ["amenidad", "amenidad"],
+                "tipo": ["restaurante", "bar"],
+                "latitud": [-33.44, -33.44],
+                "longitud": [-70.65, -70.65],
+                "direccion": ["Calle 1", "Calle 2"],
+            }
+        )
+        result = validate_puntos_interes(df, None)
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("duplicate" in e for e in result["errors"]))
+
+    def test_validate_puntos_interes_rejects_out_of_bounds(self):
+        """Coordenadas fuera de Chile son rechazadas."""
+        from src.validation import validate_puntos_interes
+
+        df = pl.DataFrame(
+            {
+                "osm_id": [1, 2],
+                "nombre": ["A", "B"],
+                "categoria": ["amenidad", "amenidad"],
+                "tipo": ["restaurante", "bar"],
+                "latitud": [0.0, -33.44],  # Ecuador no es Chile
+                "longitud": [-70.65, -70.65],
+                "direccion": ["Calle 1", "Calle 2"],
+            }
+        )
+        result = validate_puntos_interes(df, None)
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("outside Chile" in e for e in result["errors"]))
+
+    def test_validate_puntos_interes_rejects_unknown_categoria(self):
+        """Categoria desconocida es rechazada."""
+        from src.validation import validate_puntos_interes
+
+        df = pl.DataFrame(
+            {
+                "osm_id": [1],
+                "nombre": ["Test"],
+                "categoria": ["aeropuerto"],  # no es valida
+                "tipo": ["test"],
+                "latitud": [-33.44],
+                "longitud": [-70.65],
+                "direccion": ["Calle 1"],
+            }
+        )
+        result = validate_puntos_interes(df, None)
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("unknown categoria" in e for e in result["errors"]))
+
+    def test_validate_puntos_interes_warns_fallback(self):
+        """Modo fallback genera warning."""
+        from src.validation import validate_puntos_interes
+
+        df = pl.DataFrame(
+            {
+                "osm_id": [1],
+                "nombre": ["Test"],
+                "categoria": ["amenidad"],
+                "tipo": ["cafe"],
+                "latitud": [-33.44],
+                "longitud": [-70.65],
+                "direccion": ["Calle 1"],
+            }
+        )
+        result = validate_puntos_interes(df, {"source_mode": "fallback"})
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(any("fallback" in w.lower() for w in result["warnings"]))
+
 
 class CUTInvariantTests(unittest.TestCase):
     @classmethod

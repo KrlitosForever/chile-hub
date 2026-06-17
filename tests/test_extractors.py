@@ -18,6 +18,8 @@ from src.extractors import (
     censo_extractor,
     censo_hogares_viviendas_extractor,
     mineduc_resultados_extractor,
+    osm_extractor,
+    res_extractor,
     salud_extractor,
     siedu_extractor,
     sinim_finanzas_extractor,
@@ -369,6 +371,276 @@ class BaseExtractorContractTests(unittest.TestCase):
             self.assertTrue(csv_path.exists())
             self.assertEqual(metadata["dataset"], "indicadores")
             self.assertEqual(metadata["record_count"], df.height)
+
+
+class ResExtractorTests(unittest.TestCase):
+    """Tests para el extractor del Registro de Empresas y Sociedades (RES)."""
+
+    def test_extractor_class_contract(self):
+        """El extractor cumple con el contrato de BaseExtractor."""
+        extractor = res_extractor.ResExtractor()
+        self.assertEqual(extractor.dataset_name, "empresas")
+
+    def test_parse_resources_smoke(self):
+        """Parseo de un CSV sintetico con las columnas esperadas del RES."""
+        csv_content = (
+            "ID;RUT;Razon Social;Fecha de actuacion (1era firma);"
+            "Fecha de registro (ultima firma);Fecha de aprobacion x SII;"
+            "Anio;Mes;Comuna Tributaria;Region Tributaria;"
+            "Codigo de sociedad;Tipo de actuacion;Capital;Comuna Social;Region Social\n"
+            "1;76286049-K;Servicios Digitales EIRL;02-05-2022;02-05-2022;02-05-2022;"
+            "2022;Mayo;Providencia;13;EIRL;CONSTITUCION;7000000;Providencia;13\n"
+            "2;76286055-4;Comercial ABC SpA;03-06-2022;03-06-2022;03-06-2022;"
+            "2022;Junio;Las Condes;13;SPA;CONSTITUCION;25000000;Las Condes;13\n"
+            "3;96567890-1;Distribuidora Sur SRL;15-06-2022;15-06-2022;15-06-2022;"
+            "2022;Junio;Valparaiso;05;SRL;CONSTITUCION;5000000;Valparaiso;05\n"
+        )
+        contents = [csv_content.encode("utf-8")]
+        df = res_extractor.parse_resources(contents)
+
+        self.assertGreater(df.height, 0)
+        self.assertIn("rut", df.columns)
+        self.assertIn("razon_social", df.columns)
+        self.assertIn("codigo_sociedad", df.columns)
+        self.assertIn("capital", df.columns)
+        self.assertIn("region_tributaria", df.columns)
+        self.assertIn("comuna_tributaria", df.columns)
+
+        # Verificar normalizacion de tipos
+        ruts = df["rut"].to_list()
+        self.assertIn("76286049-K", ruts)
+
+        # codigo_sociedad debe estar mapeado a formato canonico
+        sociedades = df["codigo_sociedad"].to_list()
+        self.assertIn("EIRL", sociedades)
+        self.assertIn("SpA", sociedades)  # SPA -> SpA (title case canonico)
+        self.assertIn("SRL", sociedades)
+
+    def test_parse_resources_handles_empty(self):
+        """Parseo de lista vacia lanza SystemExit."""
+        with self.assertRaises(SystemExit):
+            res_extractor.parse_resources([])
+
+    def test_write_staging_dry_run(self):
+        """El extractor en dry_run no persiste archivos."""
+
+        # Datos sinteticos minimos para evitar llamadas de red
+        csv_content = (
+            "ID;RUT;Razon Social;Fecha de actuacion (1era firma);"
+            "Fecha de registro (ultima firma);Fecha de aprobacion x SII;"
+            "Anio;Mes;Comuna Tributaria;Region Tributaria;"
+            "Codigo de sociedad;Tipo de actuacion;Capital;Comuna Social;Region Social\n"
+            "1;76286049-K;Test EIRL;02-05-2022;02-05-2022;02-05-2022;"
+            "2022;Mayo;Santiago;13;EIRL;CONSTITUCION;1000000;Santiago;13\n"
+        )
+        fake_contents = [csv_content.encode("utf-8")]
+
+        with patch.object(
+            res_extractor, "fetch_resources", return_value=(fake_contents, "live", "test")
+        ):
+            extractor = res_extractor.ResExtractor()
+            result = extractor.run(dry_run=True)
+            self.assertIn("status", result)
+            self.assertIn(result["status"], ("ok", "error"))
+
+    def test_reuse_policy(self):
+        """La politica de reutilizacion esta definida y es abierta."""
+        policy = res_extractor.REUSE_POLICY
+        self.assertEqual(policy["status"], "open-attribution")
+        self.assertTrue(policy["redistribution_ok"])
+        self.assertIn("CC-BY", policy["license"])
+
+
+class OsmExtractorTests(unittest.TestCase):
+    """Tests para el extractor de Puntos de Interes de OpenStreetMap."""
+
+    def test_extractor_class_contract(self):
+        """El extractor cumple con el contrato de BaseExtractor."""
+        extractor = osm_extractor.OsmExtractor()
+        self.assertEqual(extractor.dataset_name, "puntos_interes")
+
+    def test_parse_osm_elements_smoke(self):
+        """Parseo de elementos OSM sinteticos con todas las categorias."""
+        elements = [
+            {
+                "type": "node",
+                "id": 123456,
+                "lat": -33.44,
+                "lon": -70.65,
+                "tags": {
+                    "name": "Restaurante Ejemplo",
+                    "amenity": "restaurant",
+                    "addr:street": "Av. Providencia",
+                    "addr:housenumber": "1300",
+                    "addr:city": "Providencia",
+                    "phone": "+56212345678",
+                    "website": "https://ejemplo.cl",
+                },
+            },
+            {
+                "type": "node",
+                "id": 123457,
+                "lat": -33.42,
+                "lon": -70.60,
+                "tags": {
+                    "name": "Supermercado Test",
+                    "shop": "supermarket",
+                    "addr:street": "Av. Apoquindo",
+                    "addr:housenumber": "4500",
+                    "addr:city": "Las Condes",
+                },
+            },
+            {
+                "type": "node",
+                "id": 123458,
+                "lat": -33.43,
+                "lon": -70.64,
+                "tags": {
+                    "name": "Hotel Prueba",
+                    "tourism": "hotel",
+                    "addr:street": "Alameda",
+                    "addr:housenumber": "800",
+                    "addr:city": "Santiago",
+                },
+            },
+            {
+                "type": "node",
+                "id": 123459,
+                "lat": -33.44,
+                "lon": -70.63,
+                "tags": {
+                    "name": "Oficina Abogados",
+                    "office": "lawyer",
+                    "addr:street": "Huerfanos",
+                    "addr:housenumber": "1100",
+                    "addr:city": "Santiago",
+                },
+            },
+            {
+                "type": "node",
+                "id": 123460,
+                "lat": -33.46,
+                "lon": -70.62,
+                "tags": {
+                    "name": "Carpinteria Artesanal",
+                    "craft": "carpenter",
+                    "addr:street": "San Diego",
+                    "addr:housenumber": "500",
+                    "addr:city": "Santiago",
+                },
+            },
+        ]
+        df = osm_extractor.parse_osm_elements(elements)
+
+        self.assertEqual(df.height, 5)
+        self.assertIn("osm_id", df.columns)
+        self.assertIn("nombre", df.columns)
+        self.assertIn("categoria", df.columns)
+        self.assertIn("tipo", df.columns)
+        self.assertIn("direccion", df.columns)
+        self.assertIn("latitud", df.columns)
+        self.assertIn("longitud", df.columns)
+
+        # Verificar categorias mapeadas
+        categorias = df["categoria"].to_list()
+        self.assertIn("amenidad", categorias)
+        self.assertIn("comercio", categorias)
+        self.assertIn("turismo", categorias)
+        self.assertIn("oficina", categorias)
+        self.assertIn("oficio", categorias)
+
+        # Verificar tipos traducidos
+        tipos = df["tipo"].to_list()
+        self.assertIn("restaurante", tipos)
+        self.assertIn("supermercado", tipos)
+        self.assertIn("hotel", tipos)
+        self.assertIn("abogado", tipos)  # lawyer -> abogado
+        self.assertIn(
+            "carpinteria", tipos
+        )  # shop carpenter translation applies to craft=carpenter too
+
+        # Verificar direcciones concatenadas
+        direcciones = df["direccion"].to_list()
+        self.assertIn("Av. Providencia 1300", direcciones)
+
+    def test_parse_osm_elements_skips_nameless(self):
+        """Nodos sin nombre son omitidos."""
+        elements = [
+            {
+                "type": "node",
+                "id": 999,
+                "lat": -33.44,
+                "lon": -70.65,
+                "tags": {"amenity": "bench"},  # sin name
+            },
+        ]
+        df = osm_extractor.parse_osm_elements(elements)
+        self.assertEqual(df.height, 0)
+
+    def test_parse_osm_elements_skips_non_node(self):
+        """Elementos que no son nodos (ways, relations) son omitidos."""
+        elements = [
+            {
+                "type": "way",
+                "id": 888,
+                "tags": {"name": "Avenida", "highway": "primary"},
+            },
+        ]
+        df = osm_extractor.parse_osm_elements(elements)
+        self.assertEqual(df.height, 0)
+
+    def test_clean_comuna_name(self):
+        """Normalizacion de nombres de comuna para fuzzy matching."""
+        from src.extractors.osm_extractor import _clean_comuna_name
+
+        self.assertEqual(_clean_comuna_name("Ñuñoa"), "nunoa")
+        self.assertEqual(_clean_comuna_name("Valparaíso"), "valparaiso")
+        self.assertEqual(_clean_comuna_name("Los Ángeles"), "los angeles")
+        self.assertEqual(_clean_comuna_name("Aysén"), "aysen")
+        self.assertEqual(_clean_comuna_name(""), "")
+        self.assertEqual(_clean_comuna_name(None), "")
+
+    def test_reuse_policy(self):
+        """La politica de reutilizacion es ODbL."""
+        policy = osm_extractor.REUSE_POLICY
+        self.assertEqual(policy["status"], "open-attribution")
+        self.assertTrue(policy["redistribution_ok"])
+        self.assertEqual(policy["license"], "ODbL 1.0")
+
+    def test_write_staging_dry_run(self):
+        """Dry run no persiste archivos ni consulta la API."""
+        # Usar elementos OSM sinteticos para evitar llamadas de red
+        fake_elements = [
+            {
+                "type": "node",
+                "id": 1,
+                "lat": -33.44,
+                "lon": -70.65,
+                "tags": {
+                    "name": "Cafe Test",
+                    "amenity": "cafe",
+                    "addr:street": "Av. Providencia",
+                    "addr:housenumber": "1300",
+                    "addr:city": "Providencia",
+                },
+            }
+        ]
+        with (
+            patch.object(
+                osm_extractor,
+                "fetch_osm_pois",
+                return_value=(fake_elements, "live", "test"),
+            ),
+            patch.object(
+                osm_extractor,
+                "load_comunas_reference",
+                return_value=None,
+            ),
+        ):
+            extractor = osm_extractor.OsmExtractor()
+            result = extractor.run(dry_run=True)
+            self.assertIn("status", result)
+            self.assertIn(result["status"], ("ok", "error"))
 
 
 if __name__ == "__main__":

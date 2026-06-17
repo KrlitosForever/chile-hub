@@ -504,3 +504,256 @@ def validate_perfil_territorial_comunal(
         "errors": errors,
         "warnings": warnings,
     }
+
+
+def validate_empresas(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    """Valida el dataset de empresas (Registro de Empresas y Sociedades).
+
+    Verifica:
+    - DataFrame no vacio
+    - RUT presente y sin duplicados (una misma razon social + RUT puede
+      aparecer mas de una vez si tiene multiples constituciones)
+    - Columnas requeridas presentes
+    - Tipos de sociedad validos
+    - Fechas dentro de rangos esperados (2013+)
+    - Capital no negativo
+    """
+    errors = []
+    warnings = []
+    row_count = df.height
+
+    required = [
+        "rut",
+        "razon_social",
+        "codigo_sociedad",
+        "fecha_registro",
+        "anio",
+        "comuna_tributaria",
+        "region_tributaria",
+    ]
+    missing = _missing_columns(df, required)
+    if missing:
+        errors.append(f"empresas missing columns: {', '.join(missing)}")
+
+    if row_count == 0:
+        errors.append("empresas dataset is empty")
+        return {
+            "dataset": "empresas",
+            "status": "error",
+            "record_count": 0,
+            "errors": errors,
+            "warnings": warnings,
+        }
+
+    # RUT: no nulos, formato esperado (con guion)
+    null_ruts = df["rut"].is_null().sum()
+    if null_ruts:
+        errors.append(f"found {null_ruts} null RUT values")
+
+    # RUT con formato comun: XX.XXX.XXX-X o XXXXXXXX-X
+    rut_clean = df["rut"].str.replace_all(r"\.", "").str.strip_chars()
+    invalid_ruts = rut_clean.filter(~rut_clean.str.contains(r"^\d{7,8}-[\dkK]$")).len()
+    if invalid_ruts > 0:
+        # El SII a veces usa formatos sin puntos; contar solo los gravemente malos
+        warnings.append(f"found {invalid_ruts} RUTs with non-standard format (not validated)")
+
+    # Duplicados exactos (mismo RUT + misma razon social + misma fecha)
+    dup_keys = df.select(["rut", "razon_social", "fecha_registro"])
+    dup_count = _duplicate_count(dup_keys, ["rut", "razon_social", "fecha_registro"])
+    if dup_count > 0:
+        warnings.append(f"found {dup_count} duplicate (rut, razon_social, fecha_registro) rows")
+
+    # Tipo de sociedad: codigos conocidos
+    known_sociedad = {
+        "SRL",
+        "SPA",
+        "EIRL",
+        "SA",
+        "SC",
+        "SCPA",
+        "SCA",
+        "COOP",
+        "EE",
+        "FNDC",
+        "AGR",
+        "COPROP",
+    }
+    if "codigo_sociedad" in df.columns:
+        unknown_soc = set(df["codigo_sociedad"].drop_nulls().unique().to_list()) - known_sociedad
+        if unknown_soc:
+            warnings.append(f"unknown sociedad codes (new types?): {sorted(unknown_soc)}")
+
+    # Fechas: anio >= 2013 (RES comenzo en mayo 2013)
+    if "anio" in df.columns:
+        invalid_anio = df.filter(pl.col("anio").is_null() | (pl.col("anio") < 2013)).height
+        if invalid_anio:
+            errors.append(f"found {invalid_anio} rows with anio < 2013 or null")
+
+    # Capital: no negativo
+    if "capital" in df.columns:
+        negative_capital = df.filter(
+            pl.col("capital").is_not_null() & (pl.col("capital") < 0)
+        ).height
+        if negative_capital:
+            errors.append(f"found {negative_capital} rows with negative capital")
+
+    # Codigos de region tributaria: deben ser 2 digitos
+    if "region_tributaria" in df.columns:
+        invalid_region = df.filter(
+            pl.col("region_tributaria").is_not_null()
+            & (pl.col("region_tributaria").str.len_chars() != 2)
+        ).height
+        if invalid_region:
+            errors.append(f"found {invalid_region} invalid region_tributaria values")
+
+    # Advertencia sobre cobertura: solo regimen simplificado
+    warnings.append(
+        "RES solo cubre constituciones bajo Ley 20.659 (regimen simplificado). "
+        "No incluye empresas del regimen tradicional (Diario Oficial) ni "
+        "empresas anteriores a mayo 2013."
+    )
+
+    if metadata and metadata.get("source_mode") == "fallback":
+        warnings.append("empresas source_mode is fallback; dataset may be incomplete or stale")
+
+    return {
+        "dataset": "empresas",
+        "status": "error" if errors else "ok",
+        "record_count": row_count,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# ── Bounding box de Chile continental (incluye isla de Pascua) ─────────────────
+_CHILE_LAT_MIN = -56.5
+_CHILE_LAT_MAX = -17.0
+_CHILE_LON_MIN = -110.0  # Isla de Pascua ~109°W
+_CHILE_LON_MAX = -66.0
+
+_CATEGORIAS_VALIDAS = {"amenidad", "comercio", "turismo", "oficina", "oficio"}
+
+
+def validate_puntos_interes(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    """Valida el dataset de puntos de interes (OpenStreetMap).
+
+    Verifica:
+    - DataFrame no vacio
+    - osm_id unico
+    - Coordenadas dentro del bounding box de Chile
+    - categoria en el conjunto conocido
+    - direccion presente (warning si muchas nulas)
+    - codigo_comuna con formato CUT (5 caracteres) si esta presente
+    """
+    errors = []
+    warnings = []
+    row_count = df.height
+
+    required = [
+        "osm_id",
+        "nombre",
+        "categoria",
+        "tipo",
+        "latitud",
+        "longitud",
+    ]
+    missing = _missing_columns(df, required)
+    if missing:
+        errors.append(f"puntos_interes missing columns: {', '.join(missing)}")
+
+    if row_count == 0:
+        errors.append("puntos_interes dataset is empty")
+        return {
+            "dataset": "puntos_interes",
+            "status": "error",
+            "record_count": 0,
+            "errors": errors,
+            "warnings": warnings,
+        }
+
+    # Unicidad de osm_id
+    dup_ids = _duplicate_count(df, ["osm_id"])
+    if dup_ids > 0:
+        errors.append(f"osm_id must be unique, found {dup_ids} duplicates")
+
+    # Coordenadas dentro de Chile
+    out_of_bounds = df.filter(
+        (pl.col("latitud") < _CHILE_LAT_MIN)
+        | (pl.col("latitud") > _CHILE_LAT_MAX)
+        | (pl.col("longitud") < _CHILE_LON_MIN)
+        | (pl.col("longitud") > _CHILE_LON_MAX)
+    ).height
+    if out_of_bounds > 0:
+        errors.append(f"found {out_of_bounds} POIs with coordinates outside Chile bounds")
+
+    # Categoria valida
+    if "categoria" in df.columns:
+        invalid_cats = set(df["categoria"].drop_nulls().unique().to_list()) - _CATEGORIAS_VALIDAS
+        if invalid_cats:
+            errors.append(f"unknown categoria values: {sorted(invalid_cats)}")
+
+    # Direccion: warning si mas del 50% estan vacias
+    if "direccion" in df.columns:
+        null_dir = df["direccion"].is_null().sum() + df.filter(pl.col("direccion") == "").height
+        if null_dir > row_count * 0.5:
+            errors.append(f"more than 50% POIs missing address ({null_dir}/{row_count})")
+        elif null_dir > 0:
+            warnings.append(f"{null_dir}/{row_count} POIs without street address")
+
+    # codigo_comuna: warning si mas del 90% son nulos
+    if "codigo_comuna" in df.columns:
+        null_comuna = df["codigo_comuna"].is_null().sum()
+        if null_comuna > row_count * 0.9:
+            warnings.append(
+                f"DPA cross-reference resolved <10% of communes "
+                f"({row_count - null_comuna}/{row_count}). "
+                "Verify that comunas.csv is in staging before running this extractor."
+            )
+        elif null_comuna > 0:
+            warnings.append(
+                f"{null_comuna}/{row_count} POIs without codigo_comuna (commune not matched in DPA)"
+            )
+
+        # Validar formato CUT para los que SI tienen codigo
+        if null_comuna < row_count:
+            invalid_cut = df.filter(
+                pl.col("codigo_comuna").is_not_null()
+                & (pl.col("codigo_comuna").cast(pl.String).str.len_chars() != 5)
+            ).height
+            if invalid_cut:
+                errors.append(
+                    f"found {invalid_cut} invalid codigo_comuna values (must be 5-char string)"
+                )
+
+        # Integridad referencial con DPA
+        if valid_commune_codes is not None:
+            unknown = _unknown_codes(df, "codigo_comuna", valid_commune_codes)
+            if unknown:
+                warnings.append(f"puntos_interes references unknown communes: {unknown}")
+
+    # Cobertura: siempre parcial por diseno
+    warnings.append(
+        "OSM coverage is partial by design: higher density in urban areas, "
+        "limited in rural areas. Not a census."
+    )
+
+    if metadata and metadata.get("source_mode") == "fallback":
+        warnings.append(
+            "puntos_interes source_mode is fallback; embedded sample with no statistical value."
+        )
+
+    return {
+        "dataset": "puntos_interes",
+        "status": "error" if errors else "ok",
+        "record_count": row_count,
+        "errors": errors,
+        "warnings": warnings,
+    }

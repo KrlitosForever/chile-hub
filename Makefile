@@ -91,6 +91,8 @@ extract:
 	$(PYTHON) src/extractors/sinim_finanzas_extractor.py
 	$(PYTHON) src/extractors/mineduc_resultados_extractor.py
 	$(PYTHON) src/extractors/siedu_extractor.py
+	$(PYTHON) src/extractors/res_extractor.py
+	$(PYTHON) src/extractors/osm_extractor.py
 
 build:
 	$(PYTHON) src/build_dev_db.py

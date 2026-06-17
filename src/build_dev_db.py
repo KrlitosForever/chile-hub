@@ -33,6 +33,7 @@ from src.validation import (
     validate_censo_hogares_viviendas,
     validate_comunas,
     validate_distritos_electorales,
+    validate_empresas,
     validate_establecimientos_educacionales,
     validate_establecimientos_salud,
     validate_finanzas_municipales,
@@ -40,6 +41,7 @@ from src.validation import (
     validate_indicadores_urbanos_siedu,
     validate_perfil_territorial_comunal,
     validate_provincias,
+    validate_puntos_interes,
     validate_regiones,
     validate_resultados_educacionales,
 )
@@ -59,6 +61,8 @@ RESULTADOS_EDUCACIONALES_METADATA_PATH = os.path.join(
     STAGING_DIR, "resultados_educacionales.metadata.json"
 )
 SIEDU_METADATA_PATH = os.path.join(STAGING_DIR, "indicadores_urbanos_siedu.metadata.json")
+EMPRESAS_METADATA_PATH = os.path.join(STAGING_DIR, "empresas.metadata.json")
+OSM_METADATA_PATH = os.path.join(STAGING_DIR, "puntos_interes.metadata.json")
 PUBLISHABLE_ARTIFACT_SUFFIXES = (".json", ".md", ".parquet")
 PUBLISHABLE_BUNDLE_ZIP_NAME = "chile-hub-publishable-bundle.zip"
 PUBLISHABLE_BUNDLE_SHA256_NAME = "chile-hub-publishable-bundle.zip.sha256"
@@ -466,6 +470,100 @@ DATASET_CATALOG_CONFIG = {
             "excel_sheet": "Perfil Territorial",
         },
         "documentation": "docs/datasets/perfil_territorial_comunal.md",
+    },
+    "empresas": {
+        "description": (
+            "Registro de Empresas y Sociedades (RES) con RUT, razon social, "
+            "tipo societario, capital, fecha de constitucion y comuna de domicilio."
+        ),
+        "join_keys": ["rut"],
+        "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "CC-BY",
+            "license_url": "https://creativecommons.org/licenses/by/3.0/cl/",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": (
+                "Registro de Empresas y Sociedades (RES) del Ministerio de Economia, "
+                "publicado en datos.gob.cl bajo CC-BY. "
+                "Solo incluye constituciones bajo Ley 20.659 (regimen simplificado) desde 2013."
+            ),
+        },
+        "freshness_policy": {"max_age_hours": 24 * 45, "label": "mensual"},
+        "usage_examples": {
+            "python": (
+                "from chile_hub import ChileHub\n\nhub = ChileHub()\n"
+                "df = hub.load_polars('empresas')\n"
+                "# Empresas por comuna\n"
+                "df.group_by('comuna_tributaria').len().sort('len', descending=True)"
+            ),
+            "duckdb": (
+                "SELECT comuna_tributaria, count(*) AS n\n"
+                "FROM 'data/normalized/empresas.parquet'\n"
+                "GROUP BY 1 ORDER BY n DESC LIMIT 10;"
+            ),
+            "cli": "chile-hub show empresas",
+        },
+        "outputs": {
+            "parquet": "data/normalized/empresas.parquet",
+            "json": "data/normalized/empresas.json",
+            "duckdb_table": "empresas",
+            "sqlite_table": "empresas",
+            "excel_sheet": "Empresas RES",
+        },
+        "documentation": "docs/datasets/empresas.md",
+    },
+    "puntos_interes": {
+        "description": (
+            "Puntos de interes (POI) de OpenStreetMap con nombres, direcciones postales, "
+            "coordenadas y categorias de negocio. Cobertura parcial: mayor densidad urbana."
+        ),
+        "join_keys": ["osm_id"],
+        "confidence_tier": "Tier C",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "ODbL 1.0",
+            "license_url": "https://opendatacommons.org/licenses/odbl/",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": (
+                "Datos de OpenStreetMap bajo licencia ODbL. "
+                "Atribucion requerida: '© OpenStreetMap contributors'."
+            ),
+        },
+        "freshness_policy": {"max_age_hours": 24 * 14, "label": "quincenal"},
+        "coverage": {
+            "status": "partial",
+            "baseline": 50000,
+            "summary": (
+                "Cobertura desigual: buena en zonas urbanas, "
+                "limitada en zonas rurales. Sin valor censal."
+            ),
+        },
+        "usage_examples": {
+            "python": (
+                "from chile_hub import ChileHub\n\nhub = ChileHub()\n"
+                "df = hub.load_polars('puntos_interes')\n"
+                "# Restaurantes en Providencia\n"
+                "df.filter(pl.col('tipo') == 'restaurante', "
+                "pl.col('codigo_comuna') == '13123')"
+            ),
+            "duckdb": (
+                "SELECT categoria, count(*) AS n\n"
+                "FROM 'data/normalized/puntos_interes.parquet'\n"
+                "GROUP BY 1 ORDER BY n DESC;"
+            ),
+            "cli": "chile-hub show puntos_interes",
+        },
+        "outputs": {
+            "parquet": "data/normalized/puntos_interes.parquet",
+            "json": "data/normalized/puntos_interes.json",
+            "duckdb_table": "puntos_interes",
+            "sqlite_table": "puntos_interes",
+            "excel_sheet": "POIs OSM",
+        },
+        "documentation": "docs/datasets/puntos_interes.md",
     },
 }
 
@@ -1963,6 +2061,8 @@ def main():
     finanzas_csv = os.path.join(STAGING_DIR, "finanzas_municipales.csv")
     resultados_educacionales_csv = os.path.join(STAGING_DIR, "resultados_educacionales.csv")
     siedu_csv = os.path.join(STAGING_DIR, "indicadores_urbanos_siedu.csv")
+    empresas_csv = os.path.join(STAGING_DIR, "empresas.csv")
+    osm_csv = os.path.join(STAGING_DIR, "puntos_interes.csv")
 
     required_staging = (
         comunas_csv,
@@ -2028,6 +2128,10 @@ def main():
     finanzas_metadata = load_metadata(FINANZAS_METADATA_PATH)
     resultados_educacionales_metadata = load_metadata(RESULTADOS_EDUCACIONALES_METADATA_PATH)
     siedu_metadata = load_metadata(SIEDU_METADATA_PATH)
+    empresas_metadata = (
+        load_metadata(EMPRESAS_METADATA_PATH) if os.path.exists(EMPRESAS_METADATA_PATH) else None
+    )
+    osm_metadata = load_metadata(OSM_METADATA_PATH) if os.path.exists(OSM_METADATA_PATH) else None
 
     metadata_files = [
         ("comunas", comunas_metadata, "subdere_extractor.py"),
@@ -2133,6 +2237,51 @@ def main():
             "valor": pl.Float64,
         },
     )
+
+    # Empresas: dataset opcional (nuevo, puede no existir en builds anteriores)
+    df_empresas = None
+    if os.path.exists(empresas_csv) and empresas_metadata is not None:
+        df_empresas = pl.read_csv(
+            empresas_csv,
+            schema_overrides={
+                "rut": pl.String,
+                "razon_social": pl.String,
+                "codigo_sociedad": pl.String,
+                "capital": pl.Int64,
+                "anio": pl.Int32,
+                "comuna_tributaria": pl.String,
+                "region_tributaria": pl.String,
+                "comuna_social": pl.String,
+                "region_social": pl.String,
+            },
+        )
+        print(f"Empresas RES cargadas: {df_empresas.height} registros.")
+    else:
+        print("Dataset empresas no encontrado en staging — se omite del build.")
+
+    # Puntos de interes (OSM): dataset opcional
+    df_osm = None
+    if os.path.exists(osm_csv) and osm_metadata is not None:
+        df_osm = pl.read_csv(
+            osm_csv,
+            schema_overrides={
+                "osm_id": pl.Int64,
+                "nombre": pl.String,
+                "categoria": pl.String,
+                "tipo": pl.String,
+                "direccion": pl.String,
+                "comuna": pl.String,
+                "codigo_comuna": pl.String,
+                "codigo_region": pl.String,
+                "telefono": pl.String,
+                "sitio_web": pl.String,
+                "latitud": pl.Float64,
+                "longitud": pl.Float64,
+            },
+        )
+        print(f"Puntos de interes OSM cargados: {df_osm.height} registros.")
+    else:
+        print("Dataset puntos_interes no encontrado en staging — se omite del build.")
     df_regiones, df_provincias = derive_geography_layers(df_comunas)
     df_perfil_territorial = build_perfil_territorial_comunal(
         df_comunas,
@@ -2179,6 +2328,24 @@ def main():
         "indicadores_urbanos_siedu": validate_indicadores_urbanos_siedu(
             df_siedu, siedu_metadata, df_comunas["codigo_comuna"].to_list()
         ),
+        **(
+            {
+                "empresas": validate_empresas(
+                    df_empresas, empresas_metadata, df_comunas["codigo_comuna"].to_list()
+                )
+            }
+            if df_empresas is not None
+            else {}
+        ),
+        **(
+            {
+                "puntos_interes": validate_puntos_interes(
+                    df_osm, osm_metadata, df_comunas["codigo_comuna"].to_list()
+                )
+            }
+            if df_osm is not None
+            else {}
+        ),
         "perfil_territorial_comunal": validate_perfil_territorial_comunal(
             df_perfil_territorial,
             {
@@ -2205,6 +2372,10 @@ def main():
         "indicadores_urbanos_siedu": df_siedu,
         "perfil_territorial_comunal": df_perfil_territorial,
     }
+    if df_empresas is not None:
+        extra_tables["empresas"] = df_empresas
+    if df_osm is not None:
+        extra_tables["puntos_interes"] = df_osm
 
     # Compilar entregables
     build_duckdb(
@@ -2470,6 +2641,61 @@ def main():
                 ],
             ),
         },
+        **(
+            {
+                "empresas": {
+                    "dataset": "empresas",
+                    "source_name": empresas_metadata.get("source_name", ""),
+                    "source_url": empresas_metadata.get("source_url", ""),
+                    "source_mode": empresas_metadata.get("source_mode", "fallback"),
+                    "source_detail": empresas_metadata.get(
+                        "source_detail", "datos_gob_cl_ckan_api"
+                    ),
+                    "refreshed_at_utc": empresas_metadata.get("refreshed_at_utc", ""),
+                    "record_count": df_empresas.height,
+                    "fields": df_empresas.columns,
+                    "notes": empresas_metadata.get("notes", []),
+                    "reuse_policy": DATASET_CATALOG_CONFIG["empresas"]["reuse_policy"],
+                    "freshness": build_freshness(
+                        empresas_metadata.get("refreshed_at_utc", ""),
+                        DATASET_CATALOG_CONFIG["empresas"]["freshness_policy"]["max_age_hours"],
+                    ),
+                }
+            }
+            if df_empresas is not None
+            else {}
+        ),
+        **(
+            {
+                "puntos_interes": {
+                    "dataset": "puntos_interes",
+                    "source_name": osm_metadata.get("source_name", ""),
+                    "source_url": osm_metadata.get("source_url", ""),
+                    "source_mode": osm_metadata.get("source_mode", "fallback"),
+                    "source_detail": osm_metadata.get("source_detail", "overpass_api"),
+                    "refreshed_at_utc": osm_metadata.get("refreshed_at_utc", ""),
+                    "record_count": df_osm.height,
+                    "fields": df_osm.columns,
+                    "notes": osm_metadata.get("notes", []),
+                    "coverage": osm_metadata.get(
+                        "coverage",
+                        {
+                            "status": "partial",
+                            "summary": "OSM coverage is partial by design.",
+                        },
+                    ),
+                    "reuse_policy": DATASET_CATALOG_CONFIG["puntos_interes"]["reuse_policy"],
+                    "freshness": build_freshness(
+                        osm_metadata.get("refreshed_at_utc", ""),
+                        DATASET_CATALOG_CONFIG["puntos_interes"]["freshness_policy"][
+                            "max_age_hours"
+                        ],
+                    ),
+                }
+            }
+            if df_osm is not None
+            else {}
+        ),
     }
     validations_with_freshness = {
         dataset_name: {

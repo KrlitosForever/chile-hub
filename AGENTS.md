@@ -28,6 +28,8 @@ Actualmente publica catorce capas:
 | **Resultados Educacionales** | MINEDUC | Métricas educacionales agregadas por comuna y año, sin registros personales |
 | **Indicadores Urbanos SIEDU** | INE / SIEDU | Indicadores urbanos en formato largo con cobertura parcial esperada |
 | **Perfil Territorial Comunal** | chile-hub derivado | Una fila por comuna con métricas territoriales consolidadas |
+| **Empresas (RES)** | Ministerio de Economía / datos.gob.cl | Registro de constituciones de empresas bajo Ley 20.659 con RUT, razón social, tipo societario y comuna |
+| **Puntos de Interés (OSM)** | OpenStreetMap contributors | Comercios y servicios georreferenciados con nombre, dirección postal, coordenadas y categoría |
 
 **El objetivo no es tener todos los datos de Chile. Es entregar un número pequeño de datasets
 limpios, versionados, validados y consumibles en una línea de código.**
@@ -53,7 +55,9 @@ chile-hub/
 │   │   ├── mineduc_establecimientos_extractor.py Establecimientos educacionales (MINEDUC) → data/staging/
 │   │   ├── sinim_finanzas_extractor.py          Finanzas municipales SINIM → data/staging/
 │   │   ├── mineduc_resultados_extractor.py      Resultados educacionales agregados (MINEDUC) → data/staging/
-│   │   └── siedu_extractor.py                   Indicadores urbanos SIEDU (INE) → data/staging/
+│   │   ├── siedu_extractor.py                   Indicadores urbanos SIEDU (INE) → data/staging/
+│   │   ├── res_extractor.py                     Registro de Empresas y Sociedades (datos.gob.cl) → data/staging/
+│   │   └── osm_extractor.py                     Puntos de Interes OSM (OpenStreetMap) → data/staging/
 │   ├── validation.py              Todas las funciones validate_*() — módulo independiente
 │   ├── build_dev_db.py            Lee staging/, llama validate_*(), escribe todos los artefactos en normalized/
 │   ├── pipeline_status_utils.py   Genera reportes Markdown de salud, catálogo y redistribución
@@ -305,6 +309,8 @@ ejemplos de uso en Python/DuckDB/SQL, notas sobre limitaciones y changelog.
 | Banco Central de Chile | Indicadores (vía mindicador.cl) | 🟢 Libre con citación | BCCh permite reproducción con cita |
 | INE | IPC, proyecciones | 🟢 CC BY | Atribución requerida |
 | SII | Estadísticas de empresas | 🔴 Restringido | **Nunca incluir** sin análisis legal |
+| Ministerio de Economía | RES (Registro de Empresas y Sociedades) | 🟢 CC-BY | datos.gob.cl; solo régimen simplificado (Ley 20.659) |
+| OpenStreetMap | Puntos de Interés (POI) | 🟢 ODbL | Atribución requerida: "© OpenStreetMap contributors" |
 | SERVEL | Datos electorales | 🔴 Restringido | Ley 19.628, datos personales |
 
 ### Regla conservadora
