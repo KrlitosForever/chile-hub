@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chile-hub"
-version = "1.1.0"
+version = "1.2.0"
 description = "Datos públicos de Chile curados, normalizados y validados: geografía, demografía, economía, salud, educación, finanzas municipales, indicadores urbanos y distritos electorales. Listos para consumir en una línea de código con Polars, DuckDB, SQLite y Excel."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
@@ -85,7 +85,8 @@ include = [
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-version_variables = ["src/chile_hub/__init__.py:__version__"]
+# __init__.py reads the version dynamically from pyproject.toml at runtime —
+# no static variable to update.  pyproject.toml is the single source of truth.
 branch = "main"
 tag_format = "v{version}"
 build_command = "python -m build"

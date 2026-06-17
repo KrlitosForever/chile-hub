@@ -43,6 +43,9 @@ Thumbs.db
 uv.lock
 
 
+# CodeGraph
+.codegraph/daemon.pid
+
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 .claude/

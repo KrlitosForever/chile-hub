@@ -6,6 +6,38 @@ release notes for PyPI releases.
 Data-only refresh commits such as `chore(data): daily refresh [skip ci]` do not
 represent software releases and are intentionally excluded from release notes.
 
+## 1.2.0 - 2026-06-17
+
+### Added
+
+- Added two new public dataset surfaces: `empresas` (Registro de Empresas y
+  Sociedades del Ministerio de Economía, ~1.57M registros con RUT, razón
+  social, tipo societario y comuna tributaria) and `puntos_interes` (POIs
+  georreferenciados de OpenStreetMap con nombre, dirección, coordenadas y
+  categoría de negocio).
+- Added `res_extractor.py` and `osm_extractor.py` with live fetch,
+  raw snapshot, CSV staging, and metadata generation.
+- Added `validate_empresas()` and `validate_puntos_interes()` in
+  `src/validation.py` with referential integrity checks against the DPA.
+- Added auto-split logic in `build_excel()` for datasets exceeding Excel's
+  1,048,576 row limit (`empresas` splits into multiple numbered sheets
+  automatically).
+- Added `docs/datasets/empresas.md` and `docs/datasets/puntos_interes.md`
+  with full schema, source, license, and usage examples.
+
+### Changed
+
+- Expanded the active catalog from 14 to 16 datasets.
+- Updated README, SOURCE_OF_TRUTH.md, AGENTS.md, and CHANGELOG to reflect
+  the current 16-capas catalog, package structure, and line counts.
+
+### Notes
+
+- `empresas` is live-extracted from datos.gob.cl (CC-BY 3.0 CL); the Excel
+  output splits into multiple sheets to stay within Excel's row limit.
+- `puntos_interes` has partial (urban-density) coverage by design, sourced
+  from OpenStreetMap via Overpass API under ODbL.
+
 ## 1.1.0 - 2026-06-17
 
 ### Added

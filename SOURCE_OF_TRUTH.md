@@ -18,9 +18,9 @@ not comprehensive coverage.
 
 | Document | Owns | When to read |
 |---|---|---|
-| **`SOURCE_OF_TRUTH.md`** ← you are here | Navigation index, invariants summary, file + task map | Always first — ~70 lines |
+| **`SOURCE_OF_TRUTH.md`** ← you are here | Navigation index, invariants summary, file + task map | Always first — ~100 lines |
 | **`AGENTS.md`** | Full pipeline rules, legal policy, 7-step dataset-adding workflow, CI/CD jobs, antipatterns, code conventions | Adding a dataset · debugging pipeline · legal questions · CI changes |
-| **`CLAUDE.md`** | Shell commands, CodeGraph navigation, source map with line anchors, type/convention quick reference | Running commands · navigating large files · looking up types |
+| **`CLAUDE.md`** | Redirects to AGENTS.md + SOURCE_OF_TRUTH.md; project entry point for Claude Code sessions | First visit to the repo · orientation |
 
 ---
 
@@ -41,16 +41,19 @@ not comprehensive coverage.
 ```
 src/
 ├── extractors/
-│   ├── base.py                    BaseExtractor ABC — 57 lines, read whole
+│   ├── base.py                    BaseExtractor ABC — 59 lines, read whole
 │   └── {name}_extractor.py        One file per dataset, extends BaseExtractor
-├── validation.py                  ALL validate_*() — ~500 lines, read whole when editing validators
-├── build_dev_db.py                ~2 550 lines — scope reads:
-│   L27-35   imports from validation.py
-│   L1610+   validations = {…} block (where validators are called)
-├── pipeline_status_utils.py       Report builders (health, catalog, redistribution)
-└── chile_hub.py                   ~1 570 lines — scope reads:
-    L26      ChileHub class definition
-    L26-150  Full public API surface
+├── validation.py                  ALL validate_*() — ~760 lines, scope reads per validator
+├── build_dev_db.py                ~2 800 lines — scope reads:
+│   L31        imports from validation.py
+│   L2327+     validations = {…} block (where validators are called)
+├── chile_hub.py                   Compatibility shim (21 lines) — delegates to package below
+├── chile_hub/
+│   ├── core.py                    ChileHub class + full public API — ~1 570 lines
+│   ├── cli.py                     CLI entry points (5 lines)
+│   ├── data_manager.py            Bundle download, cache, SHA256 — ~200 lines
+│   └── pipeline_status_utils.py   Report builders (health, catalog, redistribution) — ~770 lines
+├── pipeline_status_utils.py       Copy of the above for build_dev_db.py imports
 
 data/
 ├── raw/        Audit snapshots — append-only, never edit
@@ -78,9 +81,9 @@ tests/
 | Check what antipatterns to avoid | **`AGENTS.md §10`** |
 | Navigate large files without cold-reading | `CLAUDE.md` → **CodeGraph** section |
 | Find where a symbol is defined | `codegraph find <name>` or `grep -n "def <name>" src/` |
-| Read ChileHub public API | `src/chile_hub.py L26-150` |
-| Read all validation logic | `src/validation.py` (248 lines — safe to read whole) |
-| Read extractor contract | `src/extractors/base.py` (57 lines — safe to read whole) |
+| Read ChileHub public API | `src/chile_hub/core.py` (class ChileHub, all public methods) |
+| Read all validation logic | `src/validation.py` (~760 lines — scope reads per validator) |
+| Read extractor contract | `src/extractors/base.py` (59 lines — safe to read whole) |
 
 ---
 

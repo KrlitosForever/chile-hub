@@ -63,6 +63,7 @@ RESULTADOS_EDUCACIONALES_METADATA_PATH = os.path.join(
 SIEDU_METADATA_PATH = os.path.join(STAGING_DIR, "indicadores_urbanos_siedu.metadata.json")
 EMPRESAS_METADATA_PATH = os.path.join(STAGING_DIR, "empresas.metadata.json")
 OSM_METADATA_PATH = os.path.join(STAGING_DIR, "puntos_interes.metadata.json")
+EXCEL_MAX_ROWS = 1_048_576  # Límite físico de Excel por hoja
 PUBLISHABLE_ARTIFACT_SUFFIXES = (".json", ".md", ".parquet")
 PUBLISHABLE_BUNDLE_ZIP_NAME = "chile-hub-publishable-bundle.zip"
 PUBLISHABLE_BUNDLE_SHA256_NAME = "chile-hub-publishable-bundle.zip.sha256"
@@ -1891,11 +1892,33 @@ def build_excel(
         df_educacionales_pd.to_excel(
             writer, sheet_name="Establecimientos Educacionales", index=False
         )
+        # Escribir tablas extra, dividiendo las que excedan el límite de filas de Excel
+        extra_sheet_names = {}  # table_name -> [sheet_names]
         for table_name, df_extra in extra_tables_pd.items():
-            sheet_name = DATASET_CATALOG_CONFIG[table_name]["outputs"].get(
+            base_sheet = DATASET_CATALOG_CONFIG[table_name]["outputs"].get(
                 "excel_sheet", table_name[:31]
-            )
-            df_extra.to_excel(writer, sheet_name=sheet_name[:31], index=False)
+            )[:31]
+            num_rows = len(df_extra)
+            if num_rows <= EXCEL_MAX_ROWS:
+                df_extra.to_excel(writer, sheet_name=base_sheet, index=False)
+                extra_sheet_names[table_name] = [base_sheet]
+            else:
+                num_parts = (num_rows + EXCEL_MAX_ROWS - 1) // EXCEL_MAX_ROWS
+                print(
+                    f"  ⚠ {base_sheet}: {num_rows:,} filas exceden el límite de Excel "
+                    f"({EXCEL_MAX_ROWS:,}) — dividiendo en {num_parts} hojas."
+                )
+                part_names = []
+                for i in range(num_parts):
+                    start = i * EXCEL_MAX_ROWS
+                    end = min(start + EXCEL_MAX_ROWS, num_rows)
+                    # "HojaBase" → "HojaBase parte 1", …
+                    suffix = f" parte {i + 1}"
+                    max_base = 31 - len(suffix)
+                    part_name = base_sheet[:max_base] + suffix
+                    df_extra.iloc[start:end].to_excel(writer, sheet_name=part_name, index=False)
+                    part_names.append(part_name)
+                extra_sheet_names[table_name] = part_names
 
         # Acceder a los objetos workbook y worksheet para aplicar formato estético
         worksheet_regiones = writer.sheets["Regiones"]
@@ -1932,14 +1955,16 @@ def build_excel(
         worksheet_educacionales.set_column("B:B", 10, text_format)  # dv_rbd
         worksheet_educacionales.set_column("D:D", 12, text_format)  # codigo_region
         worksheet_educacionales.set_column("E:E", 12, text_format)  # codigo_comuna
-        for table_name in extra_tables:
-            sheet_name = DATASET_CATALOG_CONFIG[table_name]["outputs"].get(
-                "excel_sheet", table_name[:31]
-            )[:31]
-            worksheet = writer.sheets[sheet_name]
-            if "codigo_comuna" in extra_tables[table_name].columns:
-                column_index = extra_tables[table_name].columns.index("codigo_comuna")
-                worksheet.set_column(column_index, column_index, 12, text_format)
+        for table_name, sheet_names in extra_sheet_names.items():
+            df_extra = extra_tables[table_name]
+            has_codigo_comuna = "codigo_comuna" in df_extra.columns
+            codigo_comuna_idx = (
+                df_extra.columns.index("codigo_comuna") if has_codigo_comuna else None
+            )
+            for sheet_name in sheet_names:
+                worksheet = writer.sheets[sheet_name]
+                if has_codigo_comuna:
+                    worksheet.set_column(codigo_comuna_idx, codigo_comuna_idx, 12, text_format)
 
     os.replace(tmp_path, output_path)
     print("Archivo Excel multi-pestaña generado con éxito.")

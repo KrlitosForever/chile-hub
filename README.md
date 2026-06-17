@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB.svg?style=flat&logo=python&logoColor=white)]()
 [![Formats](https://img.shields.io/badge/Formats-Parquet%20%7C%20DuckDB%20%7C%20SQLite%20%7C%20JSON%20%7C%20Excel-orange.svg)]()
-[![Datasets](https://img.shields.io/badge/Datasets-14%20capas-16a34a.svg)]()
+[![Datasets](https://img.shields.io/badge/Datasets-16%20capas-16a34a.svg)]()
 [![Comunas](https://img.shields.io/badge/Comunas-346-8b5cf6.svg)]()
 
 </div>
@@ -111,7 +111,7 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 
 ---
 
-## Las 14 capas de datos
+## Las 16 capas de datos
 
 | # | Capa | Registros | Fuente | Licencia | Actualización |
 |:--:|:---|:---|:---|:---|:--:|
@@ -129,6 +129,8 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 | 12 | **Resultados Educacionales** | fallback curado | MINEDUC | CC BY 3.0 CL | Anual |
 | 13 | **Indicadores Urbanos SIEDU** | cobertura parcial | INE / SIEDU | Datos abiertos INE | Anual |
 | 14 | **Perfil Territorial Comunal** | 346 | chile-hub derivado | Fuentes abiertas | Derivada |
+| 15 | **Empresas (RES)** | ~1 570 000 | Min. Economía / datos.gob.cl | CC-BY 3.0 CL | Mensual |
+| 16 | **Puntos de Interés (OSM)** | cobertura parcial | OpenStreetMap | ODbL | Mensual |
 
 > **Todas las capas se vinculan por `codigo_comuna`**, el Código Único Territorial de 5 caracteres definido por SUBDERE.
 
@@ -272,6 +274,29 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 | `establecimientos_educacionales_total` | `INTEGER` | `410` |
 | `distrito_electoral` | `VARCHAR` | `"10"` |
 
+**15. empresas** — Registro de Empresas y Sociedades (RES) con RUT, razón social, tipo societario y comuna
+| Columna | Tipo | Ejemplo |
+|:---|:---|:---|
+| `rut` | `VARCHAR` | `"76286049-K"` |
+| `razon_social` | `VARCHAR` | `"COMERCIALIZADORA EJEMPLO SPA"` |
+| `codigo_sociedad` | `VARCHAR` | `"SPA"` |
+| `capital` | `INTEGER` | `5000000` |
+| `fecha_actuacion` | `DATE` | `2020-06-15` |
+| `anio` | `INTEGER` | `2020` |
+| `comuna_tributaria` | `VARCHAR` | `"SANTIAGO"` |
+| `region_tributaria` | `VARCHAR` | `"13"` |
+
+**16. puntos_interes** — Comercios y servicios georreferenciados de OpenStreetMap
+| Columna | Tipo | Ejemplo |
+|:---|:---|:---|
+| `osm_id` | `INTEGER` | `123456789` |
+| `nombre` | `VARCHAR` | `"Farmacia Ahumada"` |
+| `categoria` | `VARCHAR` | `"amenidad"` |
+| `tipo` | `VARCHAR` | `"farmacia"` |
+| `direccion` | `VARCHAR` | `"Av. Providencia 1234"` |
+| `codigo_comuna` | `VARCHAR(5)` | `"13101"` |
+| `latitud` / `longitud` | `DOUBLE` | Coordenadas geográficas |
+
 </details>
 
 ---
@@ -347,7 +372,7 @@ print(df.head())
 
 > **Versionado:** Para entornos productivos, fija la versión exacta en `requirements.txt`:
 > ```
-> chile-hub==1.0.2
+> chile-hub==1.2.0
 > ```
 > El bundle de datos se publica con cada release. La API del módulo `ChileHub` sigue
 > versionado semántico: cambios de interfaz pública solo en _major releases_.
@@ -384,9 +409,15 @@ graph TD
         E1[subdere_extractor.py]:::extract
         E2[bcentral_extractor.py]:::extract
         E3[censo_extractor.py]:::extract
-        E4[salud_extractor.py]:::extract
-        E5[electoral_extractor.py]:::extract
-        E6[mineduc_extractor.py]:::extract
+        E4[censo_hogares_viviendas_extractor.py]:::extract
+        E5[salud_extractor.py]:::extract
+        E6[electoral_extractor.py]:::extract
+        E7[mineduc_establecimientos_extractor.py]:::extract
+        E8[sinim_finanzas_extractor.py]:::extract
+        E9[mineduc_resultados_extractor.py]:::extract
+        E10[siedu_extractor.py]:::extract
+        E11[res_extractor.py]:::extract
+        E12[osm_extractor.py]:::extract
     end
 
     subgraph 2 [2. BUILD]
@@ -405,7 +436,7 @@ graph TD
         L1[verify_landing.py]:::publish
     end
 
-    E1 & E2 & E3 & E4 & E5 & E6 -->|data/staging/| B1
+    E1 & E2 & E3 & E4 & E5 & E6 & E7 & E8 & E9 & E10 & E11 & E12 -->|data/staging/| B1
     B1 -->|data/normalized/| V1
     V1 --> T1
     T1 --> L1
@@ -612,7 +643,7 @@ Consulta [DATA_LICENSES.md](DATA_LICENSES.md), `chile-hub redistribution` y
 
 ## Próximos pasos
 
-El roadmap actual prioriza **fortalecer la estabilidad operacional** de las 14 capas activas frente a caídas de APIs, especialmente las capas nuevas que aún corren en modo `fallback`. El criterio para incorporar nuevas capas exige justificar:
+El roadmap actual prioriza **fortalecer la estabilidad operacional** de las 16 capas activas frente a caídas de APIs, especialmente las capas nuevas que aún corren en modo `fallback`. El criterio para incorporar nuevas capas exige justificar:
 
 - Dolor de usuario recurrente y documentado
 - Valor de cruce con la División Político-Administrativa (CUT)

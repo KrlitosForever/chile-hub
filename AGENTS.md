@@ -12,7 +12,7 @@ entender la arquitectura, las reglas no negociables y las convenciones del proye
 ## 1. Propósito del proyecto
 
 `chile-hub` es una capa de datos pública, curada y reproducible sobre **datos oficiales de Chile**.
-Actualmente publica catorce capas:
+Actualmente publica dieciséis capas:
 
 | Capa | Fuente | Descripción |
 |:---|:---|:---|
@@ -58,10 +58,15 @@ chile-hub/
 │   │   ├── siedu_extractor.py                   Indicadores urbanos SIEDU (INE) → data/staging/
 │   │   ├── res_extractor.py                     Registro de Empresas y Sociedades (datos.gob.cl) → data/staging/
 │   │   └── osm_extractor.py                     Puntos de Interes OSM (OpenStreetMap) → data/staging/
-│   ├── validation.py              Todas las funciones validate_*() — módulo independiente
+│   ├── validation.py              Todas las funciones validate_*() — módulo independiente (~760 líneas)
 │   ├── build_dev_db.py            Lee staging/, llama validate_*(), escribe todos los artefactos en normalized/
-│   ├── pipeline_status_utils.py   Genera reportes Markdown de salud, catálogo y redistribución
-│   └── chile_hub.py               API Python (ChileHub) + CLI
+│   ├── chile_hub.py               Compatibility shim (21 líneas) — delega al paquete
+│   ├── chile_hub/                 Paquete Python instalable (ChileHub API + CLI + data manager)
+│   │   ├── core.py                ChileHub class + API pública (~1 570 líneas)
+│   │   ├── cli.py                 CLI entry points
+│   │   ├── data_manager.py        Descarga de bundle, cache, verificación SHA256
+│   │   └── pipeline_status_utils.py  Reportes Markdown de salud, catálogo y redistribución
+│   └── pipeline_status_utils.py   Copia para imports de build_dev_db.py
 │
 ├── data/
 │   ├── raw/          Snapshots crudos de cada respuesta de API (JSON). Solo lectura una vez guardados.
@@ -98,13 +103,13 @@ codegraph find <symbol_name>                       # En qué archivo está defin
 
 **Reglas para acotar lecturas y ahorrar tokens:**
 - Usar `view_file` con `StartLine`/`EndLine` — nunca leer archivos grandes enteros de golpe.
-- `validation.py` (248 líneas) y `base.py` (57 líneas) son seguros de leer completos.
-- `build_dev_db.py` (~2 300 líneas) y `chile_hub.py` (~1 400 líneas) — usar estas áncoras:
+- `base.py` (59 líneas) es seguro de leer completo. `validation.py` (~760 líneas) — leer por validador individual.
+- `build_dev_db.py` (~2 800 líneas) y `src/chile_hub/core.py` (~1 570 líneas) — usar estas áncoras:
 
 | Archivo | Líneas de interés |
 |---|---|
-| `src/build_dev_db.py` | L27-35 (imports de validators) · L1610+ (bloque `validations = {…}`) |
-| `src/chile_hub.py` | L26 (clase ChileHub) · L26-150 (superficie pública de la API) |
+| `src/build_dev_db.py` | L31 (imports de validators) · L2327+ (bloque `validations = {…}`) |
+| `src/chile_hub/core.py` | L24 (clase ChileHub) · L24-200 (superficie pública de la API) |
 | `tests/test_chile_hub.py` | Requiere `data/normalized/` — correr `make build` antes |
 
 ---
@@ -119,6 +124,11 @@ codegraph find <symbol_name>                       # En qué archivo está defin
              src/extractors/salud_extractor.py
              src/extractors/electoral_extractor.py
              src/extractors/mineduc_establecimientos_extractor.py
+             src/extractors/sinim_finanzas_extractor.py
+             src/extractors/mineduc_resultados_extractor.py
+             src/extractors/siedu_extractor.py
+             src/extractors/res_extractor.py
+             src/extractors/osm_extractor.py
              → Produce: data/staging/{dataset}.csv + data/staging/{dataset}.metadata.json
              → Produce: data/raw/{source}_{timestamp}.json  (snapshot crudo)
 
@@ -184,6 +194,16 @@ El archivo `data/staging/{dataset}.metadata.json` debe existir antes de que `bui
 procese ese dataset. Contiene `source_name`, `source_url`, `source_mode`, `refreshed_at_utc`,
 `reuse_policy` y `record_count`. El pipeline lee este archivo; sin él, falla.
 
+**Diagnóstico si falta un `metadata.json`:**
+1. Ejecutar `ls data/staging/*.metadata.json` para ver cuáles existen.
+2. Si falta el metadata de un dataset, ejecutar su extractor individualmente:
+   `python src/extractors/{nombre}_extractor.py`. El extractor regenera tanto el CSV
+   como el `metadata.json` en staging.
+3. Si el extractor también falla, verificar conectividad con la fuente upstream y
+   revisar `data/raw/` por si hay un snapshot previo que permita regeneración offline.
+4. El comando `make doctor` verifica la presencia de todos los `metadata.json` esperados
+   y reporta los faltantes.
+
 ### 4.5 nombre_comuna_clean siempre presente y sin caracteres especiales
 
 La columna `nombre_comuna_clean` debe existir en el dataset de comunas, estar en minúsculas
@@ -208,13 +228,20 @@ Sigue estos pasos en orden. No saltear ninguno.
 
 Antes de escribir código, responder:
 
-- [ ] ¿Tiene licencia explícita o amparo claro en la Ley 20.285?
-- [ ] ¿Está disponible como API JSON o dump estático descargable? (no scraping HTML frágil)
-- [ ] ¿El formato de origen es estable? ¿Ha cambiado en los últimos 12 meses?
-- [ ] ¿El dataset cruza con la DPA por `codigo_comuna` o `codigo_region`?
-- [ ] ¿El dolor que resuelve justifica el costo de mantenimiento?
+**Preguntas bloqueantes** (una respuesta negativa descarta el dataset para el MVP):
 
-Si la respuesta a cualquiera de las tres primeras preguntas es negativa, **no agregar al MVP**.
+- [ ] **1. Licencia:** ¿Tiene licencia explícita o amparo claro en la Ley 20.285?
+- [ ] **2. Formato:** ¿Está disponible como API JSON o dump estático descargable? (no scraping HTML frágil)
+- [ ] **3. Estabilidad:** ¿El formato de origen es estable? ¿Ha cambiado en los últimos 12 meses?
+
+**Preguntas orientativas** (una respuesta negativa no descarta, pero reduce prioridad):
+
+- [ ] **4. Cruce DPA:** ¿El dataset cruza con la DPA por `codigo_comuna` o `codigo_region`?
+- [ ] **5. Costo-beneficio:** ¿El dolor que resuelve justifica el costo de mantenimiento?
+
+Si la respuesta a cualquiera de las preguntas bloqueantes (1–3) es negativa,
+**no agregar al MVP**. Las preguntas orientativas (4–5) informan la prioridad
+relativa frente a otros candidatos, pero no son excluyentes.
 
 ### Paso 2 — Crear el extractor
 
@@ -227,6 +254,12 @@ El extractor debe:
 2. Guardar snapshot crudo en `data/raw/{source}_{timestamp}.json`.
 3. Normalizar al formato canónico y guardar en `data/staging/{nombre}.csv`.
 4. Generar `data/staging/{nombre}.metadata.json` con todos los campos requeridos.
+
+> **Importante sobre fallback:** el fallback permite desarrollo y prueba sin conexión,
+> pero el job `publish` de CI (§9) **rechaza datasets en modo fallback**. Si un
+> extractor entra en fallback durante un `schedule` diario, la publicación se aborta
+> para ese dataset y se registra en el reporte de salud. El mantenedor debe
+> investigar la causa del fallo de fetch y restaurar la conectividad con la fuente.
 
 Campos obligatorios en `metadata.json`:
 ```json
@@ -266,6 +299,13 @@ Agregar una función `validate_{nombre}(df, metadata)` en **`src/validation.py`*
 
 Luego importarla en `build_dev_db.py` y llamarla dentro del bloque `validations = {…}` al final del build.
 
+> **Verificación obligatoria:** después de registrar la validación, ejecutar
+> `grep "def validate_" src/validation.py | wc -l` y
+> `grep "validate_" src/build_dev_db.py | grep -v "import\|from\|#" | wc -l`.
+> Ambos conteos deben coincidir. Una validación definida pero no registrada en
+> `build_dev_db.py` se salta silenciosamente: los datos se publican sin pasar
+> por esa verificación. El `make doctor` incluye esta verificación.
+
 ### Paso 5 — Agregar tests
 
 En `tests/test_chile_hub.py`, agregar tests para:
@@ -289,6 +329,30 @@ Agregar el extractor al paso de extracción en `.github/workflows/pipeline-check
 Crear `docs/datasets/{nombre}.md` con: descripción, fuente, licencia, schema completo,
 ejemplos de uso en Python/DuckDB/SQL, notas sobre limitaciones y changelog.
 
+### Modificar, renombrar o deprecar un dataset existente
+
+**Modificar un extractor (actualizar endpoint, ajustar columnas):** seguir el mismo flujo
+que para agregar uno nuevo (Pasos 2–6). Si el schema cambia (columnas agregadas, renombradas
+o eliminadas), actualizar también `docs/datasets/{nombre}.md` y verificar que los tests de
+contrato en `ArtifactContractTests` reflejen el nuevo schema.
+
+**Renombrar un dataset:** el nombre del dataset es parte de la API pública
+(`hub.load_polars("{nombre}")`). Para renombrar:
+1. Agregar el extractor y validación con el nuevo nombre.
+2. Mantener una entrada de compatibilidad en `DATASET_CATALOG_CONFIG` que apunte al nombre
+   antiguo como alias durante un período de transición (mínimo 2 versiones).
+3. Anunciar la depreciación en `docs/datasets/{nombre_antiguo}.md` con fecha de eliminación.
+4. Eliminar el alias en una versión futura, una vez que los consumidores hayan migrado.
+
+**Deprecar un dataset:** si un dataset dejó de ser mantenible o su fuente desapareció:
+1. Marcar `status: "deprecated"` en su entrada de `DATASET_CATALOG_CONFIG`.
+2. Mover su documentación a `docs/datasets/archived/{nombre}.md`.
+3. Dejar de incluirlo en el bundle público ZIP.
+4. Mantener el extractor como no operativo (levanta `NotImplementedError` con mensaje
+   explicativo) durante 2 versiones para no romper CI.
+5. Eliminar el extractor y validación en una versión futura.
+6. Anunciar en el changelog del release.
+
 ---
 
 ## 6. Fuentes y política legal
@@ -298,10 +362,21 @@ ejemplos de uso en Python/DuckDB/SQL, notas sobre limitaciones y changelog.
 | Color | Estado | Acción |
 |:---|:---|:---|
 | 🟢 `open-attribution` | Redistribución libre con citación (CC-BY o equivalente) | Publicar en bundle |
-| 🟡 `public-api-review-terms` | API pública sin licencia explícita; datos origen son públicos | Publicar solo si el origen primario es redistribuible |
+| 🟡 `public-api-review-terms` | API pública sin licencia explícita; datos origen son públicos | Publicar solo si el origen primario es redistribuible (ver criterios abajo) |
 | 🔴 `restricted` | Términos prohíben redistribución comercial o masiva | **Excluir del bundle público** |
 
-### Fuentes actuales y su estado
+### Criterios para "origen primario es redistribuible"
+
+Para que un origen califique como redistribuible bajo `public-api-review-terms`, debe cumplir
+**al menos una** de estas condiciones:
+
+- El organismo emisor es una institución pública chilena y los datos son de acceso público
+  sin restricción explícita en los términos del portal (ej. datos.gob.cl, INE, BCN).
+- La Ley 20.285 (Transparencia) ampara el acceso y no hay restricción de propiedad intelectual
+  o secreto estadístico aplicable.
+- El sitio de origen declara explícitamente que permite uso comercial y redistribución.
+
+Si ninguna aplica, el dataset se clasifica como `restricted` y se excluye del bundle público.
 
 | Fuente | Dataset | Estado | Nota |
 |:---|:---|:---|:---|
@@ -311,12 +386,30 @@ ejemplos de uso en Python/DuckDB/SQL, notas sobre limitaciones y changelog.
 | SII | Estadísticas de empresas | 🔴 Restringido | **Nunca incluir** sin análisis legal |
 | Ministerio de Economía | RES (Registro de Empresas y Sociedades) | 🟢 CC-BY | datos.gob.cl; solo régimen simplificado (Ley 20.659) |
 | OpenStreetMap | Puntos de Interés (POI) | 🟢 ODbL | Atribución requerida: "© OpenStreetMap contributors" |
-| SERVEL | Datos electorales | 🔴 Restringido | Ley 19.628, datos personales |
+| SERVEL | Padrón electoral, datos de votantes | 🔴 Restringido | Ley 19.628, datos personales — **nunca incluir** |
+| SERVEL / BCN | Distritos electorales (geográficos) | 🟢 CC BY | Asociación comuna-distrito; son datos geográficos, no personales |
 
 ### Regla conservadora
 
 Ante cualquier duda sobre la licencia de una fuente, **no redistribuir el dato**.
 Publicar los metadatos y el enlace a la fuente original en su lugar.
+
+### Protocolo ante fuente permanentemente caída
+
+Si una fuente upstream deja de existir (API apagada, portal descontinuado, organización
+disuelta), aplicar este protocolo:
+
+1. **Verificar** que la caída es permanente y no una interrupción temporal (esperar al
+   menos 3 ciclos de `schedule`, ~3 días).
+2. **Congelar** el dataset en su última versión publicada. El snapshot en `data/raw/`
+   y los artefactos en `data/normalized/` sirven como respaldo histórico.
+3. **Marcar** el metadata con `source_mode: "archived"` y `notes: ["Fuente original
+   dejó de existir el YYYY-MM-DD. Dataset congelado en su última actualización."]`.
+4. **Evaluar** si el dataset sigue siendo útil sin actualizaciones. Si la respuesta es sí,
+   mantenerlo como dataset histórico (solo lectura, sin fetch). Si es no, aplicar el
+   procedimiento de depreciación de §5.
+5. **Notificar** en el reporte de salud (`make hub-health-table`) que la fuente está
+   caída, para que los consumidores sepan que el dataset no recibirá actualizaciones.
 
 ---
 
@@ -371,6 +464,24 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data")
 DATA_DIR = "data"
 ```
 
+### Versión: fuente única en `pyproject.toml`
+
+La versión del paquete se define **exclusivamente** en `[project] version` dentro de
+`pyproject.toml`. `src/chile_hub/__init__.py` la lee dinámicamente en tiempo de
+ejecución: parsea `pyproject.toml` en desarrollo y usa `importlib.metadata` cuando
+se instala desde PyPI.
+
+```python
+# ✅ Correcto — leer desde pyproject.toml (automático en __init__.py)
+from chile_hub import __version__
+
+# ❌ Incorrecto — NO duplicar la versión en __init__.py como string estático
+__version__ = "1.2.0"
+```
+
+`python-semantic-release` solo actualiza `pyproject.toml` (`version_toml` en
+`[tool.semantic_release]`). No hay `version_variables` que mantener sincronizados.
+
 ---
 
 ## 8. Testing
@@ -379,14 +490,7 @@ DATA_DIR = "data"
 
 ```bash
 # Prerequisito: el pipeline debe haber corrido al menos una vez
-python src/extractors/subdere_extractor.py
-python src/extractors/bcentral_extractor.py
-python src/extractors/censo_extractor.py
-python src/extractors/censo_hogares_viviendas_extractor.py
-python src/extractors/salud_extractor.py
-python src/extractors/electoral_extractor.py
-python src/extractors/mineduc_establecimientos_extractor.py
-python src/build_dev_db.py
+make build
 
 # Suite completa
 pytest -v
@@ -413,6 +517,11 @@ pytest tests/test_chile_hub.py::ChileHubTests::test_load_polars -v
 |:---|:---|
 | `SubdereExtractorTests` | Fetch, normalización y staging del extractor DPA |
 | `BCentralExtractorTests` | Fetch, normalización y staging del extractor de indicadores |
+| `SinimFinanzasExtractorTests` | Fetch y normalización del extractor SINIM |
+| `MineducResultadosExtractorTests` | Fetch y normalización del extractor de resultados educacionales |
+| `SieduExtractorTests` | Fetch y normalización del extractor SIEDU |
+| `ResExtractorTests` | Fetch, normalización y staging del extractor RES |
+| `OsmExtractorTests` | Fetch, normalización y staging del extractor OSM |
 | `BaseExtractorContractTests` | Contrato ABC de `BaseExtractor`: interfaz y métodos obligatorios |
 
 **`tests/test_pipeline_logic.py`** — no requiere datos normalizados
@@ -447,10 +556,26 @@ El workflow `.github/workflows/pipeline-check.yml` corre en `push` a `main`,
 
 El cron corre a las `10:00 UTC`: `06:00 CLT` o `07:00 CLST`. La publicación rechaza
 fallbacks, datos stale, fallas de fetch, recuperación raw y preservación de staging. Solo permite
-backfill del último valor publicado cuando la consulta live fue exitosa y una serie mensual aún no
-publicó un valor nuevo. Los commits automáticos usan
+backfill del último valor publicado cuando la consulta live fue exitosa y la fuente aún no
+publicó un valor nuevo para el período esperado. La frecuencia esperada depende del dataset:
+series diarias (indicadores económicos) toleran 1 día hábil sin valor nuevo; series mensuales
+(censo, IPC) toleran 1 mes; series anuales (finanzas municipales, resultados educacionales)
+toleran 1 año. Si la consulta live falla, no se aplica backfill: el dataset queda en su
+última versión publicada hasta que el fetch se restaure. Los commits automáticos usan
 `[skip ci]` para evitar loops. Los artefactos de CI se suben como un directorio generado único,
 sin mantener una segunda lista manual de archivos.
+
+### Qué hacer cuando el publish rechaza un dataset
+
+Si el job `publish` rechaza un dataset (por fallback, fetch fallido, o dato stale):
+
+1. Revisar el log de CI para identificar qué extractor falló y por qué.
+2. Si la fuente está temporalmente caída: esperar al siguiente `schedule` (24 h). El dataset
+   queda en su última versión publicada; los usuarios no ven datos corruptos.
+3. Si la fuente cambió de API o formato: actualizar el extractor siguiendo §5 (se permite
+   modificar extractores existentes con el mismo flujo que agregar uno nuevo).
+4. Si la fuente desapareció permanentemente: aplicar el protocolo de §6 (marcar como
+   `stale` y evaluar exclusión del bundle).
 
 ---
 
@@ -524,7 +649,7 @@ make doctor             # Python efectivo y dependencias clave
 make refresh            # extract → build → verify → test → verify-landing → lint + format-check
 
 # Pasos individuales
-make extract            # Corre los 8 extractores → data/staging/
+make extract            # Corre los 12 extractores → data/staging/
 make build              # Compila todos los artefactos → data/normalized/
 make verify             # Integridad de artefactos (SHA-256, conteos, schema)
 make test               # pytest — lee data/normalized/, NO corre el pipeline
@@ -563,5 +688,5 @@ python -m src.chile_hub bundle
 
 ---
 
-*Última actualización: Junio 2026. Actualizar este documento cuando cambie la arquitectura,
+*Última actualización: 17 Junio 2026. Actualizar este documento cuando cambie la arquitectura,
 se agreguen datasets o se modifiquen invariantes críticas.*
