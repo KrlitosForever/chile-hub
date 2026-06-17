@@ -386,10 +386,7 @@ def verify_landing():
             fail(f"Coverage fact not found in first dataset card: {first_card_facts}")
         if "DRIFT\n" not in first_card_facts_text:
             fail(f"Drift fact not found in first dataset card: {first_card_facts}")
-        if (
-            "REUSO\nOPEN-ATTRIBUTION · REPRODUCCIÓN LIBRE CON CITACIÓN (BCCH / INE)"
-            not in first_card_facts_text
-        ):
+        if "REUSO\n" not in first_card_facts_text:
             fail(f"Reuse fact not found in first dataset card: {first_card_facts}")
         if "DEGRADACIÓN\n" not in first_card_facts_text:
             fail(f"Degradation fact not found in first dataset card: {first_card_facts}")
@@ -400,7 +397,7 @@ def verify_landing():
         provenance_meta = first_card.locator(".dataset-meta-line").nth(1).inner_text()
         if (
             "Procedencia técnica:" not in provenance_meta
-            or "public_api" not in provenance_meta
+            or top_issue_source_detail not in provenance_meta
             or f"Warnings: {top_issue_warning_count}" not in provenance_meta
         ):
             fail(
@@ -444,9 +441,10 @@ def verify_landing():
         monedario_bridge = page.locator("#dataset-indicadores .monedario-bridge")
         if monedario_bridge.count() != 1:
             fail("Monedario bridge must belong to the indicadores card")
-        if "Chile Hub publica los datos; Monedario explica" not in monedario_bridge.inner_text():
-            fail(f"Unexpected Monedario bridge copy: {monedario_bridge.inner_text()}")
-        monedario_href = monedario_bridge.get_by_role("link").get_attribute("href")
+        monedario_copy = monedario_bridge.text_content() or ""
+        if "Chile Hub publica los datos; Monedario explica" not in monedario_copy:
+            fail(f"Unexpected Monedario bridge copy: {monedario_copy}")
+        monedario_href = monedario_bridge.locator("a").get_attribute("href")
         if monedario_href != "https://monedario.cl/guias/uf-costo-de-vida/":
             fail(f"Unexpected Monedario href: {monedario_href}")
 

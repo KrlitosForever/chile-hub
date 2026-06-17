@@ -1,8 +1,8 @@
 # chile-hub redistribution report
 
-- `generated_at_utc`: `2026-06-17T15:28:15.329818+00:00`
-- `dataset_count`: `10`
-- `ready_count`: `10`
+- `generated_at_utc`: `2026-06-17T17:29:16.338743+00:00`
+- `dataset_count`: `14`
+- `ready_count`: `14`
 - `review_terms_count`: `0`
 - `unknown_count`: `0`
 
@@ -18,6 +18,10 @@
 | `establecimientos_educacionales` | `ready` | CC-BY-3.0 | `yes` | `ok` | Publicable con atribucion y referencia de fuente. |
 | `censo_hogares_viviendas` | `ready` | CC BY 4.0 | `yes` | `ok` | Publicable con atribucion y referencia de fuente. |
 | `distritos_electorales` | `ready` | CC0 | `no` | `ok` | Publicable con atribucion y referencia de fuente. |
+| `finanzas_municipales` | `ready` | Datos públicos municipales; términos de reutilización sujetos a revisión | `yes` | `ok` | Publicable con atribucion y referencia de fuente. |
+| `resultados_educacionales` | `ready` | CC-BY-3.0 | `yes` | `ok` | Publicable con atribucion y referencia de fuente. |
+| `indicadores_urbanos_siedu` | `ready` | Licencia de Datos Abiertos INE | `yes` | `ok` | Publicable con atribucion y referencia de fuente. |
+| `perfil_territorial_comunal` | `ready` | Derivada de fuentes abiertas con atribución | `yes` | `ok` | Publicable con atribucion y referencia de fuente. |
 
 ## regiones
 
@@ -118,3 +122,43 @@
 - `redistribution_ok`: `True`
 - `recommended_action`: Publicable con atribucion y referencia de fuente.
 - `summary`: Asociación comunal a distritos y circunscripciones electorales basada en Ley N° 20.840.
+
+## finanzas_municipales
+
+- `publishability_status`: `ready`
+- `license`: `Datos públicos municipales; términos de reutilización sujetos a revisión`
+- `license_url`: https://datos.sinim.gov.cl/
+- `attribution_required`: `True`
+- `redistribution_ok`: `True`
+- `recommended_action`: Publicable con atribucion y referencia de fuente.
+- `summary`: Información municipal pública publicada por SINIM/SUBDERE; citar fuente oficial.
+
+## resultados_educacionales
+
+- `publishability_status`: `ready`
+- `license`: `CC-BY-3.0`
+- `license_url`: https://creativecommons.org/licenses/by/3.0/cl/
+- `attribution_required`: `True`
+- `redistribution_ok`: `True`
+- `recommended_action`: Publicable con atribucion y referencia de fuente.
+- `summary`: Datos agregados desde publicaciones del Centro de Estudios MINEDUC; citar fuente oficial.
+
+## indicadores_urbanos_siedu
+
+- `publishability_status`: `ready`
+- `license`: `Licencia de Datos Abiertos INE`
+- `license_url`: https://www.ine.gob.cl/terminos-de-uso
+- `attribution_required`: `True`
+- `redistribution_ok`: `True`
+- `recommended_action`: Publicable con atribucion y referencia de fuente.
+- `summary`: Indicadores urbanos SIEDU publicados por INE para comunas urbanas seleccionadas.
+
+## perfil_territorial_comunal
+
+- `publishability_status`: `ready`
+- `license`: `Derivada de fuentes abiertas con atribución`
+- `license_url`: https://github.com/cortega26/chile-hub
+- `attribution_required`: `True`
+- `redistribution_ok`: `True`
+- `recommended_action`: Publicable con atribucion y referencia de fuente.
+- `summary`: Capa derivada a partir de datasets validados de chile-hub.

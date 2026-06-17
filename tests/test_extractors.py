@@ -17,7 +17,10 @@ from src.extractors import (
     bcentral_extractor,
     censo_extractor,
     censo_hogares_viviendas_extractor,
+    mineduc_resultados_extractor,
     salud_extractor,
+    siedu_extractor,
+    sinim_finanzas_extractor,
     subdere_extractor,
 )
 from src.extractors.base import BaseExtractor
@@ -203,6 +206,86 @@ class BCentralExtractorTests(unittest.TestCase):
         self.assertTrue(any(item.startswith("uf/") for item in diagnostics["fetch_failures"]))
         self.assertNotIn("uf", set(df["codigo_indicador"].unique()))
         self.assertEqual(set(df["codigo_indicador"].unique()), {"dolar", "euro", "utm", "ipc"})
+
+
+class SinimFinanzasExtractorTests(unittest.TestCase):
+    def test_normalize_rows_writes_required_schema(self):
+        df = sinim_finanzas_extractor.normalize_rows(sinim_finanzas_extractor.FALLBACK_ROWS)
+        required = {
+            "anio",
+            "codigo_comuna",
+            "nombre_comuna",
+            "ingresos_totales",
+            "gastos_totales",
+            "ingresos_propios_permanentes",
+            "fondo_comun_municipal",
+            "gasto_personal",
+            "gasto_inversion",
+        }
+        self.assertTrue(required.issubset(df.columns))
+        self.assertEqual(df["codigo_comuna"].dtype, sinim_finanzas_extractor.pl.String)
+
+    def test_run_dry_run_returns_validation_without_writing(self):
+        with patch.object(
+            sinim_finanzas_extractor,
+            "fetch_data",
+            return_value=(sinim_finanzas_extractor.FALLBACK_ROWS, "fallback", "url", []),
+        ):
+            result = sinim_finanzas_extractor.SinimFinanzasExtractor().run(dry_run=True)
+        self.assertEqual(result["status"], "ok")
+
+
+class MineducResultadosExtractorTests(unittest.TestCase):
+    def test_normalize_rows_writes_required_schema(self):
+        df = mineduc_resultados_extractor.normalize_rows(mineduc_resultados_extractor.FALLBACK_ROWS)
+        required = {
+            "anio",
+            "codigo_comuna",
+            "matricula_total",
+            "asistencia_promedio",
+            "tasa_aprobacion",
+            "tasa_reprobacion",
+            "tasa_retiro",
+            "establecimientos_reportados",
+        }
+        self.assertTrue(required.issubset(df.columns))
+        self.assertEqual(df["codigo_comuna"].dtype, mineduc_resultados_extractor.pl.String)
+
+    def test_run_dry_run_returns_validation_without_writing(self):
+        with patch.object(
+            mineduc_resultados_extractor,
+            "fetch_data",
+            return_value=(mineduc_resultados_extractor.FALLBACK_ROWS, "fallback", "url", []),
+        ):
+            result = mineduc_resultados_extractor.MineducResultadosExtractor().run(dry_run=True)
+        self.assertEqual(result["status"], "ok")
+
+
+class SieduExtractorTests(unittest.TestCase):
+    def test_normalize_rows_writes_required_schema(self):
+        df = siedu_extractor.normalize_rows(siedu_extractor.FALLBACK_ROWS)
+        required = {
+            "anio",
+            "codigo_comuna",
+            "codigo_indicador",
+            "nombre_indicador",
+            "categoria",
+            "valor",
+            "unidad",
+            "fuente_original",
+            "cobertura_tipo",
+        }
+        self.assertTrue(required.issubset(df.columns))
+        self.assertEqual(df["codigo_comuna"].dtype, siedu_extractor.pl.String)
+
+    def test_run_dry_run_returns_validation_without_writing(self):
+        with patch.object(
+            siedu_extractor,
+            "fetch_data",
+            return_value=(siedu_extractor.FALLBACK_ROWS, "fallback", "url", []),
+        ):
+            result = siedu_extractor.SieduExtractor().run(dry_run=True)
+        self.assertEqual(result["status"], "ok")
 
 
 class BaseExtractorContractTests(unittest.TestCase):

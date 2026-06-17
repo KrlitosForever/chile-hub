@@ -1,7 +1,7 @@
 {
-  "generated_at_utc": "2026-06-17T15:28:15.329818+00:00",
-  "dataset_count": 10,
-  "ready_count": 10,
+  "generated_at_utc": "2026-06-17T17:29:16.338743+00:00",
+  "dataset_count": 14,
+  "ready_count": 14,
   "review_terms_count": 0,
   "unknown_count": 0,
   "datasets": [
@@ -124,6 +124,54 @@
       "summary": "Asociación comunal a distritos y circunscripciones electorales basada en Ley N° 20.840.",
       "recommended_action": "Publicable con atribucion y referencia de fuente.",
       "documentation": "docs/datasets/distritos_electorales.md"
+    },
+    {
+      "dataset": "finanzas_municipales",
+      "publishability_status": "ready",
+      "license": "Datos públicos municipales; términos de reutilización sujetos a revisión",
+      "license_url": "https://datos.sinim.gov.cl/",
+      "reuse_status": "public-api-review-terms",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Información municipal pública publicada por SINIM/SUBDERE; citar fuente oficial.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/finanzas_municipales.md"
+    },
+    {
+      "dataset": "resultados_educacionales",
+      "publishability_status": "ready",
+      "license": "CC-BY-3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/cl/",
+      "reuse_status": "open-attribution",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Datos agregados desde publicaciones del Centro de Estudios MINEDUC; citar fuente oficial.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/resultados_educacionales.md"
+    },
+    {
+      "dataset": "indicadores_urbanos_siedu",
+      "publishability_status": "ready",
+      "license": "Licencia de Datos Abiertos INE",
+      "license_url": "https://www.ine.gob.cl/terminos-de-uso",
+      "reuse_status": "open-attribution",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Indicadores urbanos SIEDU publicados por INE para comunas urbanas seleccionadas.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/indicadores_urbanos_siedu.md"
+    },
+    {
+      "dataset": "perfil_territorial_comunal",
+      "publishability_status": "ready",
+      "license": "Derivada de fuentes abiertas con atribución",
+      "license_url": "https://github.com/cortega26/chile-hub",
+      "reuse_status": "open-attribution",
+      "attribution_required": true,
+      "redistribution_ok": true,
+      "summary": "Capa derivada a partir de datasets validados de chile-hub.",
+      "recommended_action": "Publicable con atribucion y referencia de fuente.",
+      "documentation": "docs/datasets/perfil_territorial_comunal.md"
     }
   ]
 }

@@ -15,8 +15,9 @@ verified GitHub Release assets and uses the metadata above to expose source,
 license, provenance, redistribution, and attribution information.
 
 Current source families include BCN ArcGIS, Banco Central de Chile via
-`mindicador.cl`, INE, MINSAL/datos.gob.cl, BCN/SERVEL legal mappings, and
-MINEDUC. Before redistributing derived artifacts, inspect:
+`mindicador.cl`, INE, MINSAL/datos.gob.cl, BCN/SERVEL legal mappings, MINEDUC,
+SINIM/SUBDERE, and derived chile-hub profile/status artifacts. Before
+redistributing derived artifacts, inspect:
 
 ```bash
 chile-hub redistribution

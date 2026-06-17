@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB.svg?style=flat&logo=python&logoColor=white)]()
 [![Formats](https://img.shields.io/badge/Formats-Parquet%20%7C%20DuckDB%20%7C%20SQLite%20%7C%20JSON%20%7C%20Excel-orange.svg)]()
-[![Datasets](https://img.shields.io/badge/Datasets-10%20capas-16a34a.svg)]()
+[![Datasets](https://img.shields.io/badge/Datasets-14%20capas-16a34a.svg)]()
 [![Comunas](https://img.shields.io/badge/Comunas-346-8b5cf6.svg)]()
 
 </div>
@@ -77,7 +77,7 @@ Cada capa pasa por validaciones automáticas de integridad referencial, cardinal
 </td><td>
 
 **Cruzable por diseño**
-Todos los datasets se vinculan mediante códigos CUT (`codigo_comuna`, `codigo_provincia`, `codigo_region`). Una sola clave une demografía, salud, educación y distritos electorales.
+Todos los datasets se vinculan mediante códigos CUT (`codigo_comuna`, `codigo_provincia`, `codigo_region`). Una sola clave une demografía, salud, educación, finanzas municipales, indicadores urbanos y distritos electorales.
 
 </td></tr>
 <tr><td>
@@ -111,7 +111,7 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 
 ---
 
-## Las 10 capas de datos
+## Las 14 capas de datos
 
 | # | Capa | Registros | Fuente | Licencia | Actualización |
 |:--:|:---|:---|:---|:---|:--:|
@@ -125,6 +125,10 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 | 8 | **Establecimientos de Salud** | ~5 600 | MINSAL / datos.gob.cl | CC0 | Mensual |
 | 9 | **Distritos Electorales** | 346 | BCN / Ley 20.840 | CC0 | — |
 | 10 | **Establecimientos Educacionales** | ~12 900 | MINEDUC | CC BY 3.0 CL | Anual |
+| 11 | **Finanzas Municipales** | fallback curado | SINIM / SUBDERE | Revisión términos | Anual |
+| 12 | **Resultados Educacionales** | fallback curado | MINEDUC | CC BY 3.0 CL | Anual |
+| 13 | **Indicadores Urbanos SIEDU** | cobertura parcial | INE / SIEDU | Datos abiertos INE | Anual |
+| 14 | **Perfil Territorial Comunal** | 346 | chile-hub derivado | Fuentes abiertas | Derivada |
 
 > **Todas las capas se vinculan por `codigo_comuna`**, el Código Único Territorial de 5 caracteres definido por SUBDERE.
 
@@ -231,6 +235,42 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 | `dependencia_administrativa` | `VARCHAR` | `"Municipal"` |
 | `latitud` / `longitud` | `DOUBLE` | Coordenadas geográficas |
 | `estado_funcionamiento` | `VARCHAR` | `"Vigente"` |
+
+**11. finanzas_municipales** — Indicadores financieros municipales anuales
+| Columna | Tipo | Ejemplo |
+|:---|:---|:---|
+| `anio` | `INTEGER` | `2024` |
+| `codigo_comuna` | `VARCHAR(5)` | `"13101"` |
+| `ingresos_totales` / `gastos_totales` | `DOUBLE` | `245000000000.0` |
+| `ingresos_propios_permanentes` | `DOUBLE` | `162000000000.0` |
+| `fondo_comun_municipal` | `DOUBLE` | `39000000000.0` |
+
+**12. resultados_educacionales** — Métricas educacionales agregadas por comuna/año
+| Columna | Tipo | Ejemplo |
+|:---|:---|:---|
+| `anio` | `INTEGER` | `2024` |
+| `codigo_comuna` | `VARCHAR(5)` | `"13101"` |
+| `matricula_total` | `INTEGER` | `122000` |
+| `asistencia_promedio` | `DOUBLE` | `86.2` |
+| `tasa_aprobacion` / `tasa_retiro` | `DOUBLE` | `91.4` / `4.5` |
+
+**13. indicadores_urbanos_siedu** — Indicadores urbanos en formato largo
+| Columna | Tipo | Ejemplo |
+|:---|:---|:---|
+| `anio` | `INTEGER` | `2024` |
+| `codigo_comuna` | `VARCHAR(5)` | `"13101"` |
+| `codigo_indicador` | `VARCHAR` | `"siedu_acceso_areas_verdes"` |
+| `categoria` | `VARCHAR` | `"Espacio publico"` |
+| `valor` / `unidad` | `DOUBLE` / `VARCHAR` | `71.4` / `"porcentaje"` |
+
+**14. perfil_territorial_comunal** — Perfil derivado con una fila por comuna
+| Columna | Tipo | Ejemplo |
+|:---|:---|:---|
+| `codigo_comuna` | `VARCHAR(5)` | `"13101"` |
+| `poblacion_censada` | `INTEGER` | `223400` |
+| `establecimientos_salud_total` | `INTEGER` | `140` |
+| `establecimientos_educacionales_total` | `INTEGER` | `410` |
+| `distrito_electoral` | `VARCHAR` | `"10"` |
 
 </details>
 
@@ -465,6 +505,8 @@ Cada ejecución del pipeline genera en `data/normalized/`:
 | **Intercambio** | `*.json` por capa | Pipelines y automatización |
 | **Metadatos** | `artifact_manifest.json` | Catálogo físico con SHA256 y tamaños |
 | **Metadatos** | `hub_health.json` / `.md` | Reporte de salud operativa |
+| **Metadatos** | `dataset_status.json` | Estado machine-readable por dataset |
+| **Metadatos** | `dataset_changelog.json` | Deltas de filas, campos, fuente y validación |
 | **Metadatos** | `dataset_catalog.json` / `.md` | Catálogo con schemas y ejemplos |
 | **Metadatos** | `redistribution_report.json` / `.md` | Estado legal de reúso por dataset |
 | **Metadatos** | `provenance_report.json` / `.md` | Trazabilidad de origen y marcas de tiempo |
@@ -502,6 +544,8 @@ funcionan tanto desde PyPI como desde el entorno de desarrollo.
 | `chile-hub top-issue` | Capa con mayor degradación operativa |
 | `chile-hub drift` | Desvíos, fallbacks activos y regresiones |
 | `chile-hub status` | JSON ultraliviano para CI/CD |
+| `chile-hub dataset-status` | Estado detallado machine-readable por dataset |
+| `chile-hub dataset-changelog` | Cambios entre el build actual y el metadata anterior |
 
 ### Distribución e integridad
 
@@ -568,7 +612,7 @@ Consulta [DATA_LICENSES.md](DATA_LICENSES.md), `chile-hub redistribution` y
 
 ## Próximos pasos
 
-El roadmap actual prioriza **fortalecer la estabilidad operacional** de las 10 capas activas frente a caídas de APIs, antes de agregar volumen. El criterio para incorporar nuevas capas exige justificar:
+El roadmap actual prioriza **fortalecer la estabilidad operacional** de las 14 capas activas frente a caídas de APIs, especialmente las capas nuevas que aún corren en modo `fallback`. El criterio para incorporar nuevas capas exige justificar:
 
 - Dolor de usuario recurrente y documentado
 - Valor de cruce con la División Político-Administrativa (CUT)

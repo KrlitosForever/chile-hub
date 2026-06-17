@@ -1,0 +1,32 @@
+[
+  {
+    "anio": 2024,
+    "codigo_comuna": "05109",
+    "matricula_total": 52500,
+    "asistencia_promedio": 85.9,
+    "tasa_aprobacion": 92.1,
+    "tasa_reprobacion": 3.6,
+    "tasa_retiro": 4.3,
+    "establecimientos_reportados": 175
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "08101",
+    "matricula_total": 48700,
+    "asistencia_promedio": 84.7,
+    "tasa_aprobacion": 90.8,
+    "tasa_reprobacion": 4.8,
+    "tasa_retiro": 4.4,
+    "establecimientos_reportados": 151
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "13101",
+    "matricula_total": 122000,
+    "asistencia_promedio": 86.2,
+    "tasa_aprobacion": 91.4,
+    "tasa_reprobacion": 4.1,
+    "tasa_retiro": 4.5,
+    "establecimientos_reportados": 410
+  }
+]

@@ -88,6 +88,9 @@ extract:
 	$(PYTHON) src/extractors/salud_extractor.py
 	$(PYTHON) src/extractors/electoral_extractor.py
 	$(PYTHON) src/extractors/mineduc_establecimientos_extractor.py
+	$(PYTHON) src/extractors/sinim_finanzas_extractor.py
+	$(PYTHON) src/extractors/mineduc_resultados_extractor.py
+	$(PYTHON) src/extractors/siedu_extractor.py
 
 build:
 	$(PYTHON) src/build_dev_db.py

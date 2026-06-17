@@ -1,0 +1,296 @@
+{
+  "generated_at_utc": "2026-06-17T17:29:16.338743+00:00",
+  "dataset_count": 14,
+  "datasets": [
+    {
+      "dataset": "censo_comunal",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 87600,
+        "checked_at_utc": "2026-06-17T17:29:16.336706+00:00"
+      },
+      "record_count": 346,
+      "expected_record_count": 346,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:19.142622+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "censo_hogares_viviendas",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 87600,
+        "checked_at_utc": "2026-06-17T17:29:16.336752+00:00"
+      },
+      "record_count": 346,
+      "expected_record_count": 346,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:19.609225+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "comunas",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.64,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-06-17T17:29:16.336010+00:00"
+      },
+      "record_count": 346,
+      "expected_record_count": 346,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:50:40.866524+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "comunas_enriquecidas",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.64,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-06-17T17:29:16.336026+00:00"
+      },
+      "record_count": 346,
+      "expected_record_count": 346,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:50:40.866524+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "distritos_electorales",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 87600,
+        "checked_at_utc": "2026-06-17T17:29:16.336758+00:00"
+      },
+      "record_count": 346,
+      "expected_record_count": 346,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:24.727935+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "establecimientos_educacionales",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 8760,
+        "checked_at_utc": "2026-06-17T17:29:16.336738+00:00"
+      },
+      "record_count": 12898,
+      "expected_record_count": null,
+      "coverage_status": "not_applicable",
+      "coverage_ratio": null,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:25.318310+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "establecimientos_salud",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 1080,
+        "checked_at_utc": "2026-06-17T17:29:16.336728+00:00"
+      },
+      "record_count": 5643,
+      "expected_record_count": null,
+      "coverage_status": "not_applicable",
+      "coverage_ratio": null,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:24.593612+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "finanzas_municipales",
+      "validation_status": "ok",
+      "source_mode": "fallback",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 8760,
+        "checked_at_utc": "2026-06-17T17:29:16.336765+00:00"
+      },
+      "record_count": 3,
+      "expected_record_count": null,
+      "coverage_status": "not_applicable",
+      "coverage_ratio": null,
+      "redistribution_status": "public-api-review-terms",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:25.710419+00:00",
+      "warnings": [
+        "finanzas_municipales source_mode is fallback; review before publication"
+      ],
+      "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción."
+    },
+    {
+      "dataset": "indicadores",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 72,
+        "checked_at_utc": "2026-06-17T17:29:16.336638+00:00"
+      },
+      "record_count": 430,
+      "expected_record_count": null,
+      "coverage_status": "not_applicable",
+      "coverage_ratio": null,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:18.423894+00:00",
+      "warnings": [
+        "indicadores live refresh reused raw snapshots for: uf/2026",
+        "indicadores live refresh reused last published artifact for missing codes: ipc"
+      ],
+      "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción."
+    },
+    {
+      "dataset": "indicadores_urbanos_siedu",
+      "validation_status": "ok",
+      "source_mode": "fallback",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 8760,
+        "checked_at_utc": "2026-06-17T17:29:16.336778+00:00"
+      },
+      "record_count": 6,
+      "expected_record_count": null,
+      "coverage_status": "partial",
+      "coverage_ratio": 0.0087,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:29.383250+00:00",
+      "warnings": [
+        "indicadores_urbanos_siedu has intentionally partial urban coverage",
+        "indicadores_urbanos_siedu source_mode is fallback; review before publication"
+      ],
+      "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción."
+    },
+    {
+      "dataset": "perfil_territorial_comunal",
+      "validation_status": "ok",
+      "source_mode": "fallback",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.0,
+        "max_age_hours": 1080,
+        "checked_at_utc": "2026-06-17T17:29:16.336806+00:00"
+      },
+      "record_count": 346,
+      "expected_record_count": 346,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T17:29:16.336789+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "provincias",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.64,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-06-17T17:29:16.335983+00:00"
+      },
+      "record_count": 56,
+      "expected_record_count": 56,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:50:40.866524+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "regiones",
+      "validation_status": "ok",
+      "source_mode": "live",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.64,
+        "max_age_hours": 2160,
+        "checked_at_utc": "2026-06-17T17:29:16.335888+00:00"
+      },
+      "record_count": 16,
+      "expected_record_count": 16,
+      "coverage_status": "full",
+      "coverage_ratio": 1.0,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:50:40.866524+00:00",
+      "warnings": [],
+      "recommended_action": "Ninguna."
+    },
+    {
+      "dataset": "resultados_educacionales",
+      "validation_status": "ok",
+      "source_mode": "fallback",
+      "freshness": {
+        "status": "fresh",
+        "age_hours": 0.63,
+        "max_age_hours": 8760,
+        "checked_at_utc": "2026-06-17T17:29:16.336772+00:00"
+      },
+      "record_count": 3,
+      "expected_record_count": null,
+      "coverage_status": "not_applicable",
+      "coverage_ratio": null,
+      "redistribution_status": "open-attribution",
+      "redistribution_ok": true,
+      "refreshed_at_utc": "2026-06-17T16:51:28.239977+00:00",
+      "warnings": [
+        "resultados_educacionales source_mode is fallback; review before publication"
+      ],
+      "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción."
+    }
+  ]
+}

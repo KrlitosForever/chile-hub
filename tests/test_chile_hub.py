@@ -37,6 +37,8 @@ INDICADORES_NON_SYNTHETIC_DELIVERY = {
     "raw_recovery",
     "preserved_existing",
 }
+EXPECTED_DATASET_COUNT = 14
+EXPECTED_TOP_ISSUE = "finanzas_municipales"
 
 
 def _assert_summary_has_recovery_source_detail(test_case, summary):
@@ -102,6 +104,10 @@ class ChileHubTests(unittest.TestCase):
                 "establecimientos_educacionales",
                 "censo_hogares_viviendas",
                 "distritos_electorales",
+                "finanzas_municipales",
+                "resultados_educacionales",
+                "indicadores_urbanos_siedu",
+                "perfil_territorial_comunal",
             ],
         )
 
@@ -131,8 +137,16 @@ class ChileHubTests(unittest.TestCase):
     def test_load_polars_new_layers(self):
         censo = self.hub.load_polars("censo_comunal")
         salud = self.hub.load_polars("establecimientos_salud")
+        finanzas = self.hub.load_polars("finanzas_municipales")
+        resultados = self.hub.load_polars("resultados_educacionales")
+        siedu = self.hub.load_polars("indicadores_urbanos_siedu")
+        perfil = self.hub.load_polars("perfil_territorial_comunal")
         self.assertEqual(censo.height, 346)
         self.assertGreater(salud.height, 5000)
+        self.assertGreater(finanzas.height, 0)
+        self.assertGreater(resultados.height, 0)
+        self.assertGreater(siedu.height, 0)
+        self.assertEqual(perfil.height, 346)
         self.assertEqual(censo["codigo_comuna"].str.len_chars().min(), 5)
         self.assertEqual(salud["codigo_comuna"].str.len_chars().min(), 5)
 
@@ -152,6 +166,10 @@ class ChileHubTests(unittest.TestCase):
                 "establecimientos_educacionales": "ok",
                 "censo_hogares_viviendas": "ok",
                 "distritos_electorales": "ok",
+                "finanzas_municipales": "ok",
+                "resultados_educacionales": "ok",
+                "indicadores_urbanos_siedu": "ok",
+                "perfil_territorial_comunal": "ok",
             },
         )
         warning_counts = {item["dataset"]: item["warning_count"] for item in summary}
@@ -253,19 +271,19 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn(overview["overall_status"], {"ok", "warn", "error"})
         self.assertIn(overview["build_overall_status"], {"ok", "warn", "error"})
         self.assertIn(overview["current_overall_status"], {"ok", "warn", "error"})
-        self.assertEqual(overview["dataset_count"], 10)
+        self.assertEqual(overview["dataset_count"], EXPECTED_DATASET_COUNT)
         self.assertGreaterEqual(overview["shared_artifact_count"], 1)
         self.assertGreaterEqual(overview["package_count"], 1)
         self.assertEqual(
             overview["current_fresh_count"]
             + overview["current_stale_count"]
             + overview["current_unknown_count"],
-            10,
+            EXPECTED_DATASET_COUNT,
         )
         self.assertTrue(overview["current_checked_at_utc"])
         self.assertIsNotNone(overview["top_issue"])
-        self.assertEqual(overview["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, overview["top_issue_summary"])
+        self.assertEqual(overview["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, overview["top_issue_summary"])
         self.assertTrue(overview["top_issue"]["diagnostic_summary"])
         self.assertEqual(overview["primary_package"]["package_type"], "zip")
         self.assertEqual(
@@ -279,15 +297,26 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("health_json", overview["report_keys"])
         self.assertIn("status_json", overview["report_keys"])
         self.assertIn("drift_json", overview["report_keys"])
-        self.assertEqual(len(overview["datasets"]), 10)
+        self.assertEqual(len(overview["datasets"]), EXPECTED_DATASET_COUNT)
 
     def test_status(self):
         status = self.hub.status()
         self.assertIn(status["overall_status"], {"ok", "warn", "error"})
-        self.assertEqual(status["dataset_count"], 10)
+        self.assertEqual(status["dataset_count"], EXPECTED_DATASET_COUNT)
         self.assertIsNotNone(status["top_issue"])
-        self.assertEqual(status["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, status["top_issue_summary"])
+        self.assertEqual(status["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, status["top_issue_summary"])
+
+    def test_dataset_status_and_changelog(self):
+        status = self.hub.dataset_status()
+        changelog = self.hub.dataset_changelog()
+        self.assertEqual(status["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(changelog["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(
+            {entry["dataset"] for entry in status["datasets"]},
+            set(self.catalog_by_dataset),
+        )
+        self.assertIn("record_count_delta", changelog["datasets"][0])
 
     def test_status_table(self):
         table = self.hub.status_table()
@@ -295,7 +324,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("overall_status", table)
         self.assertIn("top_issue", table)
         self.assertIn("top_issue_summary", table)
-        self.assertIn("indicadores", table)
+        self.assertIn(EXPECTED_TOP_ISSUE, table)
 
     def test_overview_table(self):
         table = self.hub.overview_table()
@@ -313,7 +342,10 @@ class ChileHubTests(unittest.TestCase):
         audit = self.hub.runtime_status_audit()
         self.assertIn(audit["build_overall_status"], {"ok", "warn", "error"})
         self.assertIn(audit["current_overall_status"], {"ok", "warn", "error"})
-        self.assertEqual(audit["fresh_count"] + audit["stale_count"] + audit["unknown_count"], 10)
+        self.assertEqual(
+            audit["fresh_count"] + audit["stale_count"] + audit["unknown_count"],
+            EXPECTED_DATASET_COUNT,
+        )
         self.assertTrue(audit["checked_at_utc"])
 
     def test_runtime_status(self):
@@ -322,13 +354,13 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn(runtime["current_overall_status"], {"ok", "warn", "error"})
         self.assertEqual(
             runtime["fresh_count"] + runtime["stale_count"] + runtime["unknown_count"],
-            10,
+            EXPECTED_DATASET_COUNT,
         )
-        self.assertEqual(runtime["dataset_count"], 10)
-        self.assertEqual(len(runtime["datasets"]), 10)
+        self.assertEqual(runtime["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(len(runtime["datasets"]), EXPECTED_DATASET_COUNT)
         self.assertIsNotNone(runtime["top_issue"])
-        self.assertEqual(runtime["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, runtime["top_issue_summary"])
+        self.assertEqual(runtime["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, runtime["top_issue_summary"])
         self.assertTrue(runtime["top_issue"]["diagnostic_summary"])
         indicadores = next(
             entry for entry in runtime["datasets"] if entry["dataset"] == "indicadores"
@@ -349,14 +381,14 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("top_issue_reason=", table)
         self.assertIn("top_issue_action=", table)
         self.assertIn("top_issue_summary=", table)
-        self.assertIn("top_issue=indicadores", table)
+        self.assertIn(f"top_issue={EXPECTED_TOP_ISSUE}", table)
         self.assertIn("dataset      mode      severity", table)
         self.assertIn("indicadores", table)
 
     def test_top_issue(self):
         top_issue = self.hub.top_issue()
         self.assertIsNotNone(top_issue)
-        self.assertEqual(top_issue["dataset"], "indicadores")
+        self.assertEqual(top_issue["dataset"], EXPECTED_TOP_ISSUE)
         self.assertIn(top_issue["build_freshness_status"], {"fresh", "stale", "unknown"})
         self.assertIn(top_issue["current_freshness_status"], {"fresh", "stale", "unknown"})
         self.assertIn(top_issue["drift_status"], {"healthy", "drifted"})
@@ -369,7 +401,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn("source_detail", table)
         self.assertIn("diagnostic_summary", table)
         self.assertIn("recommended_action", table)
-        self.assertIn("indicadores", table)
+        self.assertIn(EXPECTED_TOP_ISSUE, table)
 
     def test_primary_package_and_verification(self):
         package = self.hub.primary_package()
@@ -396,7 +428,7 @@ class ChileHubTests(unittest.TestCase):
         self.assertIn(f"status_build: {self.health['overall_status']}", snapshot)
         self.assertIn("status_current:", snapshot)
         self.assertIn("current_freshness:", snapshot)
-        self.assertIn("top_issue: indicadores", snapshot)
+        self.assertIn(f"top_issue: {EXPECTED_TOP_ISSUE}", snapshot)
         self.assertIn("top_issue_reason:", snapshot)
         self.assertIn("top_issue_action:", snapshot)
         self.assertIn("package: data/normalized/chile-hub-publishable-bundle.zip", snapshot)
@@ -465,19 +497,22 @@ class ChileHubTests(unittest.TestCase):
     def test_health_summary(self):
         health = self.health
         self.assertIn(health["overall_status"], {"ok", "warn", "error"})
-        self.assertEqual(health["dataset_count"], 10)
-        self.assertEqual(health["ok_count"] + health["warn_count"] + health["error_count"], 10)
+        self.assertEqual(health["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(
+            health["ok_count"] + health["warn_count"] + health["error_count"],
+            EXPECTED_DATASET_COUNT,
+        )
         self.assertEqual(
             health["publishable_count"]
             + health["review_terms_count"]
             + health["unknown_reuse_count"],
-            10,
+            EXPECTED_DATASET_COUNT,
         )
         self.assertEqual(
             health["degraded_count"]
             + health["degradation_warning_count"]
             + sum(1 for entry in health["datasets"] if entry["degradation_status"] == "none"),
-            10,
+            EXPECTED_DATASET_COUNT,
         )
         self.assertEqual(
             health["partial_coverage_count"]
@@ -487,12 +522,12 @@ class ChileHubTests(unittest.TestCase):
                 for entry in health["datasets"]
                 if entry["coverage_status"] in {"full", "not_applicable"}
             ),
-            10,
+            EXPECTED_DATASET_COUNT,
         )
         self.assertEqual(
             health["drifted_count"]
             + sum(1 for entry in health["datasets"] if entry["drift_status"] == "healthy"),
-            10,
+            EXPECTED_DATASET_COUNT,
         )
 
     def test_health_table(self):
@@ -504,8 +539,11 @@ class ChileHubTests(unittest.TestCase):
 
     def test_freshness_audit(self):
         audit = self.hub.freshness_audit()
-        self.assertEqual(audit["dataset_count"], 10)
-        self.assertEqual(audit["fresh_count"] + audit["stale_count"] + audit["unknown_count"], 10)
+        self.assertEqual(audit["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(
+            audit["fresh_count"] + audit["stale_count"] + audit["unknown_count"],
+            EXPECTED_DATASET_COUNT,
+        )
         indicadores = next(
             entry for entry in audit["datasets"] if entry["dataset"] == "indicadores"
         )
@@ -523,8 +561,8 @@ class ChileHubTests(unittest.TestCase):
     def test_bundle_summary(self):
         bundle = self.bundle
         self.assertEqual(bundle["overall_status"], self.health["overall_status"])
-        self.assertEqual(bundle["dataset_count"], 10)
-        self.assertEqual(len(bundle["datasets"]), 10)
+        self.assertEqual(bundle["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(len(bundle["datasets"]), EXPECTED_DATASET_COUNT)
         self.assertEqual(
             bundle["reports"]["health_json"]["path"], "data/normalized/hub_health.json"
         )
@@ -547,8 +585,8 @@ class ChileHubTests(unittest.TestCase):
         )
         self.assertEqual(bundle["health"]["drifted_count"], self.health["drifted_count"])
         self.assertIsNotNone(bundle["top_issue"])
-        self.assertEqual(bundle["top_issue"]["dataset"], "indicadores")
-        self.assertEqual(bundle["health"]["top_issue"]["dataset"], "indicadores")
+        self.assertEqual(bundle["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertEqual(bundle["health"]["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
         self.assertEqual(bundle["packages"][0]["package_type"], "zip")
         self.assertEqual(bundle["packages"][0]["checksum_algorithm"], "sha256")
         self.assertTrue(bundle["packages"][0]["checksum_path"].endswith(".sha256"))
@@ -585,10 +623,10 @@ class ChileHubTests(unittest.TestCase):
 
     def test_redistribution_report(self):
         report = self.hub.redistribution()
-        self.assertEqual(report["dataset_count"], 10)
+        self.assertEqual(report["dataset_count"], EXPECTED_DATASET_COUNT)
         self.assertEqual(
             report["ready_count"] + report["review_terms_count"] + report["unknown_count"],
-            10,
+            EXPECTED_DATASET_COUNT,
         )
         indicadores = next(
             entry for entry in report["datasets"] if entry["dataset"] == "indicadores"
@@ -605,8 +643,8 @@ class ChileHubTests(unittest.TestCase):
 
     def test_provenance_report(self):
         report = self.hub.provenance()
-        self.assertEqual(report["dataset_count"], 10)
-        self.assertEqual(report["live_count"] + report["fallback_count"], 10)
+        self.assertEqual(report["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(report["live_count"] + report["fallback_count"], EXPECTED_DATASET_COUNT)
         comunas = next(entry for entry in report["datasets"] if entry["dataset"] == "comunas")
         self.assertTrue(comunas["source_name"])
         self.assertTrue(comunas["source_detail"])
@@ -626,8 +664,8 @@ class ChileHubTests(unittest.TestCase):
 
     def test_drift_report(self):
         report = self.hub.drift()
-        self.assertEqual(report["dataset_count"], 10)
-        self.assertEqual(report["drifted_count"] + report["healthy_count"], 10)
+        self.assertEqual(report["dataset_count"], EXPECTED_DATASET_COUNT)
+        self.assertEqual(report["drifted_count"] + report["healthy_count"], EXPECTED_DATASET_COUNT)
         comunas = next(entry for entry in report["datasets"] if entry["dataset"] == "comunas")
         self.assertIn(comunas["drift_status"], {"healthy", "drifted"})
         self.assertIn(comunas["coverage_status"], {"full", "partial", "unknown", "not_applicable"})
@@ -682,7 +720,7 @@ class ArtifactContractTests(unittest.TestCase):
         cls.pipeline_status_markdown = (cls.normalized_dir / "pipeline_status.md").read_text()
 
     def test_catalog_dataset_count(self):
-        self.assertEqual(self.catalog["dataset_count"], 10)
+        self.assertEqual(self.catalog["dataset_count"], EXPECTED_DATASET_COUNT)
 
     def test_manifest_contains_expected_publishable_files(self):
         artifact_paths = {entry["path"] for entry in self.manifest["artifacts"]}
@@ -690,6 +728,8 @@ class ArtifactContractTests(unittest.TestCase):
         self.assertIn("data/normalized/pipeline_status.md", artifact_paths)
         self.assertIn("data/normalized/hub_health.json", artifact_paths)
         self.assertIn("data/normalized/hub_status.json", artifact_paths)
+        self.assertIn("data/normalized/dataset_status.json", artifact_paths)
+        self.assertIn("data/normalized/dataset_changelog.json", artifact_paths)
         self.assertIn("data/normalized/hub_health.md", artifact_paths)
         self.assertIn("data/normalized/hub_bundle.json", artifact_paths)
         self.assertIn("data/normalized/redistribution_report.json", artifact_paths)
@@ -714,6 +754,15 @@ class ArtifactContractTests(unittest.TestCase):
         self.assertEqual(by_path["data/normalized/hub_health.json"]["format"], "json")
         self.assertEqual(by_path["data/normalized/hub_status.json"]["shared_type"], "hub_status")
         self.assertEqual(by_path["data/normalized/hub_status.json"]["format"], "json")
+        self.assertEqual(
+            by_path["data/normalized/dataset_status.json"]["shared_type"], "dataset_status"
+        )
+        self.assertEqual(by_path["data/normalized/dataset_status.json"]["format"], "json")
+        self.assertEqual(
+            by_path["data/normalized/dataset_changelog.json"]["shared_type"],
+            "dataset_changelog",
+        )
+        self.assertEqual(by_path["data/normalized/dataset_changelog.json"]["format"], "json")
         self.assertEqual(by_path["data/normalized/drift_report.md"]["shared_type"], "drift_report")
         self.assertEqual(by_path["data/normalized/drift_report.md"]["format"], "markdown")
         self.assertEqual(by_path["data/normalized/overview.json"]["shared_type"], "overview")
@@ -784,28 +833,25 @@ class ArtifactContractTests(unittest.TestCase):
 
     def test_top_issue_is_persisted_in_shared_artifacts(self):
         self.assertIsNotNone(self.health["top_issue"])
-        self.assertEqual(self.health["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, self.health["top_issue_summary"])
+        self.assertEqual(self.health["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, self.health["top_issue_summary"])
         self.assertTrue(self.health["top_issue"]["diagnostic_summary"])
-        self.assertIn(
-            self.health["top_issue"]["source_detail"],
-            INDICADORES_RECOVERY_SOURCE_DETAILS,
-        )
+        self.assertTrue(self.health["top_issue"]["source_detail"])
         self.assertIsNotNone(self.bundle["top_issue"])
-        self.assertEqual(self.bundle["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, self.bundle["top_issue_summary"])
+        self.assertEqual(self.bundle["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, self.bundle["top_issue_summary"])
         self.assertTrue(self.bundle["top_issue"]["diagnostic_summary"])
-        self.assertEqual(self.bundle["health"]["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, self.bundle["health"]["top_issue_summary"])
+        self.assertEqual(self.bundle["health"]["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, self.bundle["health"]["top_issue_summary"])
         self.assertTrue(self.bundle["health"]["top_issue"]["diagnostic_summary"])
         self.assertIsNotNone(self.overview["top_issue"])
-        self.assertEqual(self.overview["top_issue"]["dataset"], "indicadores")
-        _assert_summary_has_recovery_source_detail(self, self.overview["top_issue_summary"])
+        self.assertEqual(self.overview["top_issue"]["dataset"], EXPECTED_TOP_ISSUE)
+        self.assertIn(EXPECTED_TOP_ISSUE, self.overview["top_issue_summary"])
         self.assertTrue(self.overview["top_issue"]["diagnostic_summary"])
 
     def test_top_issue_is_exposed_in_markdown_reports(self):
-        self.assertIn("- `top_issue`: `indicadores`", self.overview_markdown)
-        self.assertIn("- `top_issue`: `indicadores`", self.pipeline_status_markdown)
+        self.assertIn(f"- `top_issue`: `{EXPECTED_TOP_ISSUE}`", self.overview_markdown)
+        self.assertIn(f"- `top_issue`: `{EXPECTED_TOP_ISSUE}`", self.pipeline_status_markdown)
         self.assertIn("- `top_issue_reason`:", self.overview_markdown)
         self.assertIn("- `top_issue_reason`:", self.health_markdown)
         self.assertIn("- `top_issue_reason`:", self.pipeline_status_markdown)
@@ -881,6 +927,10 @@ class ChileHubCliTests(unittest.TestCase):
                 "establecimientos_educacionales",
                 "censo_hogares_viviendas",
                 "distritos_electorales",
+                "finanzas_municipales",
+                "resultados_educacionales",
+                "indicadores_urbanos_siedu",
+                "perfil_territorial_comunal",
             ],
         )
 
@@ -932,6 +982,8 @@ class ChileHubCliTests(unittest.TestCase):
         result = self.run_cli("reports")
         self.assertIn('"report_key": "health_json"', result.stdout)
         self.assertIn('"report_key": "status_json"', result.stdout)
+        self.assertIn('"report_key": "dataset_status_json"', result.stdout)
+        self.assertIn('"report_key": "dataset_changelog_json"', result.stdout)
         self.assertIn('"report_key": "overview_markdown"', result.stdout)
 
     def test_cli_reports_table(self):
@@ -939,7 +991,16 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn("chile-hub report index", result.stdout)
         self.assertIn("health_json", result.stdout)
         self.assertIn("status_json", result.stdout)
+        self.assertIn("dataset_status_json", result.stdout)
         self.assertIn("overview_markdown", result.stdout)
+
+    def test_cli_dataset_status_and_changelog(self):
+        status = self.run_cli("dataset-status")
+        changelog = self.run_cli("dataset-changelog")
+        self.assertIn('"dataset_count": 14', status.stdout)
+        self.assertIn('"dataset": "perfil_territorial_comunal"', status.stdout)
+        self.assertIn('"dataset_count": 14', changelog.stdout)
+        self.assertIn('"record_count_delta"', changelog.stdout)
 
     def test_cli_report(self):
         result = self.run_cli("report", "drift_report", "--format", "markdown")
@@ -973,7 +1034,7 @@ class ChileHubCliTests(unittest.TestCase):
         self.assertIn(f"status_build: {self.health['overall_status']}", result.stdout)
         self.assertIn("status_current:", result.stdout)
         self.assertIn("current_freshness:", result.stdout)
-        self.assertIn("top_issue: indicadores", result.stdout)
+        self.assertIn(f"top_issue: {EXPECTED_TOP_ISSUE}", result.stdout)
         self.assertIn("top_issue_reason:", result.stdout)
         self.assertIn("top_issue_action:", result.stdout)
         self.assertIn("package: data/normalized/chile-hub-publishable-bundle.zip", result.stdout)
@@ -1032,7 +1093,7 @@ class ChileHubCliTests(unittest.TestCase):
     def test_cli_health(self):
         result = self.run_cli("health")
         self.assertIn('"overall_status":', result.stdout)
-        self.assertIn('"dataset_count": 10', result.stdout)
+        self.assertIn(f'"dataset_count": {EXPECTED_DATASET_COUNT}', result.stdout)
         self.assertIn('"review_terms_count":', result.stdout)
         self.assertIn('"partial_coverage_count":', result.stdout)
         self.assertIn('"drifted_count":', result.stdout)
@@ -1046,7 +1107,7 @@ class ChileHubCliTests(unittest.TestCase):
     def test_pipeline_status_script_text(self):
         result = self.run_script("scripts/pipeline_status.py")
         self.assertIn("chile-hub pipeline status", result.stdout)
-        self.assertIn("top_issue: indicadores", result.stdout)
+        self.assertIn(f"top_issue: {EXPECTED_TOP_ISSUE}", result.stdout)
         self.assertIn("top_issue_reason:", result.stdout)
         self.assertIn("top_issue_action:", result.stdout)
         self.assertIn("hub_status_json: data/normalized/hub_status.json", result.stdout)
@@ -1084,14 +1145,14 @@ class ChileHubCliTests(unittest.TestCase):
 
     def test_cli_top_issue(self):
         result = self.run_cli("top-issue")
-        self.assertIn('"dataset": "indicadores"', result.stdout)
+        self.assertIn(f'"dataset": "{EXPECTED_TOP_ISSUE}"', result.stdout)
         self.assertIn('"drift_status": "drifted"', result.stdout)
 
     def test_cli_top_issue_text(self):
         result = self.run_cli("top-issue", "--format", "text")
         self.assertIn("chile-hub top issue", result.stdout)
-        self.assertIn("dataset=indicadores", result.stdout)
-        _assert_summary_has_recovery_source_detail(self, result.stdout)
+        self.assertIn(f"dataset={EXPECTED_TOP_ISSUE}", result.stdout)
+        self.assertIn(EXPECTED_TOP_ISSUE, result.stdout)
         self.assertIn("reason=", result.stdout)
         self.assertIn("action=", result.stdout)
 
@@ -1099,7 +1160,7 @@ class ChileHubCliTests(unittest.TestCase):
         result = self.run_cli("top-issue", "--format", "table")
         self.assertIn("chile-hub top issue", result.stdout)
         self.assertIn("dataset", result.stdout)
-        self.assertIn("indicadores", result.stdout)
+        self.assertIn(EXPECTED_TOP_ISSUE, result.stdout)
 
     def test_cli_packages(self):
         result = self.run_cli("packages")

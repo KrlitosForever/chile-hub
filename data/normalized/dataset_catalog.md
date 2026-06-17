@@ -1,20 +1,24 @@
 # chile-hub dataset catalog
 
-- `generated_at_utc`: `2026-06-17T15:28:15.329818+00:00`
-- `dataset_count`: `10`
+- `generated_at_utc`: `2026-06-17T17:29:16.338743+00:00`
+- `dataset_count`: `14`
 
 | Dataset | Source | Mode | Freshness | Reuse | Records | Confidence | Join Keys | Validation |
 | :--- | :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- |
-| `regiones` | BCN ArcGIS | `live` | `fresh (15.09h / 2160h)` | `open-attribution (CC BY)` | 16 | `Tier B` | `codigo_region` | `ok` |
-| `provincias` | BCN ArcGIS | `live` | `fresh (15.09h / 2160h)` | `open-attribution (CC BY)` | 56 | `Tier B` | `codigo_provincia, codigo_region` | `ok` |
-| `comunas` | BCN ArcGIS | `live` | `fresh (15.09h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna, codigo_region` | `ok` |
-| `comunas_enriquecidas` | BCN ArcGIS | `live` | `fresh (15.09h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna` | `ok` |
-| `indicadores` | Banco Central de Chile (via mindicador.cl) | `live` | `fresh (15.03h / 72h)` | `open-attribution (Reproducción libre con citación (BCCh / INE))` | 428 | `Tier A/B` | `fecha, codigo_indicador` | `ok` |
-| `censo_comunal` | Instituto Nacional de Estadisticas - Censo 2024 | `live` | `fresh (15.07h / 87600h)` | `open-attribution (CC BY 4.0)` | 346 | `Tier A` | `codigo_comuna, codigo_region` | `ok` |
-| `establecimientos_salud` | Ministerio de Salud - Establecimientos de Salud | `live` | `fresh (15.07h / 1080h)` | `open-attribution (CC0)` | 5643 | `Tier A` | `codigo_establecimiento, codigo_comuna` | `ok` |
-| `establecimientos_educacionales` | Ministerio de Educación - Directorio Oficial de Establecimientos | `live` | `fresh (15.07h / 8760h)` | `open-attribution (CC-BY-3.0)` | 12898 | `Tier A` | `codigo_comuna` | `ok` |
-| `censo_hogares_viviendas` | Instituto Nacional de Estadisticas - Censo 2024 | `live` | `fresh (15.07h / 87600h)` | `open-attribution (CC BY 4.0)` | 346 | `Tier A` | `codigo_comuna, codigo_region` | `ok` |
-| `distritos_electorales` | BCN / Biblioteca del Congreso Nacional de Chile | `live` | `fresh (15.07h / 87600h)` | `open-attribution (CC0)` | 346 | `Tier A` | `codigo_comuna` | `ok` |
+| `regiones` | BCN ArcGIS | `live` | `fresh (0.64h / 2160h)` | `open-attribution (CC BY)` | 16 | `Tier B` | `codigo_region` | `ok` |
+| `provincias` | BCN ArcGIS | `live` | `fresh (0.64h / 2160h)` | `open-attribution (CC BY)` | 56 | `Tier B` | `codigo_provincia, codigo_region` | `ok` |
+| `comunas` | BCN ArcGIS | `live` | `fresh (0.64h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna, codigo_region` | `ok` |
+| `comunas_enriquecidas` | BCN ArcGIS | `live` | `fresh (0.64h / 2160h)` | `open-attribution (CC BY)` | 346 | `Tier B` | `codigo_comuna` | `ok` |
+| `indicadores` | Banco Central de Chile (via mindicador.cl) | `live` | `fresh (0.63h / 72h)` | `open-attribution (Reproducción libre con citación (BCCh / INE))` | 430 | `Tier A/B` | `fecha, codigo_indicador` | `ok` |
+| `censo_comunal` | Instituto Nacional de Estadisticas - Censo 2024 | `live` | `fresh (0.63h / 87600h)` | `open-attribution (CC BY 4.0)` | 346 | `Tier A` | `codigo_comuna, codigo_region` | `ok` |
+| `establecimientos_salud` | Ministerio de Salud - Establecimientos de Salud | `live` | `fresh (0.63h / 1080h)` | `open-attribution (CC0)` | 5643 | `Tier A` | `codigo_establecimiento, codigo_comuna` | `ok` |
+| `establecimientos_educacionales` | Ministerio de Educación - Directorio Oficial de Establecimientos | `live` | `fresh (0.63h / 8760h)` | `open-attribution (CC-BY-3.0)` | 12898 | `Tier A` | `codigo_comuna` | `ok` |
+| `censo_hogares_viviendas` | Instituto Nacional de Estadisticas - Censo 2024 | `live` | `fresh (0.63h / 87600h)` | `open-attribution (CC BY 4.0)` | 346 | `Tier A` | `codigo_comuna, codigo_region` | `ok` |
+| `distritos_electorales` | BCN / Biblioteca del Congreso Nacional de Chile | `live` | `fresh (0.63h / 87600h)` | `open-attribution (CC0)` | 346 | `Tier A` | `codigo_comuna` | `ok` |
+| `finanzas_municipales` | SINIM - SUBDERE | `fallback` | `fresh (0.63h / 8760h)` | `public-api-review-terms (Datos públicos municipales; términos de reutilización sujetos a revisión)` | 3 | `Tier B` | `anio, codigo_comuna` | `ok` |
+| `resultados_educacionales` | Centro de Estudios MINEDUC - Datos Abiertos | `fallback` | `fresh (0.63h / 8760h)` | `open-attribution (CC-BY-3.0)` | 3 | `Tier B` | `anio, codigo_comuna` | `ok` |
+| `indicadores_urbanos_siedu` | INE - Sistema de Indicadores y Estándares de Desarrollo Urbano | `fallback` | `fresh (0.63h / 8760h)` | `open-attribution (Licencia de Datos Abiertos INE)` | 6 | `Tier B` | `anio, codigo_comuna, codigo_indicador` | `ok` |
+| `perfil_territorial_comunal` | chile-hub | `fallback` | `fresh (0.0h / 1080h)` | `open-attribution (Derivada de fuentes abiertas con atribución)` | 346 | `Tier B` | `codigo_comuna` | `ok` |
 
 ## regiones
 
@@ -22,7 +26,7 @@ Capa derivada de regiones para filtros, joins y referencias administrativas de a
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/regiones.md`
-- `freshness`: `fresh (15.09h / 2160h)`
+- `freshness`: `fresh (0.64h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."}`
 - `fields`: `codigo_region, nombre_region`
 - `join_keys`: `codigo_region`
@@ -37,7 +41,7 @@ Capa derivada de provincias para cruces intermedios entre region y comuna.
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/provincias.md`
-- `freshness`: `fresh (15.09h / 2160h)`
+- `freshness`: `fresh (0.64h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN reutilizables con atribucion."}`
 - `fields`: `codigo_region, nombre_region, codigo_provincia, nombre_provincia`
 - `join_keys`: `codigo_provincia, codigo_region`
@@ -52,7 +56,7 @@ Base territorial normalizada para cruces por region, provincia y comuna.
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/comunas.md`
-- `freshness`: `fresh (15.09h / 2160h)`
+- `freshness`: `fresh (0.64h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida."}`
 - `fields`: `codigo_region, nombre_region, abreviatura, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, nombre_comuna_clean, latitud_cabecera, longitud_cabecera, poblacion_estimada`
 - `join_keys`: `codigo_comuna, codigo_region`
@@ -67,7 +71,7 @@ Comunas con coordenadas de cabecera y poblacion estimada INE, listas para analis
 
 - `source_url`: https://arcgiswebad.bcn.cl/arcgis/rest/services/Hosted/Capa_Factores/FeatureServer/0/query
 - `documentation`: `docs/datasets/comunas_enriquecidas.md`
-- `freshness`: `fresh (15.09h / 2160h)`
+- `freshness`: `fresh (0.64h / 2160h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY", "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn", "attribution_required": true, "redistribution_ok": true, "summary": "Derivada de datos abiertos BCN con coordenadas e informacion INE."}`
 - `fields`: `codigo_region, nombre_region, abreviatura, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, nombre_comuna_clean, latitud_cabecera, longitud_cabecera, poblacion_estimada`
 - `join_keys`: `codigo_comuna`
@@ -82,16 +86,16 @@ Serie de indicadores economicos diarios de referencia para analisis y software.
 
 - `source_url`: https://mindicador.cl/api
 - `documentation`: `docs/datasets/indicadores.md`
-- `freshness`: `fresh (15.03h / 72h)`
+- `freshness`: `fresh (0.63h / 72h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "Reproducción libre con citación (BCCh / INE)", "license_url": "https://www.bcentral.cl/web/banco-central/terminos-y-condiciones", "attribution_required": true, "redistribution_ok": true, "summary": "Datos del Banco Central de Chile (BCCh) e INE. Libre reproducción con citación. Acceso vía mindicador.cl (API pública de la comunidad)."}`
 - `fields`: `fecha, codigo_indicador, valor`
 - `indicator_codes`: `dolar, euro, ipc, uf, utm`
-- `indicator_delivery`: `{"dolar": "raw_recovery", "euro": "raw_recovery", "ipc": "preserved_existing", "uf": "raw_recovery", "utm": "raw_recovery"}`
+- `indicator_delivery`: `{"dolar": "live", "euro": "live", "ipc": "published_backfill", "uf": "raw_recovery", "utm": "live"}`
 - `join_keys`: `fecha, codigo_indicador`
 - `outputs`: `{"parquet": "data/normalized/indicadores.parquet", "json": "data/normalized/indicadores_hoy.json", "duckdb_table": "indicadores", "sqlite_table": "indicadores", "excel_sheet": "Indicadores Diarios"}`
 - `usage_examples`: `{"python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('indicadores')", "duckdb": "SELECT *\nFROM 'data/normalized/indicadores.parquet'\nORDER BY fecha DESC, codigo_indicador;", "cli": "chile-hub show indicadores"}`
-- `warnings`: indicadores live refresh reused raw snapshots for: uf/2026, dolar/2026, euro/2026, utm/2026; indicadores live refresh preserved previous staging rows for: ipc/2026
-- `notes`: raw_recovery_used_for_pairs: uf/2026, dolar/2026, euro/2026, utm/2026; preserved_existing_pairs_due_to_fetch_failure: ipc/2026
+- `warnings`: indicadores live refresh reused raw snapshots for: uf/2026; indicadores live refresh reused last published artifact for missing codes: ipc
+- `notes`: raw_recovery_used_for_pairs: uf/2026; published_backfills_used_for_codes: ipc
 
 ## censo_comunal
 
@@ -99,7 +103,7 @@ Perfil demografico comunal del Censo 2024 con sexo y grandes grupos de edad.
 
 - `source_url`: https://censo2024.ine.gob.cl/wp-content/uploads/2025/03/D1_Poblacion-censada-por-sexo-y-edad-en-grupos-quinquenales.xlsx
 - `documentation`: `docs/datasets/censo_comunal.md`
-- `freshness`: `fresh (15.07h / 87600h)`
+- `freshness`: `fresh (0.63h / 87600h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY 4.0", "license_url": "https://www.ine.gob.cl/terminos-de-uso", "attribution_required": true, "redistribution_ok": true, "summary": "Resultados oficiales del Censo 2024 publicados por el INE."}`
 - `fields`: `codigo_region, nombre_region, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, poblacion_censada, hombres, mujeres, razon_hombre_mujer, poblacion_0_14, poblacion_15_29, poblacion_30_44, poblacion_45_64, poblacion_65_mas`
 - `join_keys`: `codigo_comuna, codigo_region`
@@ -112,9 +116,9 @@ Perfil demografico comunal del Censo 2024 con sexo y grandes grupos de edad.
 
 Directorio vigente de establecimientos de salud con tipo, dependencia, urgencia y ubicacion.
 
-- `source_url`: https://datos.gob.cl/dataset/3bf4cf7c-f638-4735-9a01-f65faae4beca/resource/2c44d782-3365-44e3-aefb-2c8b8363a1bc/download/establecimientos_20260609.csv
+- `source_url`: https://datos.gob.cl/dataset/3bf4cf7c-f638-4735-9a01-f65faae4beca/resource/2c44d782-3365-44e3-aefb-2c8b8363a1bc/download/establecimientos_20260616.csv
 - `documentation`: `docs/datasets/establecimientos_salud.md`
-- `freshness`: `fresh (15.07h / 1080h)`
+- `freshness`: `fresh (0.63h / 1080h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC0", "license_url": "http://www.opendefinition.org/licenses/cc-zero", "attribution_required": false, "redistribution_ok": true, "summary": "Directorio oficial MINSAL publicado en datos.gob.cl bajo CC0."}`
 - `fields`: `codigo_establecimiento, nombre_establecimiento, tipo_establecimiento, dependencia_administrativa, nivel_atencion, codigo_region, nombre_region, codigo_comuna, nombre_comuna, tiene_servicio_urgencia, tipo_urgencia, latitud, longitud, estado_funcionamiento`
 - `join_keys`: `codigo_establecimiento, codigo_comuna`
@@ -128,7 +132,7 @@ Directorio oficial del Ministerio de Educación (MINEDUC) con Rol Base de Datos 
 
 - `source_url`: https://datosabiertos.mineduc.cl/wp-content/uploads/2025/11/Directorio-Oficial-EE-2025.rar
 - `documentation`: `docs/datasets/establecimientos_educacionales.md`
-- `freshness`: `fresh (15.07h / 8760h)`
+- `freshness`: `fresh (0.63h / 8760h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC-BY-3.0", "license_url": "https://creativecommons.org/licenses/by/3.0/cl/", "attribution_required": true, "redistribution_ok": true, "summary": "Directorio oficial MINEDUC publicado por el Centro de Estudios del Ministerio de Educación de Chile bajo licencia CC BY."}`
 - `fields`: `rbd, dv_rbd, nombre_establecimiento, codigo_region, codigo_comuna, dependencia_administrativa, latitud, longitud, estado_funcionamiento`
 - `join_keys`: `codigo_comuna`
@@ -142,7 +146,7 @@ Viviendas y hogares censados por comuna, ocupacion y tamano medio del hogar.
 
 - `source_url`: https://censo2024.ine.gob.cl/wp-content/uploads/2025/03/V1_Viviendas-y-hogares-censados.xlsx
 - `documentation`: `docs/datasets/censo_hogares_viviendas.md`
-- `freshness`: `fresh (15.07h / 87600h)`
+- `freshness`: `fresh (0.63h / 87600h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC BY 4.0", "license_url": "https://www.ine.gob.cl/terminos-de-uso", "attribution_required": true, "redistribution_ok": true, "summary": "Resultados oficiales del Censo 2024 publicados por el INE."}`
 - `fields`: `codigo_region, nombre_region, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, viviendas_censadas, viviendas_particulares_ocupadas, viviendas_particulares_desocupadas, viviendas_colectivas, hogares_censados, promedio_personas_hogar`
 - `join_keys`: `codigo_comuna, codigo_region`
@@ -156,10 +160,70 @@ Asociación de comunas a distritos electorales (diputados) y circunscripciones s
 
 - `source_url`: https://www.bcn.cl/siit/observatorio/ley20840
 - `documentation`: `docs/datasets/distritos_electorales.md`
-- `freshness`: `fresh (15.07h / 87600h)`
+- `freshness`: `fresh (0.63h / 87600h)`
 - `reuse_policy`: `{"status": "open-attribution", "license": "CC0", "license_url": "http://www.opendefinition.org/licenses/cc-zero", "attribution_required": false, "redistribution_ok": true, "summary": "Asociación comunal a distritos y circunscripciones electorales basada en Ley N° 20.840."}`
 - `fields`: `codigo_comuna, nombre_comuna, distrito_electoral, circunscripcion_senatorial`
 - `join_keys`: `codigo_comuna`
 - `outputs`: `{"parquet": "data/normalized/distritos_electorales.parquet", "json": "data/normalized/distritos_electorales.json"}`
 - `usage_examples`: `{"python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('distritos_electorales')", "duckdb": "SELECT * FROM 'data/normalized/distritos_electorales.parquet';", "cli": "chile-hub show distritos_electorales"}`
 - `warnings`: none
+
+## finanzas_municipales
+
+Indicadores financieros municipales anuales desde SINIM/SUBDERE.
+
+- `source_url`: https://datos.sinim.gov.cl/datos_municipales.php
+- `documentation`: `docs/datasets/finanzas_municipales.md`
+- `freshness`: `fresh (0.63h / 8760h)`
+- `reuse_policy`: `{"status": "public-api-review-terms", "license": "Datos públicos municipales; términos de reutilización sujetos a revisión", "license_url": "https://datos.sinim.gov.cl/", "attribution_required": true, "redistribution_ok": true, "summary": "Información municipal pública publicada por SINIM/SUBDERE; citar fuente oficial."}`
+- `fields`: `anio, codigo_comuna, nombre_comuna, ingresos_totales, gastos_totales, ingresos_propios_permanentes, fondo_comun_municipal, gasto_personal, gasto_inversion`
+- `join_keys`: `anio, codigo_comuna`
+- `outputs`: `{"parquet": "data/normalized/finanzas_municipales.parquet", "json": "data/normalized/finanzas_municipales.json", "duckdb_table": "finanzas_municipales", "sqlite_table": "finanzas_municipales", "excel_sheet": "Finanzas Municipales"}`
+- `usage_examples`: `{"python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('finanzas_municipales')", "duckdb": "SELECT * FROM 'data/normalized/finanzas_municipales.parquet' WHERE codigo_comuna = '13101';", "cli": "chile-hub show finanzas_municipales"}`
+- `warnings`: finanzas_municipales source_mode is fallback; review before publication
+- `notes`: official_landing_snapshot_saved; fallback_curated_rows_used_until_stable_direct_export_is_configured
+
+## resultados_educacionales
+
+Resultados educacionales agregados por comuna y año, sin registros personales.
+
+- `source_url`: https://centroestudios.mineduc.cl/datos-abiertos/
+- `documentation`: `docs/datasets/resultados_educacionales.md`
+- `freshness`: `fresh (0.63h / 8760h)`
+- `reuse_policy`: `{"status": "open-attribution", "license": "CC-BY-3.0", "license_url": "https://creativecommons.org/licenses/by/3.0/cl/", "attribution_required": true, "redistribution_ok": true, "summary": "Datos agregados desde publicaciones del Centro de Estudios MINEDUC; citar fuente oficial."}`
+- `fields`: `anio, codigo_comuna, matricula_total, asistencia_promedio, tasa_aprobacion, tasa_reprobacion, tasa_retiro, establecimientos_reportados`
+- `join_keys`: `anio, codigo_comuna`
+- `outputs`: `{"parquet": "data/normalized/resultados_educacionales.parquet", "json": "data/normalized/resultados_educacionales.json", "duckdb_table": "resultados_educacionales", "sqlite_table": "resultados_educacionales", "excel_sheet": "Resultados Educacionales"}`
+- `usage_examples`: `{"python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('resultados_educacionales')", "duckdb": "SELECT anio, codigo_comuna, matricula_total FROM 'data/normalized/resultados_educacionales.parquet';", "cli": "chile-hub show resultados_educacionales"}`
+- `warnings`: resultados_educacionales source_mode is fallback; review before publication
+- `notes`: privacy_safe_comuna_year_aggregation; official_landing_snapshot_saved; fallback_curated_rows_used_until_direct_outcome_dump_is_configured
+
+## indicadores_urbanos_siedu
+
+Indicadores urbanos SIEDU en formato largo con cobertura comunal parcial esperada.
+
+- `source_url`: https://www.ine.gob.cl/herramientas/portal-de-mapas/siedu
+- `documentation`: `docs/datasets/indicadores_urbanos_siedu.md`
+- `freshness`: `fresh (0.63h / 8760h)`
+- `reuse_policy`: `{"status": "open-attribution", "license": "Licencia de Datos Abiertos INE", "license_url": "https://www.ine.gob.cl/terminos-de-uso", "attribution_required": true, "redistribution_ok": true, "summary": "Indicadores urbanos SIEDU publicados por INE para comunas urbanas seleccionadas."}`
+- `fields`: `anio, codigo_comuna, codigo_indicador, nombre_indicador, categoria, valor, unidad, fuente_original, cobertura_tipo`
+- `join_keys`: `anio, codigo_comuna, codigo_indicador`
+- `outputs`: `{"parquet": "data/normalized/indicadores_urbanos_siedu.parquet", "json": "data/normalized/indicadores_urbanos_siedu.json", "duckdb_table": "indicadores_urbanos_siedu", "sqlite_table": "indicadores_urbanos_siedu", "excel_sheet": "SIEDU"}`
+- `usage_examples`: `{"python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('indicadores_urbanos_siedu')", "duckdb": "SELECT * FROM 'data/normalized/indicadores_urbanos_siedu.parquet' WHERE codigo_indicador = 'siedu_acceso_areas_verdes';", "cli": "chile-hub show indicadores_urbanos_siedu"}`
+- `warnings`: indicadores_urbanos_siedu has intentionally partial urban coverage; indicadores_urbanos_siedu source_mode is fallback; review before publication
+- `notes`: partial_urban_coverage_expected; official_landing_snapshot_saved; fallback_curated_rows_used_until_download_matrix_is_configured
+
+## perfil_territorial_comunal
+
+Perfil comunal curado que consolida DPA, censo, salud, educación, finanzas, SIEDU y distritos.
+
+- `source_url`: https://github.com/cortega26/chile-hub
+- `documentation`: `docs/datasets/perfil_territorial_comunal.md`
+- `freshness`: `fresh (0.0h / 1080h)`
+- `reuse_policy`: `{"status": "open-attribution", "license": "Derivada de fuentes abiertas con atribución", "license_url": "https://github.com/cortega26/chile-hub", "attribution_required": true, "redistribution_ok": true, "summary": "Capa derivada a partir de datasets validados de chile-hub."}`
+- `fields`: `codigo_region, nombre_region, abreviatura, codigo_provincia, nombre_provincia, codigo_comuna, nombre_comuna, nombre_comuna_clean, latitud_cabecera, longitud_cabecera, poblacion_estimada, poblacion_censada, poblacion_hombres, poblacion_mujeres, poblacion_0_14, poblacion_15_29, poblacion_30_44, poblacion_45_64, poblacion_65_mas, viviendas_censadas, hogares_censados, promedio_personas_por_hogar, establecimientos_salud_total, establecimientos_educacionales_total, distrito_electoral, circunscripcion_senatorial, anio_finanzas, ingresos_totales, gastos_totales, ingresos_propios_permanentes, fondo_comun_municipal, gasto_personal, gasto_inversion, anio_resultados_educacionales, matricula_total, asistencia_promedio, tasa_aprobacion, tasa_reprobacion, tasa_retiro, establecimientos_reportados, indicadores_siedu_total, valor_promedio_siedu`
+- `join_keys`: `codigo_comuna`
+- `outputs`: `{"parquet": "data/normalized/perfil_territorial_comunal.parquet", "json": "data/normalized/perfil_territorial_comunal.json", "duckdb_table": "perfil_territorial_comunal", "sqlite_table": "perfil_territorial_comunal", "excel_sheet": "Perfil Territorial"}`
+- `usage_examples`: `{"python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('perfil_territorial_comunal')", "duckdb": "SELECT codigo_comuna, nombre_comuna, establecimientos_salud_total FROM 'data/normalized/perfil_territorial_comunal.parquet';", "cli": "chile-hub show perfil_territorial_comunal"}`
+- `warnings`: none
+- `notes`: derived_dataset; upstreams: comunas,censo_comunal,censo_hogares_viviendas,establecimientos_salud,establecimientos_educacionales,distritos_electorales,finanzas_municipales,resultados_educacionales,indicadores_urbanos_siedu

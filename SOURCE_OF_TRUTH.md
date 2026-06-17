@@ -43,12 +43,12 @@ src/
 ├── extractors/
 │   ├── base.py                    BaseExtractor ABC — 57 lines, read whole
 │   └── {name}_extractor.py        One file per dataset, extends BaseExtractor
-├── validation.py                  ALL validate_*() — 248 lines, read whole
-├── build_dev_db.py                ~2 300 lines — scope reads:
+├── validation.py                  ALL validate_*() — ~500 lines, read whole when editing validators
+├── build_dev_db.py                ~2 550 lines — scope reads:
 │   L27-35   imports from validation.py
 │   L1610+   validations = {…} block (where validators are called)
 ├── pipeline_status_utils.py       Report builders (health, catalog, redistribution)
-└── chile_hub.py                   ~1 400 lines — scope reads:
+└── chile_hub.py                   ~1 570 lines — scope reads:
     L26      ChileHub class definition
     L26-150  Full public API surface
 

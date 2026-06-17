@@ -1,0 +1,36 @@
+# Perfil Territorial Comunal
+
+## Descripción
+
+Tabla derivada con una fila por comuna que consolida la DPA, Censo 2024, hogares y viviendas, salud, educación, distritos electorales, finanzas municipales, resultados educacionales y resumen SIEDU.
+
+## Fuente y licencia
+
+- Fuente: derivada de datasets validados de chile-hub.
+- Reutilización: heredada de las fuentes abiertas de origen; requiere atribución.
+
+## Schema
+
+Incluye campos DPA canónicos (`codigo_comuna`, `nombre_comuna`, región, provincia, coordenadas), métricas censales, conteos de establecimientos, distritos electorales y métricas headline de las capas nuevas.
+
+## Uso
+
+```python
+from chile_hub import ChileHub
+
+hub = ChileHub()
+df = hub.load_polars("perfil_territorial_comunal")
+```
+
+```sql
+SELECT codigo_comuna, nombre_comuna, establecimientos_salud_total
+FROM 'data/normalized/perfil_territorial_comunal.parquet';
+```
+
+## Limitaciones
+
+Las columnas derivadas de capas parciales pueden venir nulas o en cero según corresponda. SIEDU resume solo comunas presentes en la fuente urbana.
+
+## Changelog
+
+- v1: Perfil derivado agregado con validación de 346 comunas únicas.

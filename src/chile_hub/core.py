@@ -65,6 +65,14 @@ class ChileHub:
         with (self.normalized_dir / "hub_status.json").open("r", encoding="utf-8") as f:
             return json.load(f)
 
+    def _load_dataset_status(self) -> dict[str, Any]:
+        with (self.normalized_dir / "dataset_status.json").open("r", encoding="utf-8") as f:
+            return json.load(f)
+
+    def _load_dataset_changelog(self) -> dict[str, Any]:
+        with (self.normalized_dir / "dataset_changelog.json").open("r", encoding="utf-8") as f:
+            return json.load(f)
+
     def _load_hub_bundle(self) -> dict[str, Any]:
         with (self.normalized_dir / "hub_bundle.json").open("r", encoding="utf-8") as f:
             return json.load(f)
@@ -724,6 +732,12 @@ class ChileHub:
             status["top_issue_summary"] = format_top_issue_summary(status.get("top_issue"))
         return status
 
+    def dataset_status(self):
+        return self._load_dataset_status()
+
+    def dataset_changelog(self):
+        return self._load_dataset_changelog()
+
     def status_table(self):
         status = self.status()
         rows = [
@@ -1240,6 +1254,8 @@ def build_parser():
         default="json",
         help="Formato de salida de status",
     )
+    subparsers.add_parser("dataset-status", help="Mostrar status detallado por dataset")
+    subparsers.add_parser("dataset-changelog", help="Mostrar changelog de datasets")
     health_parser = subparsers.add_parser("health", help="Mostrar salud agregada del hub")
     health_parser.add_argument(
         "--format",
@@ -1444,6 +1460,14 @@ def main():
             print(hub.status_table(), end="")
         else:
             print(json.dumps(hub.status(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "dataset-status":
+        print(json.dumps(hub.dataset_status(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "dataset-changelog":
+        print(json.dumps(hub.dataset_changelog(), ensure_ascii=False, indent=2))
         return
 
     if args.command == "health":

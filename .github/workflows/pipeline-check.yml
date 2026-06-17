@@ -95,6 +95,9 @@ jobs:
           python src/extractors/salud_extractor.py
           python src/extractors/electoral_extractor.py
           python src/extractors/mineduc_establecimientos_extractor.py
+          python src/extractors/sinim_finanzas_extractor.py
+          python src/extractors/mineduc_resultados_extractor.py
+          python src/extractors/siedu_extractor.py
 
       - name: Build outputs
         run: python src/build_dev_db.py

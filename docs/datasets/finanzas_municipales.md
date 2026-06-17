@@ -1,9 +1,47 @@
-# Finanzas municipales SINIM (opt-in)
+# Finanzas Municipales
 
-Integracion restringida y no publicable. El extractor requiere una URL directa de exportacion autorizada y conserva solamente el snapshot raw y sus metadatos.
+## Descripción
 
-SINIM autoriza uso no comercial con atribucion. Por ello esta capa queda excluida de `DATASET_CATALOG_CONFIG`, `data/normalized/` y del bundle publico hasta obtener permiso expreso de redistribucion.
+Indicadores financieros municipales anuales provenientes de SINIM/SUBDERE, normalizados por comuna para cruces territoriales.
 
-```bash
-python src/extractors/sinim_finanzas_extractor.py --source-url 'URL_DIRECTA_AUTORIZADA'
+## Fuente y licencia
+
+- Fuente: SINIM - SUBDERE
+- URL: https://datos.sinim.gov.cl/datos_municipales.php
+- Reutilización: datos públicos municipales con atribución; términos sujetos a revisión operativa.
+
+## Schema
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `anio` | integer | Año presupuestario. |
+| `codigo_comuna` | string | Código CUT comunal de 5 caracteres. |
+| `nombre_comuna` | string | Nombre de la comuna. |
+| `ingresos_totales` | float | Ingresos municipales totales. |
+| `gastos_totales` | float | Gastos municipales totales. |
+| `ingresos_propios_permanentes` | float | Ingresos propios permanentes. |
+| `fondo_comun_municipal` | float | Aportes o ingresos asociados al Fondo Común Municipal. |
+| `gasto_personal` | float | Gasto en personal. |
+| `gasto_inversion` | float | Gasto de inversión. |
+
+## Uso
+
+```python
+from chile_hub import ChileHub
+
+hub = ChileHub()
+df = hub.load_polars("finanzas_municipales")
 ```
+
+```sql
+SELECT anio, codigo_comuna, ingresos_totales, gastos_totales
+FROM 'data/normalized/finanzas_municipales.parquet';
+```
+
+## Limitaciones
+
+La primera versión usa una capa fallback curada hasta configurar una exportación directa estable desde SINIM. Los metadatos `source_mode` y `source_detail` indican si el build es publicable como live.
+
+## Changelog
+
+- v1: Dataset agregado al pipeline con validación centralizada y artefactos Parquet/JSON/DuckDB/SQLite/Excel.

@@ -1,11 +1,11 @@
 # chile-hub drift report
 
-- `generated_at_utc`: `2026-06-17T15:28:15.329818+00:00`
-- `dataset_count`: `10`
-- `drifted_count`: `1`
+- `generated_at_utc`: `2026-06-17T17:29:16.338743+00:00`
+- `dataset_count`: `14`
+- `drifted_count`: `5`
 - `healthy_count`: `9`
-- `fallback_count`: `0`
-- `partial_coverage_count`: `0`
+- `fallback_count`: `4`
+- `partial_coverage_count`: `1`
 - `degraded_count`: `0`
 
 | Dataset | Drift | Mode | Coverage | Degradation | Warnings | Action |
@@ -20,6 +20,10 @@
 | `establecimientos_educacionales` | `healthy` | `live` | `not_applicable` | `none` | 0 | Ninguna. |
 | `censo_hogares_viviendas` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
 | `distritos_electorales` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
+| `finanzas_municipales` | `drifted` | `fallback` | `not_applicable` | `warning` | 1 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
+| `resultados_educacionales` | `drifted` | `fallback` | `not_applicable` | `warning` | 1 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
+| `indicadores_urbanos_siedu` | `drifted` | `fallback` | `partial` | `warning` | 2 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
+| `perfil_territorial_comunal` | `drifted` | `fallback` | `full` | `none` | 0 | Ninguna. |
 
 ## regiones
 
@@ -66,9 +70,9 @@
 - `drift_status`: `drifted`
 - `source_mode`: `live`
 - `coverage`: `Sin baseline de cobertura por cardinalidad para esta capa.`
-- `degradation`: indicadores live refresh reused raw snapshots for: uf/2026, dolar/2026, euro/2026, utm/2026; indicadores live refresh preserved previous staging rows for: ipc/2026
+- `degradation`: indicadores live refresh reused raw snapshots for: uf/2026; indicadores live refresh reused last published artifact for missing codes: ipc
 - `warning_count`: `2`
-- `diagnostic_summary`: indicadores live refresh reused raw snapshots for: uf/2026, dolar/2026, euro/2026, utm/2026
+- `diagnostic_summary`: indicadores live refresh reused raw snapshots for: uf/2026
 - `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
 
 ## censo_comunal
@@ -115,6 +119,46 @@
 
 - `drift_status`: `healthy`
 - `source_mode`: `live`
+- `coverage`: `Cobertura completa: 346/346 filas respecto del baseline esperado.`
+- `degradation`: Sin degradación operativa detectada en este build.
+- `warning_count`: `0`
+- `diagnostic_summary`: Sin degradación operativa detectada en este build.
+- `recommended_action`: Ninguna.
+
+## finanzas_municipales
+
+- `drift_status`: `drifted`
+- `source_mode`: `fallback`
+- `coverage`: `Sin baseline de cobertura por cardinalidad para esta capa.`
+- `degradation`: finanzas_municipales source_mode is fallback; review before publication
+- `warning_count`: `1`
+- `diagnostic_summary`: finanzas_municipales source_mode is fallback; review before publication
+- `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
+
+## resultados_educacionales
+
+- `drift_status`: `drifted`
+- `source_mode`: `fallback`
+- `coverage`: `Sin baseline de cobertura por cardinalidad para esta capa.`
+- `degradation`: resultados_educacionales source_mode is fallback; review before publication
+- `warning_count`: `1`
+- `diagnostic_summary`: resultados_educacionales source_mode is fallback; review before publication
+- `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
+
+## indicadores_urbanos_siedu
+
+- `drift_status`: `drifted`
+- `source_mode`: `fallback`
+- `coverage`: `Comunas urbanas incluidas por SIEDU, no las 346 comunas del país.`
+- `degradation`: indicadores_urbanos_siedu has intentionally partial urban coverage; indicadores_urbanos_siedu source_mode is fallback; review before publication
+- `warning_count`: `2`
+- `diagnostic_summary`: indicadores_urbanos_siedu has intentionally partial urban coverage
+- `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
+
+## perfil_territorial_comunal
+
+- `drift_status`: `drifted`
+- `source_mode`: `fallback`
 - `coverage`: `Cobertura completa: 346/346 filas respecto del baseline esperado.`
 - `degradation`: Sin degradación operativa detectada en este build.
 - `warning_count`: `0`

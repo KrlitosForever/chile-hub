@@ -1,0 +1,68 @@
+[
+  {
+    "anio": 2024,
+    "codigo_comuna": "05109",
+    "codigo_indicador": "siedu_acceso_areas_verdes",
+    "nombre_indicador": "Acceso a areas verdes",
+    "categoria": "Espacio publico",
+    "valor": 65.8,
+    "unidad": "porcentaje",
+    "fuente_original": "SIEDU INE",
+    "cobertura_tipo": "urbana"
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "05109",
+    "codigo_indicador": "siedu_tiempo_transporte",
+    "nombre_indicador": "Tiempo medio de viaje urbano",
+    "categoria": "Movilidad",
+    "valor": 36.0,
+    "unidad": "minutos",
+    "fuente_original": "SIEDU INE",
+    "cobertura_tipo": "urbana"
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "08101",
+    "codigo_indicador": "siedu_acceso_areas_verdes",
+    "nombre_indicador": "Acceso a areas verdes",
+    "categoria": "Espacio publico",
+    "valor": 62.3,
+    "unidad": "porcentaje",
+    "fuente_original": "SIEDU INE",
+    "cobertura_tipo": "urbana"
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "08101",
+    "codigo_indicador": "siedu_tiempo_transporte",
+    "nombre_indicador": "Tiempo medio de viaje urbano",
+    "categoria": "Movilidad",
+    "valor": 34.0,
+    "unidad": "minutos",
+    "fuente_original": "SIEDU INE",
+    "cobertura_tipo": "urbana"
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "13101",
+    "codigo_indicador": "siedu_acceso_areas_verdes",
+    "nombre_indicador": "Acceso a areas verdes",
+    "categoria": "Espacio publico",
+    "valor": 71.4,
+    "unidad": "porcentaje",
+    "fuente_original": "SIEDU INE",
+    "cobertura_tipo": "urbana"
+  },
+  {
+    "anio": 2024,
+    "codigo_comuna": "13101",
+    "codigo_indicador": "siedu_tiempo_transporte",
+    "nombre_indicador": "Tiempo medio de viaje urbano",
+    "categoria": "Movilidad",
+    "valor": 42.0,
+    "unidad": "minutos",
+    "fuente_original": "SIEDU INE",
+    "cobertura_tipo": "urbana"
+  }
+]

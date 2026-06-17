@@ -7,6 +7,42 @@ FALLBACK_COMUNAS_COUNT = 18
 EXPECTED_LIVE_COMUNAS_COUNT = 346
 
 
+def _missing_columns(df: pl.DataFrame, columns: list[str]) -> list[str]:
+    return [column for column in columns if column not in df.columns]
+
+
+def _duplicate_count(df: pl.DataFrame, columns: list[str]) -> int:
+    if df.height == 0:
+        return 0
+    return df.height - df.select(columns).unique().height
+
+
+def _invalid_fixed_length_count(df: pl.DataFrame, column: str, length: int) -> int:
+    return df.filter(pl.col(column).cast(pl.String).str.len_chars() != length).height
+
+
+def _unknown_codes(df: pl.DataFrame, column: str, valid_codes: list[str] | None) -> list[str]:
+    if valid_codes is None:
+        return []
+    return sorted(set(df[column].drop_nulls().cast(pl.String).to_list()) - set(valid_codes))
+
+
+def _negative_numeric_count(df: pl.DataFrame, columns: list[str]) -> int:
+    count = 0
+    for column in columns:
+        count += df.filter(pl.col(column).is_not_null() & (pl.col(column) < 0)).height
+    return count
+
+
+def _percentage_out_of_bounds_count(df: pl.DataFrame, columns: list[str]) -> int:
+    count = 0
+    for column in columns:
+        count += df.filter(
+            pl.col(column).is_not_null() & ((pl.col(column) < 0) | (pl.col(column) > 100))
+        ).height
+    return count
+
+
 def validate_comunas(df_comunas: pl.DataFrame, metadata: dict[str, Any] | None) -> dict[str, Any]:
     errors = []
     warnings = []
@@ -266,4 +302,205 @@ def validate_distritos_electorales(
         "record_count": df.height,
         "errors": errors,
         "warnings": [],
+    }
+
+
+def validate_finanzas_municipales(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    errors = []
+    warnings = []
+    required = [
+        "anio",
+        "codigo_comuna",
+        "nombre_comuna",
+        "ingresos_totales",
+        "gastos_totales",
+        "ingresos_propios_permanentes",
+        "fondo_comun_municipal",
+        "gasto_personal",
+        "gasto_inversion",
+    ]
+    missing = _missing_columns(df, required)
+    if missing:
+        errors.append(f"finanzas_municipales missing columns: {', '.join(missing)}")
+    if df.height == 0:
+        errors.append("finanzas_municipales dataset is empty")
+    if not missing:
+        duplicates = _duplicate_count(df, ["anio", "codigo_comuna"])
+        if duplicates:
+            errors.append(f"anio + codigo_comuna must be unique, found {duplicates} duplicates")
+        invalid = _invalid_fixed_length_count(df, "codigo_comuna", 5)
+        if invalid:
+            errors.append(f"found {invalid} invalid codigo_comuna values")
+        unknown = _unknown_codes(df, "codigo_comuna", valid_commune_codes)
+        if unknown:
+            errors.append(f"finanzas_municipales references unknown communes: {unknown}")
+        negative = _negative_numeric_count(
+            df,
+            [
+                "ingresos_totales",
+                "gastos_totales",
+                "ingresos_propios_permanentes",
+                "fondo_comun_municipal",
+                "gasto_personal",
+                "gasto_inversion",
+            ],
+        )
+        if negative:
+            errors.append(f"found {negative} negative municipal finance values")
+    if metadata and metadata.get("source_mode") == "fallback":
+        warnings.append("finanzas_municipales source_mode is fallback; review before publication")
+    return {
+        "dataset": "finanzas_municipales",
+        "status": "error" if errors else "ok",
+        "record_count": df.height,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+def validate_resultados_educacionales(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    errors = []
+    warnings = []
+    required = [
+        "anio",
+        "codigo_comuna",
+        "matricula_total",
+        "asistencia_promedio",
+        "tasa_aprobacion",
+        "tasa_reprobacion",
+        "tasa_retiro",
+        "establecimientos_reportados",
+    ]
+    missing = _missing_columns(df, required)
+    if missing:
+        errors.append(f"resultados_educacionales missing columns: {', '.join(missing)}")
+    if df.height == 0:
+        errors.append("resultados_educacionales dataset is empty")
+    if not missing:
+        duplicates = _duplicate_count(df, ["anio", "codigo_comuna"])
+        if duplicates:
+            errors.append(f"anio + codigo_comuna must be unique, found {duplicates} duplicates")
+        invalid = _invalid_fixed_length_count(df, "codigo_comuna", 5)
+        if invalid:
+            errors.append(f"found {invalid} invalid codigo_comuna values")
+        unknown = _unknown_codes(df, "codigo_comuna", valid_commune_codes)
+        if unknown:
+            errors.append(f"resultados_educacionales references unknown communes: {unknown}")
+        negative = _negative_numeric_count(df, ["matricula_total", "establecimientos_reportados"])
+        if negative:
+            errors.append(f"found {negative} negative education outcome counts")
+        out_of_bounds = _percentage_out_of_bounds_count(
+            df, ["asistencia_promedio", "tasa_aprobacion", "tasa_reprobacion", "tasa_retiro"]
+        )
+        if out_of_bounds:
+            errors.append(f"found {out_of_bounds} percentage values outside 0-100")
+    if metadata and metadata.get("source_mode") == "fallback":
+        warnings.append(
+            "resultados_educacionales source_mode is fallback; review before publication"
+        )
+    return {
+        "dataset": "resultados_educacionales",
+        "status": "error" if errors else "ok",
+        "record_count": df.height,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+def validate_indicadores_urbanos_siedu(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    errors = []
+    warnings = []
+    required = [
+        "anio",
+        "codigo_comuna",
+        "codigo_indicador",
+        "nombre_indicador",
+        "categoria",
+        "valor",
+        "unidad",
+        "fuente_original",
+        "cobertura_tipo",
+    ]
+    missing = _missing_columns(df, required)
+    if missing:
+        errors.append(f"indicadores_urbanos_siedu missing columns: {', '.join(missing)}")
+    if df.height == 0:
+        errors.append("indicadores_urbanos_siedu dataset is empty")
+    if not missing:
+        duplicates = _duplicate_count(df, ["anio", "codigo_comuna", "codigo_indicador"])
+        if duplicates:
+            errors.append(
+                "anio + codigo_comuna + codigo_indicador must be unique, "
+                f"found {duplicates} duplicates"
+            )
+        invalid = _invalid_fixed_length_count(df, "codigo_comuna", 5)
+        if invalid:
+            errors.append(f"found {invalid} invalid codigo_comuna values")
+        unknown = _unknown_codes(df, "codigo_comuna", valid_commune_codes)
+        if unknown:
+            errors.append(f"indicadores_urbanos_siedu references unknown communes: {unknown}")
+        all_null = (
+            df.group_by("codigo_indicador")
+            .agg(pl.col("valor").is_not_null().sum().alias("non_null_values"))
+            .filter(pl.col("non_null_values") == 0)
+            .height
+        )
+        if all_null:
+            errors.append(f"found {all_null} SIEDU indicators with all-null values")
+    if metadata and metadata.get("coverage", {}).get("status") in {"partial_expected", "partial"}:
+        warnings.append("indicadores_urbanos_siedu has intentionally partial urban coverage")
+    if metadata and metadata.get("source_mode") == "fallback":
+        warnings.append(
+            "indicadores_urbanos_siedu source_mode is fallback; review before publication"
+        )
+    return {
+        "dataset": "indicadores_urbanos_siedu",
+        "status": "error" if errors else "ok",
+        "record_count": df.height,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+def validate_perfil_territorial_comunal(
+    df: pl.DataFrame,
+    metadata: dict[str, Any] | None,
+    valid_commune_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    errors = []
+    warnings = []
+    if df.height != 346:
+        errors.append(f"perfil_territorial_comunal expected 346 communes, found {df.height}")
+    if df.height and df.height - df["codigo_comuna"].n_unique() > 0:
+        errors.append("codigo_comuna must be unique in perfil_territorial_comunal")
+    if df.height and _invalid_fixed_length_count(df, "codigo_comuna", 5):
+        errors.append("perfil_territorial_comunal contains invalid codigo_comuna values")
+    unknown = _unknown_codes(df, "codigo_comuna", valid_commune_codes)
+    if unknown:
+        errors.append(f"perfil_territorial_comunal references unknown communes: {unknown}")
+    duplicated_columns = sorted({column for column in df.columns if df.columns.count(column) > 1})
+    if duplicated_columns:
+        errors.append(f"perfil_territorial_comunal has duplicate columns: {duplicated_columns}")
+    if metadata and metadata.get("notes"):
+        warnings.extend(
+            note for note in metadata.get("notes", []) if "metric_unavailable" in str(note)
+        )
+    return {
+        "dataset": "perfil_territorial_comunal",
+        "status": "error" if errors else "ok",
+        "record_count": df.height,
+        "errors": errors,
+        "warnings": warnings,
     }

@@ -35,9 +35,13 @@ from src.validation import (
     validate_distritos_electorales,
     validate_establecimientos_educacionales,
     validate_establecimientos_salud,
+    validate_finanzas_municipales,
     validate_indicadores,
+    validate_indicadores_urbanos_siedu,
+    validate_perfil_territorial_comunal,
     validate_provincias,
     validate_regiones,
+    validate_resultados_educacionales,
 )
 
 # Configuración de rutas
@@ -50,6 +54,11 @@ CENSO_METADATA_PATH = os.path.join(STAGING_DIR, "censo_comunal.metadata.json")
 SALUD_METADATA_PATH = os.path.join(STAGING_DIR, "establecimientos_salud.metadata.json")
 CENSO_HOGARES_METADATA_PATH = os.path.join(STAGING_DIR, "censo_hogares_viviendas.metadata.json")
 ELECTORAL_METADATA_PATH = os.path.join(STAGING_DIR, "distritos_electorales.metadata.json")
+FINANZAS_METADATA_PATH = os.path.join(STAGING_DIR, "finanzas_municipales.metadata.json")
+RESULTADOS_EDUCACIONALES_METADATA_PATH = os.path.join(
+    STAGING_DIR, "resultados_educacionales.metadata.json"
+)
+SIEDU_METADATA_PATH = os.path.join(STAGING_DIR, "indicadores_urbanos_siedu.metadata.json")
 PUBLISHABLE_ARTIFACT_SUFFIXES = (".json", ".md", ".parquet")
 PUBLISHABLE_BUNDLE_ZIP_NAME = "chile-hub-publishable-bundle.zip"
 PUBLISHABLE_BUNDLE_SHA256_NAME = "chile-hub-publishable-bundle.zip.sha256"
@@ -349,6 +358,115 @@ DATASET_CATALOG_CONFIG = {
         },
         "documentation": "docs/datasets/establecimientos_educacionales.md",
     },
+    "finanzas_municipales": {
+        "description": "Indicadores financieros municipales anuales desde SINIM/SUBDERE.",
+        "join_keys": ["anio", "codigo_comuna"],
+        "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "public-api-review-terms",
+            "license": "Datos públicos municipales; términos de reutilización sujetos a revisión",
+            "license_url": "https://datos.sinim.gov.cl/",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Información municipal pública publicada por SINIM/SUBDERE; citar fuente oficial.",
+        },
+        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
+        "usage_examples": {
+            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('finanzas_municipales')",
+            "duckdb": "SELECT * FROM 'data/normalized/finanzas_municipales.parquet' WHERE codigo_comuna = '13101';",
+            "cli": "chile-hub show finanzas_municipales",
+        },
+        "outputs": {
+            "parquet": "data/normalized/finanzas_municipales.parquet",
+            "json": "data/normalized/finanzas_municipales.json",
+            "duckdb_table": "finanzas_municipales",
+            "sqlite_table": "finanzas_municipales",
+            "excel_sheet": "Finanzas Municipales",
+        },
+        "documentation": "docs/datasets/finanzas_municipales.md",
+    },
+    "resultados_educacionales": {
+        "description": "Resultados educacionales agregados por comuna y año, sin registros personales.",
+        "join_keys": ["anio", "codigo_comuna"],
+        "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "CC-BY-3.0",
+            "license_url": "https://creativecommons.org/licenses/by/3.0/cl/",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Datos agregados desde publicaciones del Centro de Estudios MINEDUC; citar fuente oficial.",
+        },
+        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
+        "usage_examples": {
+            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('resultados_educacionales')",
+            "duckdb": "SELECT anio, codigo_comuna, matricula_total FROM 'data/normalized/resultados_educacionales.parquet';",
+            "cli": "chile-hub show resultados_educacionales",
+        },
+        "outputs": {
+            "parquet": "data/normalized/resultados_educacionales.parquet",
+            "json": "data/normalized/resultados_educacionales.json",
+            "duckdb_table": "resultados_educacionales",
+            "sqlite_table": "resultados_educacionales",
+            "excel_sheet": "Resultados Educacionales",
+        },
+        "documentation": "docs/datasets/resultados_educacionales.md",
+    },
+    "indicadores_urbanos_siedu": {
+        "description": "Indicadores urbanos SIEDU en formato largo con cobertura comunal parcial esperada.",
+        "join_keys": ["anio", "codigo_comuna", "codigo_indicador"],
+        "confidence_tier": "Tier B",
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "Licencia de Datos Abiertos INE",
+            "license_url": "https://www.ine.gob.cl/terminos-de-uso",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Indicadores urbanos SIEDU publicados por INE para comunas urbanas seleccionadas.",
+        },
+        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
+        "usage_examples": {
+            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('indicadores_urbanos_siedu')",
+            "duckdb": "SELECT * FROM 'data/normalized/indicadores_urbanos_siedu.parquet' WHERE codigo_indicador = 'siedu_acceso_areas_verdes';",
+            "cli": "chile-hub show indicadores_urbanos_siedu",
+        },
+        "outputs": {
+            "parquet": "data/normalized/indicadores_urbanos_siedu.parquet",
+            "json": "data/normalized/indicadores_urbanos_siedu.json",
+            "duckdb_table": "indicadores_urbanos_siedu",
+            "sqlite_table": "indicadores_urbanos_siedu",
+            "excel_sheet": "SIEDU",
+        },
+        "documentation": "docs/datasets/indicadores_urbanos_siedu.md",
+    },
+    "perfil_territorial_comunal": {
+        "description": "Perfil comunal curado que consolida DPA, censo, salud, educación, finanzas, SIEDU y distritos.",
+        "join_keys": ["codigo_comuna"],
+        "confidence_tier": "Tier B",
+        "expected_record_count": 346,
+        "reuse_policy": {
+            "status": "open-attribution",
+            "license": "Derivada de fuentes abiertas con atribución",
+            "license_url": "https://github.com/cortega26/chile-hub",
+            "attribution_required": True,
+            "redistribution_ok": True,
+            "summary": "Capa derivada a partir de datasets validados de chile-hub.",
+        },
+        "freshness_policy": {"max_age_hours": 24 * 45, "label": "derivada"},
+        "usage_examples": {
+            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('perfil_territorial_comunal')",
+            "duckdb": "SELECT codigo_comuna, nombre_comuna, establecimientos_salud_total FROM 'data/normalized/perfil_territorial_comunal.parquet';",
+            "cli": "chile-hub show perfil_territorial_comunal",
+        },
+        "outputs": {
+            "parquet": "data/normalized/perfil_territorial_comunal.parquet",
+            "json": "data/normalized/perfil_territorial_comunal.json",
+            "duckdb_table": "perfil_territorial_comunal",
+            "sqlite_table": "perfil_territorial_comunal",
+            "excel_sheet": "Perfil Territorial",
+        },
+        "documentation": "docs/datasets/perfil_territorial_comunal.md",
+    },
 }
 
 
@@ -434,6 +552,19 @@ def build_degradation(dataset_name, dataset_metadata, validation):
 
 
 def build_coverage(dataset_name, dataset_metadata):
+    declared_coverage = dataset_metadata.get("coverage", {})
+    if declared_coverage.get("status") == "partial_expected":
+        return {
+            "status": "partial",
+            "expected_record_count": None,
+            "actual_record_count": dataset_metadata.get("record_count"),
+            "coverage_ratio": declared_coverage.get("coverage_ratio"),
+            "summary": declared_coverage.get(
+                "expected_scope",
+                "Cobertura parcial esperada y declarada por la fuente.",
+            ),
+        }
+
     expected_record_count = DATASET_CATALOG_CONFIG.get(dataset_name, {}).get(
         "expected_record_count"
     )
@@ -742,6 +873,14 @@ def build_publishable_artifact_index():
             "shared_type": "hub_status",
             "format": "json",
         },
+        "data/normalized/dataset_status.json": {
+            "shared_type": "dataset_status",
+            "format": "json",
+        },
+        "data/normalized/dataset_changelog.json": {
+            "shared_type": "dataset_changelog",
+            "format": "json",
+        },
         "data/normalized/hub_bundle.json": {
             "shared_type": "hub_bundle",
             "format": "json",
@@ -854,6 +993,92 @@ def build_hub_status(hub_health):
 def write_hub_status_json(hub_status):
     output_path = os.path.join(NORMALIZED_DIR, "hub_status.json")
     write_json_atomic(hub_status, output_path, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def build_dataset_status(pipeline_metadata):
+    datasets = []
+    for dataset_name, dataset in sorted(pipeline_metadata.get("datasets", {}).items()):
+        validation = pipeline_metadata.get("validations", {}).get(dataset_name, {})
+        config = DATASET_CATALOG_CONFIG.get(dataset_name, {})
+        datasets.append(
+            {
+                "dataset": dataset_name,
+                "validation_status": validation.get("status"),
+                "source_mode": dataset.get("source_mode"),
+                "freshness": dataset.get("freshness", {}),
+                "record_count": dataset.get("record_count"),
+                "expected_record_count": config.get("expected_record_count"),
+                "coverage_status": dataset.get("coverage", {}).get("status"),
+                "coverage_ratio": dataset.get("coverage", {}).get("coverage_ratio"),
+                "redistribution_status": config.get("reuse_policy", {}).get("status"),
+                "redistribution_ok": config.get("reuse_policy", {}).get("redistribution_ok"),
+                "refreshed_at_utc": dataset.get("refreshed_at_utc"),
+                "warnings": validation.get("warnings", []),
+                "recommended_action": dataset.get("drift", {}).get(
+                    "recommended_action", "Ninguna."
+                ),
+            }
+        )
+    return {
+        "generated_at_utc": pipeline_metadata.get("generated_at_utc"),
+        "dataset_count": len(datasets),
+        "datasets": datasets,
+    }
+
+
+def write_dataset_status_json(dataset_status):
+    output_path = os.path.join(NORMALIZED_DIR, "dataset_status.json")
+    write_json_atomic(dataset_status, output_path, ensure_ascii=False, indent=2)
+    return output_path
+
+
+def build_dataset_changelog(current_metadata, previous_metadata=None):
+    previous_datasets = (previous_metadata or {}).get("datasets", {})
+    current_datasets = current_metadata.get("datasets", {})
+    changes = []
+    for dataset_name in sorted(current_datasets):
+        current = current_datasets[dataset_name]
+        previous = previous_datasets.get(dataset_name, {})
+        current_fields = set(current.get("fields", []))
+        previous_fields = set(previous.get("fields", []))
+        changes.append(
+            {
+                "dataset": dataset_name,
+                "previous_record_count": previous.get("record_count"),
+                "current_record_count": current.get("record_count"),
+                "record_count_delta": (
+                    current.get("record_count") - previous.get("record_count")
+                    if isinstance(current.get("record_count"), int)
+                    and isinstance(previous.get("record_count"), int)
+                    else None
+                ),
+                "added_fields": sorted(current_fields - previous_fields),
+                "removed_fields": sorted(previous_fields - current_fields),
+                "previous_source_mode": previous.get("source_mode"),
+                "current_source_mode": current.get("source_mode"),
+                "previous_freshness_status": previous.get("freshness", {}).get("status"),
+                "current_freshness_status": current.get("freshness", {}).get("status"),
+                "previous_validation_status": (previous_metadata or {})
+                .get("validations", {})
+                .get(dataset_name, {})
+                .get("status"),
+                "current_validation_status": current_metadata.get("validations", {})
+                .get(dataset_name, {})
+                .get("status"),
+            }
+        )
+    return {
+        "generated_at_utc": current_metadata.get("generated_at_utc"),
+        "previous_generated_at_utc": (previous_metadata or {}).get("generated_at_utc"),
+        "dataset_count": len(changes),
+        "datasets": changes,
+    }
+
+
+def write_dataset_changelog_json(dataset_changelog):
+    output_path = os.path.join(NORMALIZED_DIR, "dataset_changelog.json")
+    write_json_atomic(dataset_changelog, output_path, ensure_ascii=False, indent=2)
     return output_path
 
 
@@ -1100,6 +1325,8 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
         "health_json": ("hub_health", "json"),
         "health_markdown": ("hub_health", "markdown"),
         "status_json": ("hub_status", "json"),
+        "dataset_status_json": ("dataset_status", "json"),
+        "dataset_changelog_json": ("dataset_changelog", "json"),
         "bundle_json": ("hub_bundle", "json"),
         "redistribution_json": ("redistribution_report", "json"),
         "redistribution_markdown": ("redistribution_report", "markdown"),
@@ -1285,6 +1512,113 @@ def derive_geography_layers(df_comunas):
     return df_regiones, df_provincias
 
 
+def build_perfil_territorial_comunal(
+    df_comunas,
+    df_censo,
+    df_censo_hogares,
+    df_salud,
+    df_educacionales,
+    df_electoral,
+    df_finanzas,
+    df_resultados,
+    df_siedu,
+):
+    salud_counts = (
+        df_salud.group_by("codigo_comuna")
+        .agg(pl.len().alias("establecimientos_salud_total"))
+        .with_columns(pl.col("codigo_comuna").cast(pl.String))
+    )
+    educ_counts = (
+        df_educacionales.group_by("codigo_comuna")
+        .agg(pl.len().alias("establecimientos_educacionales_total"))
+        .with_columns(pl.col("codigo_comuna").cast(pl.String))
+    )
+    latest_finanzas = (
+        df_finanzas.sort(["codigo_comuna", "anio"])
+        .group_by("codigo_comuna")
+        .tail(1)
+        .select(
+            "codigo_comuna",
+            pl.col("anio").alias("anio_finanzas"),
+            "ingresos_totales",
+            "gastos_totales",
+            "ingresos_propios_permanentes",
+            "fondo_comun_municipal",
+            "gasto_personal",
+            "gasto_inversion",
+        )
+    )
+    latest_resultados = (
+        df_resultados.sort(["codigo_comuna", "anio"])
+        .group_by("codigo_comuna")
+        .tail(1)
+        .select(
+            "codigo_comuna",
+            pl.col("anio").alias("anio_resultados_educacionales"),
+            "matricula_total",
+            "asistencia_promedio",
+            "tasa_aprobacion",
+            "tasa_reprobacion",
+            "tasa_retiro",
+            "establecimientos_reportados",
+        )
+    )
+    siedu_summary = (
+        df_siedu.group_by("codigo_comuna")
+        .agg(
+            pl.col("codigo_indicador").n_unique().alias("indicadores_siedu_total"),
+            pl.col("valor").mean().alias("valor_promedio_siedu"),
+        )
+        .with_columns(pl.col("codigo_comuna").cast(pl.String))
+    )
+
+    return (
+        df_comunas.join(
+            df_censo.select(
+                "codigo_comuna",
+                "poblacion_censada",
+                pl.col("hombres").alias("poblacion_hombres"),
+                pl.col("mujeres").alias("poblacion_mujeres"),
+                "poblacion_0_14",
+                "poblacion_15_29",
+                "poblacion_30_44",
+                "poblacion_45_64",
+                "poblacion_65_mas",
+            ),
+            on="codigo_comuna",
+            how="left",
+        )
+        .join(
+            df_censo_hogares.select(
+                "codigo_comuna",
+                "viviendas_censadas",
+                "hogares_censados",
+                pl.col("promedio_personas_hogar").alias("promedio_personas_por_hogar"),
+            ),
+            on="codigo_comuna",
+            how="left",
+        )
+        .join(salud_counts, on="codigo_comuna", how="left")
+        .join(educ_counts, on="codigo_comuna", how="left")
+        .join(
+            df_electoral.select(
+                "codigo_comuna", "distrito_electoral", "circunscripcion_senatorial"
+            ),
+            on="codigo_comuna",
+            how="left",
+        )
+        .join(latest_finanzas, on="codigo_comuna", how="left")
+        .join(latest_resultados, on="codigo_comuna", how="left")
+        .join(siedu_summary, on="codigo_comuna", how="left")
+        .with_columns(
+            pl.col("establecimientos_salud_total").fill_null(0).cast(pl.Int64),
+            pl.col("establecimientos_educacionales_total").fill_null(0).cast(pl.Int64),
+            pl.col("indicadores_siedu_total").fill_null(0).cast(pl.Int64),
+        )
+        .sort("codigo_comuna")
+    )
+
+
 def build_duckdb(
     df_regiones,
     df_provincias,
@@ -1293,6 +1627,7 @@ def build_duckdb(
     df_censo,
     df_salud,
     df_educacionales,
+    extra_tables,
     output_path,
 ):
     print(f"Compilando base de datos DuckDB en: {output_path}")
@@ -1310,6 +1645,8 @@ def build_duckdb(
         con.register("df_censo_view", df_censo)
         con.register("df_salud_view", df_salud)
         con.register("df_educacionales_view", df_educacionales)
+        for table_name, df_extra in extra_tables.items():
+            con.register(f"df_{table_name}_view", df_extra)
 
         # Crear tablas físicas en DuckDB
         con.execute("CREATE TABLE regiones AS SELECT * FROM df_regiones_view")
@@ -1322,6 +1659,8 @@ def build_duckdb(
         con.execute(
             "CREATE TABLE establecimientos_educacionales AS SELECT * FROM df_educacionales_view"
         )
+        for table_name in extra_tables:
+            con.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df_{table_name}_view")
 
         # Agregar índices básicos para mejorar rendimiento en queries
         con.execute("CREATE UNIQUE INDEX idx_region_code ON regiones (codigo_region)")
@@ -1334,6 +1673,9 @@ def build_duckdb(
         con.execute(
             "CREATE INDEX idx_educ_comuna ON establecimientos_educacionales (codigo_comuna)"
         )
+        for table_name in extra_tables:
+            if "codigo_comuna" in extra_tables[table_name].columns:
+                con.execute(f"CREATE INDEX idx_{table_name}_comuna ON {table_name} (codigo_comuna)")
 
         print("Tablas e índices creados con éxito en DuckDB.")
     finally:
@@ -1350,6 +1692,7 @@ def build_sqlite(
     df_censo,
     df_salud,
     df_educacionales,
+    extra_tables,
     output_path,
 ):
     print(f"Compilando base de datos SQLite en: {output_path}")
@@ -1365,6 +1708,7 @@ def build_sqlite(
     df_censo_pd = df_censo.to_pandas()
     df_salud_pd = df_salud.to_pandas()
     df_educacionales_pd = df_educacionales.to_pandas()
+    extra_tables_pd = {name: df.to_pandas() for name, df in extra_tables.items()}
 
     # SQLite no maneja Date de forma nativa como tipo fecha real (los guarda como string ISO)
     # Por lo tanto, convertimos las fechas a string ISO antes de guardar
@@ -1382,6 +1726,8 @@ def build_sqlite(
         df_educacionales_pd.to_sql(
             "establecimientos_educacionales", conn, index=False, if_exists="replace"
         )
+        for table_name, df_extra in extra_tables_pd.items():
+            df_extra.to_sql(table_name, conn, index=False, if_exists="replace")
 
         # Crear índices en SQLite
         cursor = conn.cursor()
@@ -1397,6 +1743,11 @@ def build_sqlite(
         cursor.execute(
             "CREATE INDEX idx_lite_educ_comuna ON establecimientos_educacionales (codigo_comuna)"
         )
+        for table_name, df_extra in extra_tables.items():
+            if "codigo_comuna" in df_extra.columns:
+                cursor.execute(
+                    f"CREATE INDEX idx_lite_{table_name}_comuna ON {table_name} (codigo_comuna)"
+                )
         conn.commit()
         print("Tablas e índices creados con éxito en SQLite.")
     finally:
@@ -1413,6 +1764,7 @@ def build_excel(
     df_censo,
     df_salud,
     df_educacionales,
+    extra_tables,
     output_path,
 ):
     print(f"Generando archivo Excel consolidado para no técnicos en: {output_path}")
@@ -1424,6 +1776,7 @@ def build_excel(
     df_censo_pd = df_censo.to_pandas()
     df_salud_pd = df_salud.to_pandas()
     df_educacionales_pd = df_educacionales.to_pandas()
+    extra_tables_pd = {name: df.to_pandas() for name, df in extra_tables.items()}
 
     # Limpieza visual y formateo para Excel
     # En Excel, queremos que el Código Comuna siga siendo un string para que no se pierdan los ceros iniciales
@@ -1440,6 +1793,11 @@ def build_excel(
         df_educacionales_pd.to_excel(
             writer, sheet_name="Establecimientos Educacionales", index=False
         )
+        for table_name, df_extra in extra_tables_pd.items():
+            sheet_name = DATASET_CATALOG_CONFIG[table_name]["outputs"].get(
+                "excel_sheet", table_name[:31]
+            )
+            df_extra.to_excel(writer, sheet_name=sheet_name[:31], index=False)
 
         # Acceder a los objetos workbook y worksheet para aplicar formato estético
         worksheet_regiones = writer.sheets["Regiones"]
@@ -1476,6 +1834,14 @@ def build_excel(
         worksheet_educacionales.set_column("B:B", 10, text_format)  # dv_rbd
         worksheet_educacionales.set_column("D:D", 12, text_format)  # codigo_region
         worksheet_educacionales.set_column("E:E", 12, text_format)  # codigo_comuna
+        for table_name in extra_tables:
+            sheet_name = DATASET_CATALOG_CONFIG[table_name]["outputs"].get(
+                "excel_sheet", table_name[:31]
+            )[:31]
+            worksheet = writer.sheets[sheet_name]
+            if "codigo_comuna" in extra_tables[table_name].columns:
+                column_index = extra_tables[table_name].columns.index("codigo_comuna")
+                worksheet.set_column(column_index, column_index, 12, text_format)
 
     os.replace(tmp_path, output_path)
     print("Archivo Excel multi-pestaña generado con éxito.")
@@ -1494,8 +1860,17 @@ def write_parquet_atomic(df, path):
 
 
 def build_flat_files(
-    df_regiones, df_provincias, df_comunas, df_indicadores, df_censo, df_salud, df_educacionales
+    df_regiones,
+    df_provincias,
+    df_comunas,
+    df_indicadores,
+    df_censo,
+    df_salud,
+    df_educacionales,
+    extra_tables=None,
 ):
+    if extra_tables is None:
+        extra_tables = {}
     # Generamos archivos Parquet
     regiones_parquet = os.path.join(NORMALIZED_DIR, "regiones.parquet")
     provincias_parquet = os.path.join(NORMALIZED_DIR, "provincias.parquet")
@@ -1513,6 +1888,8 @@ def build_flat_files(
     write_parquet_atomic(
         df_educacionales, os.path.join(NORMALIZED_DIR, "establecimientos_educacionales.parquet")
     )
+    for table_name, df_extra in extra_tables.items():
+        write_parquet_atomic(df_extra, os.path.join(NORMALIZED_DIR, f"{table_name}.parquet"))
     print(f"Archivos Parquet exportados a: {NORMALIZED_DIR}")
 
     # Generamos los endpoints JSON simulados
@@ -1553,12 +1930,27 @@ def build_flat_files(
         ensure_ascii=False,
         indent=2,
     )
+    for table_name, df_extra in extra_tables.items():
+        write_json_atomic(
+            df_extra.to_dicts(),
+            os.path.join(NORMALIZED_DIR, f"{table_name}.json"),
+            ensure_ascii=False,
+            indent=2,
+        )
 
     print(f"Endpoints JSON de prueba exportados a: {NORMALIZED_DIR}")
 
 
 def main():
     ensure_directories()
+    previous_pipeline_metadata = None
+    previous_metadata_path = os.path.join(NORMALIZED_DIR, "pipeline_metadata.json")
+    if os.path.exists(previous_metadata_path):
+        try:
+            with open(previous_metadata_path, encoding="utf-8") as f:
+                previous_pipeline_metadata = json.load(f)
+        except json.JSONDecodeError:
+            previous_pipeline_metadata = None
 
     # Rutas de origen (Staging)
     comunas_csv = os.path.join(STAGING_DIR, "comunas.csv")
@@ -1568,6 +1960,9 @@ def main():
     censo_hogares_csv = os.path.join(STAGING_DIR, "censo_hogares_viviendas.csv")
     electoral_csv = os.path.join(STAGING_DIR, "distritos_electorales.csv")
     educacionales_csv = os.path.join(STAGING_DIR, "establecimientos_educacionales.csv")
+    finanzas_csv = os.path.join(STAGING_DIR, "finanzas_municipales.csv")
+    resultados_educacionales_csv = os.path.join(STAGING_DIR, "resultados_educacionales.csv")
+    siedu_csv = os.path.join(STAGING_DIR, "indicadores_urbanos_siedu.csv")
 
     required_staging = (
         comunas_csv,
@@ -1577,6 +1972,9 @@ def main():
         censo_hogares_csv,
         electoral_csv,
         educacionales_csv,
+        finanzas_csv,
+        resultados_educacionales_csv,
+        siedu_csv,
     )
     if any(not os.path.exists(path) for path in required_staging):
         raise SystemExit(
@@ -1599,6 +1997,17 @@ def main():
             os.path.join(STAGING_DIR, "establecimientos_educacionales.metadata.json"),
             "mineduc_establecimientos_extractor.py",
         ),
+        (
+            "finanzas_municipales.metadata.json",
+            FINANZAS_METADATA_PATH,
+            "sinim_finanzas_extractor.py",
+        ),
+        (
+            "resultados_educacionales.metadata.json",
+            RESULTADOS_EDUCACIONALES_METADATA_PATH,
+            "mineduc_resultados_extractor.py",
+        ),
+        ("indicadores_urbanos_siedu.metadata.json", SIEDU_METADATA_PATH, "siedu_extractor.py"),
     ]
     for filename, path, extractor in metadata_checks:
         if not os.path.exists(path):
@@ -1616,6 +2025,9 @@ def main():
     educacionales_metadata = load_metadata(
         os.path.join(STAGING_DIR, "establecimientos_educacionales.metadata.json")
     )
+    finanzas_metadata = load_metadata(FINANZAS_METADATA_PATH)
+    resultados_educacionales_metadata = load_metadata(RESULTADOS_EDUCACIONALES_METADATA_PATH)
+    siedu_metadata = load_metadata(SIEDU_METADATA_PATH)
 
     metadata_files = [
         ("comunas", comunas_metadata, "subdere_extractor.py"),
@@ -1629,6 +2041,13 @@ def main():
             educacionales_metadata,
             "mineduc_establecimientos_extractor.py",
         ),
+        ("finanzas_municipales", finanzas_metadata, "sinim_finanzas_extractor.py"),
+        (
+            "resultados_educacionales",
+            resultados_educacionales_metadata,
+            "mineduc_resultados_extractor.py",
+        ),
+        ("indicadores_urbanos_siedu", siedu_metadata, "siedu_extractor.py"),
     ]
     for name, meta, extractor in metadata_files:
         if meta is None:
@@ -1697,7 +2116,35 @@ def main():
             "codigo_comuna": pl.String,
         },
     )
+    df_finanzas = pl.read_csv(
+        finanzas_csv,
+        schema_overrides={"anio": pl.Int32, "codigo_comuna": pl.String},
+    )
+    df_resultados_educacionales = pl.read_csv(
+        resultados_educacionales_csv,
+        schema_overrides={"anio": pl.Int32, "codigo_comuna": pl.String},
+    )
+    df_siedu = pl.read_csv(
+        siedu_csv,
+        schema_overrides={
+            "anio": pl.Int32,
+            "codigo_comuna": pl.String,
+            "codigo_indicador": pl.String,
+            "valor": pl.Float64,
+        },
+    )
     df_regiones, df_provincias = derive_geography_layers(df_comunas)
+    df_perfil_territorial = build_perfil_territorial_comunal(
+        df_comunas,
+        df_censo,
+        df_censo_hogares,
+        df_salud,
+        df_educacionales,
+        df_electoral,
+        df_finanzas,
+        df_resultados_educacionales,
+        df_siedu,
+    )
 
     validations = {
         "regiones": validate_regiones(df_regiones),
@@ -1721,6 +2168,25 @@ def main():
         "establecimientos_educacionales": validate_establecimientos_educacionales(
             df_educacionales, educacionales_metadata, df_comunas["codigo_comuna"].to_list()
         ),
+        "finanzas_municipales": validate_finanzas_municipales(
+            df_finanzas, finanzas_metadata, df_comunas["codigo_comuna"].to_list()
+        ),
+        "resultados_educacionales": validate_resultados_educacionales(
+            df_resultados_educacionales,
+            resultados_educacionales_metadata,
+            df_comunas["codigo_comuna"].to_list(),
+        ),
+        "indicadores_urbanos_siedu": validate_indicadores_urbanos_siedu(
+            df_siedu, siedu_metadata, df_comunas["codigo_comuna"].to_list()
+        ),
+        "perfil_territorial_comunal": validate_perfil_territorial_comunal(
+            df_perfil_territorial,
+            {
+                "dataset": "perfil_territorial_comunal",
+                "notes": [],
+            },
+            df_comunas["codigo_comuna"].to_list(),
+        ),
     }
 
     failed_validations = [
@@ -1733,6 +2199,13 @@ def main():
                 messages.append(f" - {result['dataset']}: {error}")
         raise SystemExit("\n".join(messages))
 
+    extra_tables = {
+        "finanzas_municipales": df_finanzas,
+        "resultados_educacionales": df_resultados_educacionales,
+        "indicadores_urbanos_siedu": df_siedu,
+        "perfil_territorial_comunal": df_perfil_territorial,
+    }
+
     # Compilar entregables
     build_duckdb(
         df_regiones,
@@ -1742,6 +2215,7 @@ def main():
         df_censo,
         df_salud,
         df_educacionales,
+        extra_tables,
         os.path.join(NORMALIZED_DIR, "chile_data.duckdb"),
     )
     build_sqlite(
@@ -1752,6 +2226,7 @@ def main():
         df_censo,
         df_salud,
         df_educacionales,
+        extra_tables,
         os.path.join(NORMALIZED_DIR, "chile_data.db"),
     )
     build_excel(
@@ -1762,10 +2237,18 @@ def main():
         df_censo,
         df_salud,
         df_educacionales,
+        extra_tables,
         os.path.join(NORMALIZED_DIR, "chile_data_latest.xlsx"),
     )
     build_flat_files(
-        df_regiones, df_provincias, df_comunas, df_indicadores, df_censo, df_salud, df_educacionales
+        df_regiones,
+        df_provincias,
+        df_comunas,
+        df_indicadores,
+        df_censo,
+        df_salud,
+        df_educacionales,
+        extra_tables,
     )
     write_parquet_atomic(
         df_censo_hogares, os.path.join(NORMALIZED_DIR, "censo_hogares_viviendas.parquet")
@@ -1913,6 +2396,80 @@ def main():
                 ],
             ),
         },
+        "finanzas_municipales": {
+            **finanzas_metadata,
+            "dataset": "finanzas_municipales",
+            "record_count": df_finanzas.height,
+            "fields": df_finanzas.columns,
+            "reuse_policy": DATASET_CATALOG_CONFIG["finanzas_municipales"]["reuse_policy"],
+            "freshness": build_freshness(
+                finanzas_metadata.get("refreshed_at_utc"),
+                DATASET_CATALOG_CONFIG["finanzas_municipales"]["freshness_policy"]["max_age_hours"],
+            ),
+        },
+        "resultados_educacionales": {
+            **resultados_educacionales_metadata,
+            "dataset": "resultados_educacionales",
+            "record_count": df_resultados_educacionales.height,
+            "fields": df_resultados_educacionales.columns,
+            "reuse_policy": DATASET_CATALOG_CONFIG["resultados_educacionales"]["reuse_policy"],
+            "freshness": build_freshness(
+                resultados_educacionales_metadata.get("refreshed_at_utc"),
+                DATASET_CATALOG_CONFIG["resultados_educacionales"]["freshness_policy"][
+                    "max_age_hours"
+                ],
+            ),
+        },
+        "indicadores_urbanos_siedu": {
+            **siedu_metadata,
+            "dataset": "indicadores_urbanos_siedu",
+            "record_count": df_siedu.height,
+            "fields": df_siedu.columns,
+            "reuse_policy": DATASET_CATALOG_CONFIG["indicadores_urbanos_siedu"]["reuse_policy"],
+            "freshness": build_freshness(
+                siedu_metadata.get("refreshed_at_utc"),
+                DATASET_CATALOG_CONFIG["indicadores_urbanos_siedu"]["freshness_policy"][
+                    "max_age_hours"
+                ],
+            ),
+            "coverage": siedu_metadata.get("coverage", {}),
+        },
+        "perfil_territorial_comunal": {
+            "dataset": "perfil_territorial_comunal",
+            "source_name": "chile-hub",
+            "source_url": "https://github.com/cortega26/chile-hub",
+            "source_mode": "live"
+            if all(
+                metadata.get("source_mode") == "live"
+                for metadata in (
+                    comunas_metadata,
+                    censo_metadata,
+                    censo_hogares_metadata,
+                    salud_metadata,
+                    electoral_metadata,
+                    educacionales_metadata,
+                    finanzas_metadata,
+                    resultados_educacionales_metadata,
+                    siedu_metadata,
+                )
+            )
+            else "fallback",
+            "source_detail": "derived_from_validated_chile_hub_layers",
+            "refreshed_at_utc": datetime.now(UTC).isoformat(),
+            "record_count": df_perfil_territorial.height,
+            "fields": df_perfil_territorial.columns,
+            "notes": [
+                "derived_dataset",
+                "upstreams: comunas,censo_comunal,censo_hogares_viviendas,establecimientos_salud,establecimientos_educacionales,distritos_electorales,finanzas_municipales,resultados_educacionales,indicadores_urbanos_siedu",
+            ],
+            "reuse_policy": DATASET_CATALOG_CONFIG["perfil_territorial_comunal"]["reuse_policy"],
+            "freshness": build_freshness(
+                datetime.now(UTC).isoformat(),
+                DATASET_CATALOG_CONFIG["perfil_territorial_comunal"]["freshness_policy"][
+                    "max_age_hours"
+                ],
+            ),
+        },
     }
     validations_with_freshness = {
         dataset_name: {
@@ -1934,6 +2491,10 @@ def main():
     hub_health_output = write_hub_health_json(hub_health)
     hub_status = build_hub_status(hub_health)
     hub_status_output = write_hub_status_json(hub_status)
+    dataset_status_output = write_dataset_status_json(build_dataset_status(pipeline_metadata))
+    dataset_changelog_output = write_dataset_changelog_json(
+        build_dataset_changelog(pipeline_metadata, previous_pipeline_metadata)
+    )
     write_hub_health_markdown_file(hub_health)
     catalog_output, dataset_catalog = write_dataset_catalog(pipeline_metadata)
     write_dataset_catalog_markdown_file(dataset_catalog)
@@ -1974,6 +2535,8 @@ def main():
     print(f"Metadata y validaciones exportadas a: {metadata_output}")
     print(f"Resumen de salud exportado a: {hub_health_output}")
     print(f"Status compacto exportado a: {hub_status_output}")
+    print(f"Status por dataset exportado a: {dataset_status_output}")
+    print(f"Changelog por dataset exportado a: {dataset_changelog_output}")
     print(f"Catalogo de datasets exportado a: {catalog_output}")
     print(f"Reporte de redistribucion exportado a: {redistribution_report_output}")
     print(f"Reporte de procedencia exportado a: {provenance_report_output}")

@@ -19,6 +19,7 @@ if str(SRC_DIR) not in sys.path:
 from scripts import package_publishable_bundle
 from scripts.verify_pipeline import verify_publication_policy
 from src.build_dev_db import (
+    DATASET_CATALOG_CONFIG,
     build_coverage,
     build_degradation,
     build_drift,
@@ -35,8 +36,12 @@ from src.validation import (
     EXPECTED_LIVE_COMUNAS_COUNT,
     FALLBACK_COMUNAS_COUNT,
     validate_comunas,
+    validate_finanzas_municipales,
+    validate_indicadores_urbanos_siedu,
+    validate_perfil_territorial_comunal,
     validate_provincias,
     validate_regiones,
+    validate_resultados_educacionales,
 )
 
 
@@ -88,18 +93,7 @@ class PipelineLogicTests(unittest.TestCase):
                 "source_detail": "public_api",
                 "freshness": {"status": "fresh"},
             }
-            for name in [
-                "regiones",
-                "provincias",
-                "comunas",
-                "comunas_enriquecidas",
-                "indicadores",
-                "censo_comunal",
-                "censo_hogares_viviendas",
-                "establecimientos_salud",
-                "establecimientos_educacionales",
-                "distritos_electorales",
-            ]
+            for name in DATASET_CATALOG_CONFIG
         }
         datasets["indicadores"]["indicator_delivery"] = {
             code: "live" for code in EXPECTED_INDICATOR_CODES
@@ -114,18 +108,7 @@ class PipelineLogicTests(unittest.TestCase):
                 "source_detail": "public_api",
                 "freshness": {"status": "fresh"},
             }
-            for name in [
-                "regiones",
-                "provincias",
-                "comunas",
-                "comunas_enriquecidas",
-                "indicadores",
-                "censo_comunal",
-                "censo_hogares_viviendas",
-                "establecimientos_salud",
-                "establecimientos_educacionales",
-                "distritos_electorales",
-            ]
+            for name in DATASET_CATALOG_CONFIG
         }
         datasets["indicadores"].update(
             {
@@ -597,6 +580,68 @@ class ValidatorTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "ok")
         self.assertTrue(any("fallback" in warning for warning in result["warnings"]))
+
+    def test_validate_finanzas_municipales_rejects_duplicate_invalid_and_negative(self):
+        df = pl.DataFrame(
+            {
+                "anio": [2024, 2024],
+                "codigo_comuna": ["13101", "13101"],
+                "nombre_comuna": ["Santiago", "Santiago"],
+                "ingresos_totales": [1.0, -1.0],
+                "gastos_totales": [1.0, 1.0],
+                "ingresos_propios_permanentes": [1.0, 1.0],
+                "fondo_comun_municipal": [1.0, 1.0],
+                "gasto_personal": [1.0, 1.0],
+                "gasto_inversion": [1.0, 1.0],
+            }
+        )
+        result = validate_finanzas_municipales(df, {"source_mode": "live"}, ["13101"])
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("unique" in error for error in result["errors"]))
+        self.assertTrue(any("negative" in error for error in result["errors"]))
+
+    def test_validate_resultados_educacionales_rejects_out_of_bounds_percentage(self):
+        df = pl.DataFrame(
+            {
+                "anio": [2024],
+                "codigo_comuna": ["13101"],
+                "matricula_total": [100],
+                "asistencia_promedio": [101.0],
+                "tasa_aprobacion": [90.0],
+                "tasa_reprobacion": [5.0],
+                "tasa_retiro": [5.0],
+                "establecimientos_reportados": [3],
+            }
+        )
+        result = validate_resultados_educacionales(df, {"source_mode": "live"}, ["13101"])
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("outside 0-100" in error for error in result["errors"]))
+
+    def test_validate_siedu_warns_for_partial_expected_coverage(self):
+        df = pl.DataFrame(
+            {
+                "anio": [2024],
+                "codigo_comuna": ["13101"],
+                "codigo_indicador": ["siedu_test"],
+                "nombre_indicador": ["Test"],
+                "categoria": ["Movilidad"],
+                "valor": [1.0],
+                "unidad": ["indice"],
+                "fuente_original": ["SIEDU"],
+                "cobertura_tipo": ["urbana"],
+            }
+        )
+        result = validate_indicadores_urbanos_siedu(
+            df, {"coverage": {"status": "partial_expected"}}, ["13101"]
+        )
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(any("partial" in warning for warning in result["warnings"]))
+
+    def test_validate_perfil_territorial_comunal_requires_all_communes(self):
+        df = pl.DataFrame({"codigo_comuna": ["13101"]})
+        result = validate_perfil_territorial_comunal(df, {"notes": []}, ["13101"])
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("expected 346" in error for error in result["errors"]))
 
 
 class CUTInvariantTests(unittest.TestCase):

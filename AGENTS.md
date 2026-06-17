@@ -12,7 +12,7 @@ entender la arquitectura, las reglas no negociables y las convenciones del proye
 ## 1. Propósito del proyecto
 
 `chile-hub` es una capa de datos pública, curada y reproducible sobre **datos oficiales de Chile**.
-Actualmente publica diez capas:
+Actualmente publica catorce capas:
 
 | Capa | Fuente | Descripción |
 |:---|:---|:---|
@@ -24,6 +24,10 @@ Actualmente publica diez capas:
 | **Establecimientos de Salud** | MINSAL / datos.gob.cl | Directorio vigente con tipo, dependencia, urgencia, estado y coordenadas |
 | **Distritos Electorales** | BCN / SERVEL | Asociación de comunas a distritos electorales de diputados y circunscripciones senatoriales |
 | **Establecimientos Educacionales** | MINEDUC | Directorio oficial con RBD, dependencia, ubicación y estado de funcionamiento |
+| **Finanzas Municipales** | SINIM / SUBDERE | Indicadores financieros municipales anuales por comuna |
+| **Resultados Educacionales** | MINEDUC | Métricas educacionales agregadas por comuna y año, sin registros personales |
+| **Indicadores Urbanos SIEDU** | INE / SIEDU | Indicadores urbanos en formato largo con cobertura parcial esperada |
+| **Perfil Territorial Comunal** | chile-hub derivado | Una fila por comuna con métricas territoriales consolidadas |
 
 **El objetivo no es tener todos los datos de Chile. Es entregar un número pequeño de datasets
 limpios, versionados, validados y consumibles en una línea de código.**
@@ -47,7 +51,9 @@ chile-hub/
 │   │   ├── salud_extractor.py                   Establecimientos de salud (MINSAL) → data/staging/
 │   │   ├── electoral_extractor.py               Distritos electorales (BCN/SERVEL) → data/staging/
 │   │   ├── mineduc_establecimientos_extractor.py Establecimientos educacionales (MINEDUC) → data/staging/
-│   │   └── sinim_finanzas_extractor.py          Finanzas municipales SINIM (en desarrollo)
+│   │   ├── sinim_finanzas_extractor.py          Finanzas municipales SINIM → data/staging/
+│   │   ├── mineduc_resultados_extractor.py      Resultados educacionales agregados (MINEDUC) → data/staging/
+│   │   └── siedu_extractor.py                   Indicadores urbanos SIEDU (INE) → data/staging/
 │   ├── validation.py              Todas las funciones validate_*() — módulo independiente
 │   ├── build_dev_db.py            Lee staging/, llama validate_*(), escribe todos los artefactos en normalized/
 │   ├── pipeline_status_utils.py   Genera reportes Markdown de salud, catálogo y redistribución

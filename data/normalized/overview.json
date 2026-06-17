@@ -1,32 +1,32 @@
 {
-  "generated_at_utc": "2026-06-17T15:28:15.329818+00:00",
+  "generated_at_utc": "2026-06-17T17:29:16.338743+00:00",
   "overall_status": "warn",
-  "dataset_count": 10,
+  "dataset_count": 14,
   "live_count": 10,
-  "fallback_count": 0,
+  "fallback_count": 4,
   "stale_count": 0,
-  "drifted_count": 1,
+  "drifted_count": 5,
   "degraded_count": 0,
-  "partial_coverage_count": 0,
-  "warning_count": 2,
+  "partial_coverage_count": 1,
+  "warning_count": 6,
   "top_issue": {
-    "dataset": "indicadores",
+    "dataset": "finanzas_municipales",
     "attention_priority": 0,
-    "warning_count": 2,
+    "warning_count": 1,
     "build_freshness_status": "fresh",
     "drift_status": "drifted",
     "degradation_status": "warning",
-    "source_detail": "public_api_with_raw_recovery_partial",
-    "diagnostic_summary": "indicadores live refresh reused raw snapshots for: uf/2026, dolar/2026, euro/2026, utm/2026",
+    "source_detail": "curated_fallback_pending_direct_export",
+    "diagnostic_summary": "finanzas_municipales source_mode is fallback; review before publication",
     "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción."
   },
-  "top_issue_summary": "indicadores: indicadores live refresh reused raw snapshots for: uf/2026, dolar/2026, euro/2026, utm/2026 [source_detail=public_api_with_raw_recovery_partial; warnings=2; freshness=fresh; drift=drifted; action=Revisar warnings operativos del dataset antes de consumirlo en producción.]",
-  "shared_artifact_count": 17,
+  "top_issue_summary": "finanzas_municipales: finanzas_municipales source_mode is fallback; review before publication [source_detail=curated_fallback_pending_direct_export; warnings=1; freshness=fresh; drift=drifted; action=Revisar warnings operativos del dataset antes de consumirlo en producción.]",
+  "shared_artifact_count": 19,
   "package_count": 1,
   "primary_package": {
     "path": "data/normalized/chile-hub-publishable-bundle.zip",
     "package_type": "zip",
-    "size_bytes": 1280699,
+    "size_bytes": 1359635,
     "checksum_algorithm": "sha256",
     "checksum_path": "data/normalized/chile-hub-publishable-bundle.zip.sha256",
     "verification_command": "shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256"
@@ -35,6 +35,8 @@
     "bundle_json",
     "catalog_json",
     "catalog_markdown",
+    "dataset_changelog_json",
+    "dataset_status_json",
     "drift_json",
     "drift_markdown",
     "health_json",
@@ -107,11 +109,35 @@
       "drift_status": "healthy"
     },
     {
+      "dataset": "finanzas_municipales",
+      "source_mode": "fallback",
+      "validation_status": "ok",
+      "freshness_status": "fresh",
+      "coverage_status": "not_applicable",
+      "drift_status": "drifted"
+    },
+    {
       "dataset": "indicadores",
       "source_mode": "live",
       "validation_status": "ok",
       "freshness_status": "fresh",
       "coverage_status": "not_applicable",
+      "drift_status": "drifted"
+    },
+    {
+      "dataset": "indicadores_urbanos_siedu",
+      "source_mode": "fallback",
+      "validation_status": "ok",
+      "freshness_status": "fresh",
+      "coverage_status": "partial",
+      "drift_status": "drifted"
+    },
+    {
+      "dataset": "perfil_territorial_comunal",
+      "source_mode": "fallback",
+      "validation_status": "ok",
+      "freshness_status": "fresh",
+      "coverage_status": "full",
       "drift_status": "drifted"
     },
     {
@@ -129,6 +155,14 @@
       "freshness_status": "fresh",
       "coverage_status": "full",
       "drift_status": "healthy"
+    },
+    {
+      "dataset": "resultados_educacionales",
+      "source_mode": "fallback",
+      "validation_status": "ok",
+      "freshness_status": "fresh",
+      "coverage_status": "not_applicable",
+      "drift_status": "drifted"
     }
   ]
 }
