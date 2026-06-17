@@ -240,6 +240,13 @@ def fetch_all_history():
                     diagnostics["preserved_existing_pairs"].append(f"{codigo}/{year}")
             time.sleep(REQUEST_DELAY_SECONDS)
 
+    if not new_records and existing_df is not None:
+        published_codes = sorted(existing_df["codigo_indicador"].unique().to_list())
+        diagnostics["published_backfills"] = sorted(
+            set(diagnostics["published_backfills"]) | set(published_codes)
+        )
+        return existing_df.sort(["fecha", "codigo_indicador"]), diagnostics
+
     if not new_records:
         print("Error: no se obtuvieron datos de mindicador.cl.")
         return None, diagnostics

@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import polars as pl
+import requests
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -748,6 +749,40 @@ class IndicatorFallbackTests(unittest.TestCase):
         # por lo que NO debe aparecer en empty_live_pairs (no es un error operativo).
         self.assertEqual(diagnostics["empty_live_pairs"], [])
         self.assertEqual(diagnostics["published_backfills"], ["ipc"])
+
+    def test_full_live_refresh_failure_reuses_published_artifact(self):
+        published = self._make_minimal_df()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            published_path = Path(tmpdir) / "indicadores.parquet"
+            published.write_parquet(published_path)
+            with (
+                patch.object(
+                    bcentral_extractor,
+                    "STAGING_CSV_PATH",
+                    str(Path(tmpdir) / "missing.csv"),
+                ),
+                patch.object(
+                    bcentral_extractor,
+                    "PUBLISHED_INDICATORS_PATH",
+                    str(published_path),
+                ),
+                patch.object(
+                    bcentral_extractor,
+                    "INDICATOR_CODES",
+                    sorted(EXPECTED_INDICATOR_CODES),
+                ),
+                patch.object(
+                    bcentral_extractor,
+                    "fetch_indicator_year",
+                    side_effect=requests.RequestException("timeout"),
+                ),
+                patch.object(bcentral_extractor, "load_latest_raw_snapshot", return_value=[]),
+                patch.object(bcentral_extractor.time, "sleep"),
+            ):
+                df, diagnostics = bcentral_extractor.fetch_all_history()
+
+        self.assertEqual(set(df["codigo_indicador"].unique()), EXPECTED_INDICATOR_CODES)
+        self.assertEqual(diagnostics["published_backfills"], sorted(EXPECTED_INDICATOR_CODES))
 
 
 if __name__ == "__main__":
