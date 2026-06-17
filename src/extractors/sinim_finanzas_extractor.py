@@ -7,6 +7,8 @@ from pathlib import Path
 
 import requests
 
+UTC = datetime.timezone.utc
+
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 SOURCE_URL = "https://datos.sinim.gov.cl/datos_municipales.php"
 
@@ -23,7 +25,7 @@ def main():
         raise SystemExit("Se requiere una URL directa de exportacion, no una pagina HTML.")
     response = requests.get(args.source_url, timeout=60)
     response.raise_for_status()
-    stamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     raw_path = DATA_DIR / "raw" / f"sinim_finanzas_municipales_{stamp}"
     raw_path.write_bytes(response.content)
     metadata = {
@@ -32,7 +34,7 @@ def main():
         "source_url": args.source_url,
         "source_mode": "live",
         "source_detail": "user_authorized_direct_export",
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": None,
         "fields": [],
         "notes": ["opt_in_only", "excluded_from_public_bundle"],

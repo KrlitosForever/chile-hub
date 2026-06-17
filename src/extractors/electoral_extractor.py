@@ -8,6 +8,8 @@ from pathlib import Path
 
 import polars as pl
 
+UTC = datetime.timezone.utc
+
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
@@ -301,7 +303,7 @@ def build_electoral_df() -> pl.DataFrame:
 def process_electoral() -> str:
     ensure_staging_directories()
 
-    stamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     raw_path = Path(RAW_DIR) / f"bcn_electoral_mapping_{stamp}.json"
 
     df = build_electoral_df()
@@ -319,7 +321,7 @@ def process_electoral() -> str:
         "source_url": "https://www.bcn.cl/siit/observatorio/ley20840",
         "source_mode": "live",
         "source_detail": "bcn_electoral_mapping_generated",
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "notes": [],

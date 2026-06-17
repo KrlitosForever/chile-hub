@@ -1,10 +1,12 @@
 import json
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import polars as pl
 import requests
+
+UTC = timezone.utc
 
 try:
     from src.extractors.base import (

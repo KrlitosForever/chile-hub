@@ -8,6 +8,8 @@ from pathlib import Path
 import polars as pl
 import requests
 
+UTC = datetime.timezone.utc
+
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
@@ -48,7 +50,7 @@ def fetch_csv() -> tuple[Path, str, str]:
         resource = next(item for item in payload["resources"] if item["format"].lower() == "csv")
         response = requests.get(resource["url"], timeout=60)
         response.raise_for_status()
-        stamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
+        stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         target = Path(RAW_DIR) / f"minsal_establecimientos_salud_{stamp}.csv"
         target.write_bytes(response.content)
         return target, "live", resource["url"]
@@ -102,7 +104,7 @@ def process_salud() -> str:
         "source_url": source_url,
         "source_mode": source_mode,
         "source_detail": "datos_gob_csv" if source_mode == "live" else "raw_snapshot_recovery",
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "notes": [],

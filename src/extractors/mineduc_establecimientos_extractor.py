@@ -9,6 +9,8 @@ from pathlib import Path
 import polars as pl
 import requests
 
+UTC = datetime.timezone.utc
+
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
@@ -181,7 +183,7 @@ def process_mineduc() -> str:
         "source_detail": "mineduc_datos_abiertos_rar"
         if source_mode == "live"
         else "raw_snapshot_recovery",
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "notes": [],

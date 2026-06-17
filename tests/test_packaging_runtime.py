@@ -72,8 +72,8 @@ class PackagingRuntimeTests(unittest.TestCase):
         bundle = _bundle_bytes()
         sha256 = hashlib.sha256(bundle).hexdigest()
         release = {
-            "tag_name": "v0.1.0",
-            "html_url": "https://github.com/cortega26/chile-hub/releases/tag/v0.1.0",
+            "tag_name": "v1.0.1",
+            "html_url": "https://github.com/cortega26/chile-hub/releases/tag/v1.0.1",
             "assets": [
                 {
                     "name": "chile-hub-publishable-bundle.zip",

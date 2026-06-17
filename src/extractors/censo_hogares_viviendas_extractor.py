@@ -8,6 +8,8 @@ import openpyxl
 import polars as pl
 import requests
 
+UTC = datetime.timezone.utc
+
 ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -67,7 +69,7 @@ def fetch_workbook():
     ensure_staging_directories()
     target = (
         RAW_DIR
-        / f"ine_censo2024_hogares_viviendas_{datetime.datetime.now(datetime.UTC):%Y%m%dT%H%M%SZ}.xlsx"
+        / f"ine_censo2024_hogares_viviendas_{datetime.datetime.now(UTC):%Y%m%dT%H%M%SZ}.xlsx"
     )
     try:
         response = requests.get(SOURCE_URL, timeout=60)
@@ -127,7 +129,7 @@ def process():
         "source_url": SOURCE_URL,
         "source_mode": source_mode,
         "source_detail": "official_xlsx" if source_mode == "live" else "raw_snapshot_recovery",
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "notes": [],

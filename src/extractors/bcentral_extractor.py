@@ -21,6 +21,8 @@ from pathlib import Path
 import polars as pl
 import requests
 
+UTC = datetime.timezone.utc
+
 try:
     from src.extractors.base import (
         BaseExtractor,
@@ -80,7 +82,7 @@ def write_metadata(metadata: dict) -> None:
 
 def save_raw_snapshot(payload: dict, codigo: str, year: int) -> None:
     """Persiste la respuesta cruda de la API para trazabilidad y auditoría."""
-    timestamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
+    timestamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     filename = f"mindicador_{codigo}_{year}_{timestamp}.json"
     path = os.path.join(RAW_DIR, filename)
     with open(path, "w", encoding="utf-8") as f:
@@ -365,7 +367,7 @@ def process_indicators() -> str:
         "source_origin_url": "https://www.bcentral.cl/web/banco-central/estadisticas",
         "source_mode": source_mode,
         "source_detail": source_detail,
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "indicator_codes": indicator_codes,

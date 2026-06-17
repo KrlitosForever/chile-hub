@@ -5,11 +5,13 @@ import re
 import sqlite3
 import sys
 import zipfile
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 import duckdb
 import polars as pl
 import tomllib
+
+UTC = timezone.utc
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT_DIR not in sys.path:

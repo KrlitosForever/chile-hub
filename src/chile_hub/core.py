@@ -1,7 +1,7 @@
 import argparse
 import importlib.metadata
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +13,8 @@ from .pipeline_status_utils import (
     compute_top_issue,
     format_top_issue_summary,
 )
+
+UTC = timezone.utc
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
@@ -1340,7 +1342,7 @@ def main():
         try:
             version = importlib.metadata.version("chile-hub")
         except importlib.metadata.PackageNotFoundError:
-            version = "0.1.0"
+            version = "1.0.1"
         print(version)
         return
 

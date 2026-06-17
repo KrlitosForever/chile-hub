@@ -9,6 +9,8 @@ import openpyxl
 import polars as pl
 import requests
 
+UTC = datetime.timezone.utc
+
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
@@ -56,7 +58,7 @@ AGE_BANDS = {
 
 
 def _snapshot_path() -> Path:
-    stamp = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     return Path(RAW_DIR) / f"ine_censo2024_comunal_{stamp}.xlsx"
 
 
@@ -121,7 +123,7 @@ def process_censo() -> str:
         "source_url": CENSO_URL,
         "source_mode": source_mode,
         "source_detail": "official_xlsx" if source_mode == "live" else "raw_snapshot_recovery",
-        "refreshed_at_utc": datetime.datetime.now(datetime.UTC).isoformat(),
+        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
         "record_count": df.height,
         "fields": df.columns,
         "notes": ["age_bands_derived_from_quinquennial_groups"],
