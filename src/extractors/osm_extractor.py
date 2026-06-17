@@ -645,20 +645,24 @@ def fetch_osm_pois() -> tuple[list[dict], str, str]:
     modo = "CI (timeouts reducidos)" if _IN_CI else "local"
     print(f"Extrayendo POIs de OpenStreetMap ({len(LAT_BANDS)} franjas, modo {modo})…")
 
-    for south, north in LAT_BANDS:
+    # LAT_BANDS almacena (borde_norte, borde_sur) — el valor menos negativo
+    # primero (más cerca del ecuador).  Para el bbox de Overpass necesitamos
+    # (south, west, north, east) con south < north, así que south es el valor
+    # más negativo (más al sur).
+    for north_edge, south_edge in LAT_BANDS:
         try:
             print(
-                f"  Consultando franja {south}°S a {north}°S… ",
+                f"  Consultando franja {north_edge}°S a {south_edge}°S… ",
                 end="",
                 flush=True,
             )
-            elements = _query_overpass_band(south, north)
+            elements = _query_overpass_band(south_edge, north_edge)
             all_elements.extend(elements)
             print(f"{len(elements)} POIs", flush=True)
             # Respetar rate limiting de Overpass
             time.sleep(_BAND_SLEEP)
         except Exception as exc:
-            failed_bands.append(f"{south}-{north}: {exc}")
+            failed_bands.append(f"{north_edge}-{south_edge}: {exc}")
             print(f"FALLIDA ({exc})", flush=True)
 
     if not all_elements:
