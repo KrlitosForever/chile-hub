@@ -1253,8 +1253,8 @@ class WorkflowContractTests(unittest.TestCase):
     def test_pypi_release_workflow_uses_trusted_publishing_and_release_assets(self):
         release_text = (ROOT_DIR / ".github" / "workflows" / "pypi-release.yml").read_text()
         self.assertIn("id-token: write", release_text)
-        self.assertIn("python-semantic-release/python-semantic-release@", release_text)
-        self.assertIn("# v10.5.3", release_text)
+        self.assertIn("python -m semantic_release version --skip-build", release_text)
+        self.assertIn("steps.semantic-release.outputs.released == 'true'", release_text)
         self.assertIn("pypa/gh-action-pypi-publish", release_text)
         self.assertIn("data/normalized/chile-hub-publishable-bundle.zip", release_text)
         self.assertIn("data/normalized/dataset_catalog.json", release_text)
