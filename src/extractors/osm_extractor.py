@@ -46,6 +46,13 @@ METADATA_PATH = os.path.join(STAGING_DIR, "puntos_interes.metadata.json")
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 USER_AGENT = "chile-hub/0.1 (https://github.com/cortega26/chile-hub)"
 
+# En CI reducimos los timeouts para no bloquear el pipeline por minutes.
+# Overpass puede ser lento; preferimos cobertura parcial a un build colgado.
+_IN_CI = os.environ.get("CI", "").lower() == "true"
+_OVERPASS_SERVER_TIMEOUT = 30 if _IN_CI else 120
+_OVERPASS_CLIENT_TIMEOUT = _OVERPASS_SERVER_TIMEOUT + 15
+_BAND_SLEEP = 0.5  # respeto al rate limiting de Overpass
+
 # Franjas de latitud que cubren Chile continental (~17°S a ~56°S)
 # Cada franja tiene ~3 grados de altura para mantenerse dentro de limites
 LAT_BANDS = [
@@ -600,7 +607,7 @@ def _query_overpass_band(south: float, north: float) -> list[dict]:
         f'  node["{tag}"]["name"]["addr:street"]{bbox};' for tag in OSM_TAG_CATEGORIES
     )
 
-    query = f"""[out:json][timeout:120];
+    query = f"""[out:json][timeout:{_OVERPASS_SERVER_TIMEOUT}];
 (
 {tag_filters}
 );
@@ -611,7 +618,7 @@ out body qt 10000;
         OVERPASS_URL,
         params={"data": query},
         headers={"User-Agent": USER_AGENT},
-        timeout=140,
+        timeout=_OVERPASS_CLIENT_TIMEOUT,
     )
     resp.raise_for_status()
     data = resp.json()
@@ -635,16 +642,24 @@ def fetch_osm_pois() -> tuple[list[dict], str, str]:
     source_mode = "live"
     timestamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
 
+    modo = "CI (timeouts reducidos)" if _IN_CI else "local"
+    print(f"Extrayendo POIs de OpenStreetMap ({len(LAT_BANDS)} franjas, modo {modo})…")
+
     for south, north in LAT_BANDS:
         try:
+            print(
+                f"  Consultando franja {south}°S a {north}°S… ",
+                end="",
+                flush=True,
+            )
             elements = _query_overpass_band(south, north)
             all_elements.extend(elements)
-            print(f"  Franja {south}°S a {north}°S: {len(elements)} POIs")
+            print(f"{len(elements)} POIs", flush=True)
             # Respetar rate limiting de Overpass
-            time.sleep(1)
+            time.sleep(_BAND_SLEEP)
         except Exception as exc:
             failed_bands.append(f"{south}-{north}: {exc}")
-            print(f"  Franja {south}°S a {north}°S: FALLIDA ({exc})")
+            print(f"FALLIDA ({exc})", flush=True)
 
     if not all_elements:
         # Intentar recuperar snapshot raw previo
