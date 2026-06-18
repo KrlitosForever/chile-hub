@@ -349,33 +349,35 @@ def verify_landing():
             fail(f"Unexpected first dataset card: {first_card_name}")
 
         first_card_actions = first_card.locator(".dataset-action").all_inner_texts()
-        if (
-            len(first_card_actions) < 4
-            or not first_card_actions[0].startswith("PARQUET · ")
-            or not first_card_actions[1].startswith("JSON · ")
-            or first_card_actions[2] != "Vista previa"
-            or first_card_actions[3] != "Ficha técnica"
-        ):
-            fail(f"Unexpected first dataset actions: {first_card_actions}")
+        # Algunos datasets (ej. empresas) no tienen JSON por tamaño.
+        # La segunda acción puede ser JSON, DuckDB/SQLite, o estar ausente.
+        _has_json = len(first_card_actions) >= 2 and first_card_actions[1].startswith("JSON · ")
+        if not first_card_actions[0].startswith("PARQUET · "):
+            fail(f"Unexpected first dataset action 0: {first_card_actions}")
+        if "Vista previa" not in first_card_actions:
+            fail(f"Vista previa action not found: {first_card_actions}")
+        if "Ficha técnica" not in first_card_actions:
+            fail(f"Ficha técnica action not found: {first_card_actions}")
 
-        first_card.get_by_role("button", name="Vista previa").click()
-        preview_rows = first_card.locator(".dataset-preview-table tbody tr")
-        preview_rows.first.wait_for()
-        preview_row_count = preview_rows.count()
-        if preview_row_count > 5:
-            fail(f"Unexpected preview row count: {preview_row_count}")
-        if first_card.locator(".dataset-preview-table th").count() == 0:
-            fail("Dataset preview did not render column headers")
+        _preview_btn = first_card.get_by_role("button", name="Vista previa")
+        if _preview_btn.count() > 0:
+            _preview_btn.click()
+            preview_rows = first_card.locator(".dataset-preview-table tbody tr")
+            preview_rows.first.wait_for()
+            preview_row_count = preview_rows.count()
+            if preview_row_count > 5:
+                fail(f"Unexpected preview row count: {preview_row_count}")
+            if first_card.locator(".dataset-preview-table th").count() == 0:
+                fail("Dataset preview did not render column headers")
 
         first_card.locator(".dataset-details").click()
 
         artifact_meta = first_card.locator(".dataset-artifact-meta").all_inner_texts()
-        if (
-            len(artifact_meta) < 2
-            or not artifact_meta[0].startswith("tipo: parquet · sha256: ")
-            or not artifact_meta[1].startswith("tipo: json · sha256: ")
-        ):
+        if len(artifact_meta) < 1 or not artifact_meta[0].startswith("tipo: parquet · sha256: "):
             fail(f"Unexpected artifact metadata: {artifact_meta}")
+        if _has_json:
+            if len(artifact_meta) < 2 or not artifact_meta[1].startswith("tipo: json · sha256: "):
+                fail(f"Missing JSON artifact metadata: {artifact_meta}")
 
         first_card_facts = first_card.locator(".dataset-fact").all_inner_texts()
         first_card_facts_text = "\n".join(first_card_facts).upper()
