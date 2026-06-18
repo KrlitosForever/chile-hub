@@ -7,7 +7,7 @@
 [![CI/CD](https://github.com/cortega26/chile-hub/actions/workflows/pipeline-check.yml/badge.svg)](https://github.com/cortega26/chile-hub/actions)
 [![PyPI version](https://img.shields.io/pypi/v/chile-hub.svg)](https://pypi.org/project/chile-hub/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/chile-hub.svg)](https://pypi.org/project/chile-hub/)
-[![Coverage](https://img.shields.io/badge/coverage-pytest--cov-16a34a.svg)](#desarrollo-local)
+[![Coverage](https://img.shields.io/codecov/c/github/cortega26/chile-hub)](https://app.codecov.io/gh/cortega26/chile-hub)
 [![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB.svg?style=flat&logo=python&logoColor=white)]()
 [![Formats](https://img.shields.io/badge/Formats-Parquet%20%7C%20DuckDB%20%7C%20SQLite%20%7C%20JSON%20%7C%20Excel-orange.svg)]()
@@ -376,7 +376,7 @@ print(df.head())
 
 > **Versionado:** Para entornos productivos, fija la versión exacta en `requirements.txt`:
 > ```
-> chile-hub==1.2.0
+> chile-hub==1.4.0
 > ```
 > El bundle de datos se publica con cada release. La API del módulo `ChileHub` sigue
 > versionado semántico: cambios de interfaz pública solo en _major releases_.
@@ -529,6 +529,25 @@ flowchart TB
 El valor central de chile-hub es que **todas las capas se vinculan jerárquicamente** mediante los Códigos Únicos Territoriales (CUT) de SUBDERE/INE:
 
 ```mermaid
+flowchart TB
+    R["Territorio base<br/><b>REGIONES</b><br/>codigo_region"]
+    P["<b>PROVINCIAS</b><br/>codigo_provincia + codigo_region"]
+    C["<b>COMUNAS</b><br/>codigo_comuna + codigo_provincia + codigo_region"]
+    L["Capas comunales<br/>codigo_comuna<br/>censo · hogares · salud<br/>educación · distritos · enriquecimiento"]
+
+    R --> P --> C --> L
+```
+
+| Grupo | Clave principal | Capas |
+|:---|:---|:---|
+| Territorio base | `codigo_region`, `codigo_provincia`, `codigo_comuna` | `regiones`, `provincias`, `comunas` |
+| Capas comunales | `codigo_comuna` | `comunas_enriquecidas`, `censo_comunal`, `censo_hogares_viviendas`, `establecimientos_salud`, `establecimientos_educacionales`, `distritos_electorales` |
+| Series nacionales | `fecha`, `codigo_indicador` | `indicadores` |
+
+<details>
+<summary><b>Ver schema completo con PK/FK</b></summary>
+
+```mermaid
 erDiagram
     REGIONES {
         VARCHAR codigo_region PK "Ej: '01' (Tarapacá)"
@@ -597,6 +616,8 @@ erDiagram
     COMUNAS ||--o{ ESTABLECIMIENTOS_EDUCACIONALES : "educación"
     COMUNAS ||--o| DISTRITOS_ELECTORALES : "electoral"
 ```
+
+</details>
 
 ---
 
