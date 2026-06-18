@@ -506,12 +506,12 @@ DATASET_CATALOG_CONFIG = {
         },
         "outputs": {
             "parquet": "data/normalized/empresas.parquet",
-            "json": "data/normalized/empresas.json",
             "duckdb_table": "empresas",
             "sqlite_table": "empresas",
             "excel_sheet": "Empresas RES",
         },
         "documentation": "docs/datasets/empresas.md",
+        "_notes": "JSON omitido intencionalmente: >1.5M registros. Usa Parquet.",
     },
 }
 
@@ -1775,13 +1775,14 @@ def build_sqlite(
             "establecimientos_educacionales", conn, index=False, if_exists="replace"
         )
         # SQLite tiene un límite de 999 variables por sentencia.
-        # Calculamos el chunksize para que (columnas × filas) no lo exceda,
-        # con un margen de seguridad de 2× por si Pandas añade columnas internas.
+        # method='multi' genera exactamente (num_cols × chunksize) placeholders.
         _SQLITE_MAX_VARS = 999
         for table_name, df_extra in extra_tables_pd.items():
             num_cols = len(df_extra.columns)
-            if len(df_extra) > 10_000 and num_cols > 0:
-                chunksize = max(50, _SQLITE_MAX_VARS // (num_cols * 2))
+            num_rows = len(df_extra)
+            if num_rows > 10_000 and num_cols > 0:
+                chunksize = _SQLITE_MAX_VARS // num_cols
+                print(f"  Insertando {num_rows:,} filas en SQLite ({table_name})…", flush=True)
                 df_extra.to_sql(
                     table_name,
                     conn,
