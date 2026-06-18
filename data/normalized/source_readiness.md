@@ -1,6 +1,6 @@
 # chile-hub — Madurez de fuente
 
-- `generated_at_utc`: `2026-06-18T18:20:03.516188+00:00`
+- `generated_at_utc`: `2026-06-18T18:40:05.123306+00:00`
 - `stable_count`: `11`
 - `candidate_count`: `4`
 - `experimental_count`: `0`
@@ -21,8 +21,8 @@
 | `establecimientos_salud` | `stable` | `minsal_establecimientos_salud` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Monitor monthly source freshness and geocoding coverage. |
 | `distritos_electorales` | `stable` | `bcn_servel_distritos` | `live` | `✓` | `no` | `✓` | `implemented` | `—` | Update only when electoral district law changes. |
 | `establecimientos_educacionales` | `stable` | `mineduc_establecimientos` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Monitor annual source package and RAR extraction dependency. |
-| `finanzas_municipales` | `candidate` | `sinim_finanzas_municipales` | `fallback` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Configure stable direct SINIM export and replace curated fallback rows. |
-| `resultados_educacionales` | `candidate` | `mineduc_resultados_educacionales` | `fallback` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace curated fallback with stable official aggregate export. |
-| `indicadores_urbanos_siedu` | `candidate` | `ine_siedu_indicadores` | `fallback` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace partial fallback with stable official SIEDU export. |
-| `perfil_territorial_comunal` | `candidate` | `chile_hub_perfil_territorial` | `fallback` | `✗` | `permitido` | `✓` | `derived` | `—` | Track readiness inherited from upstream component datasets. |
+| `finanzas_municipales` | `candidate` | `sinim_finanzas_municipales` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Configure stable direct SINIM export and replace curated fallback rows. |
+| `resultados_educacionales` | `candidate` | `mineduc_resultados_educacionales` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace curated fallback with stable official aggregate export. |
+| `indicadores_urbanos_siedu` | `candidate` | `ine_siedu_indicadores` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace partial fallback with stable official SIEDU export. |
+| `perfil_territorial_comunal` | `candidate` | `chile_hub_perfil_territorial` | `live` | `✗` | `permitido` | `✓` | `derived` | `—` | Track readiness inherited from upstream component datasets. |
 | `empresas` | `stable` | `ministerio_economia_res` | `live` | `✓` | `no` | `✓` | `implemented` | `—` | Keep large-output behavior documented and verify Parquet-first consumption. |

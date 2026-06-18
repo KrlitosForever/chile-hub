@@ -1,10 +1,10 @@
 # chile-hub drift report
 
-- `generated_at_utc`: `2026-06-18T18:20:03.516188+00:00`
+- `generated_at_utc`: `2026-06-18T18:40:05.123306+00:00`
 - `dataset_count`: `15`
-- `drifted_count`: `6`
-- `healthy_count`: `9`
-- `fallback_count`: `4`
+- `drifted_count`: `3`
+- `healthy_count`: `12`
+- `fallback_count`: `0`
 - `partial_coverage_count`: `1`
 - `degraded_count`: `0`
 
@@ -14,16 +14,16 @@
 | `provincias` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
 | `comunas` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
 | `comunas_enriquecidas` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
-| `indicadores` | `drifted` | `live` | `not_applicable` | `warning` | 2 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
+| `indicadores` | `drifted` | `live` | `not_applicable` | `warning` | 1 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
 | `censo_comunal` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
 | `establecimientos_salud` | `healthy` | `live` | `not_applicable` | `none` | 0 | Ninguna. |
 | `establecimientos_educacionales` | `healthy` | `live` | `not_applicable` | `none` | 0 | Ninguna. |
 | `censo_hogares_viviendas` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
 | `distritos_electorales` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
-| `finanzas_municipales` | `drifted` | `fallback` | `not_applicable` | `warning` | 1 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
-| `resultados_educacionales` | `drifted` | `fallback` | `not_applicable` | `warning` | 1 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
-| `indicadores_urbanos_siedu` | `drifted` | `fallback` | `partial` | `warning` | 2 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
-| `perfil_territorial_comunal` | `drifted` | `fallback` | `full` | `none` | 0 | Ninguna. |
+| `finanzas_municipales` | `healthy` | `live` | `not_applicable` | `none` | 0 | Ninguna. |
+| `resultados_educacionales` | `healthy` | `live` | `not_applicable` | `none` | 0 | Ninguna. |
+| `indicadores_urbanos_siedu` | `drifted` | `live` | `partial` | `warning` | 1 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
+| `perfil_territorial_comunal` | `healthy` | `live` | `full` | `none` | 0 | Ninguna. |
 | `empresas` | `drifted` | `live` | `not_applicable` | `warning` | 3 | Revisar warnings operativos del dataset antes de consumirlo en producción. |
 
 ## regiones
@@ -71,9 +71,9 @@
 - `drift_status`: `drifted`
 - `source_mode`: `live`
 - `coverage`: `Sin baseline de cobertura por cardinalidad para esta capa.`
-- `degradation`: indicadores live refresh reused raw snapshots for: uf/2026; indicadores live refresh reused last published artifact for missing codes: ipc
-- `warning_count`: `2`
-- `diagnostic_summary`: indicadores live refresh reused raw snapshots for: uf/2026
+- `degradation`: indicadores live refresh reused last published artifact for missing codes: ipc
+- `warning_count`: `1`
+- `diagnostic_summary`: indicadores live refresh reused last published artifact for missing codes: ipc
 - `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
 
 ## censo_comunal
@@ -128,38 +128,38 @@
 
 ## finanzas_municipales
 
-- `drift_status`: `drifted`
-- `source_mode`: `fallback`
+- `drift_status`: `healthy`
+- `source_mode`: `live`
 - `coverage`: `Sin baseline de cobertura por cardinalidad para esta capa.`
-- `degradation`: finanzas_municipales source_mode is fallback; review before publication
-- `warning_count`: `1`
-- `diagnostic_summary`: finanzas_municipales source_mode is fallback; review before publication
-- `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
+- `degradation`: Sin degradación operativa detectada en este build.
+- `warning_count`: `0`
+- `diagnostic_summary`: Sin degradación operativa detectada en este build.
+- `recommended_action`: Ninguna.
 
 ## resultados_educacionales
 
-- `drift_status`: `drifted`
-- `source_mode`: `fallback`
+- `drift_status`: `healthy`
+- `source_mode`: `live`
 - `coverage`: `Sin baseline de cobertura por cardinalidad para esta capa.`
-- `degradation`: resultados_educacionales source_mode is fallback; review before publication
-- `warning_count`: `1`
-- `diagnostic_summary`: resultados_educacionales source_mode is fallback; review before publication
-- `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
+- `degradation`: Sin degradación operativa detectada en este build.
+- `warning_count`: `0`
+- `diagnostic_summary`: Sin degradación operativa detectada en este build.
+- `recommended_action`: Ninguna.
 
 ## indicadores_urbanos_siedu
 
 - `drift_status`: `drifted`
-- `source_mode`: `fallback`
+- `source_mode`: `live`
 - `coverage`: `Comunas urbanas incluidas por SIEDU, no las 346 comunas del país.`
-- `degradation`: indicadores_urbanos_siedu has intentionally partial urban coverage; indicadores_urbanos_siedu source_mode is fallback; review before publication
-- `warning_count`: `2`
+- `degradation`: indicadores_urbanos_siedu has intentionally partial urban coverage
+- `warning_count`: `1`
 - `diagnostic_summary`: indicadores_urbanos_siedu has intentionally partial urban coverage
 - `recommended_action`: Revisar warnings operativos del dataset antes de consumirlo en producción.
 
 ## perfil_territorial_comunal
 
-- `drift_status`: `drifted`
-- `source_mode`: `fallback`
+- `drift_status`: `healthy`
+- `source_mode`: `live`
 - `coverage`: `Cobertura completa: 346/346 filas respecto del baseline esperado.`
 - `degradation`: Sin degradación operativa detectada en este build.
 - `warning_count`: `0`

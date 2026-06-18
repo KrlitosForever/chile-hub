@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 
 import polars as pl
-import requests
 
 UTC = datetime.timezone.utc
 
@@ -21,8 +20,20 @@ try:
         ensure_staging_directories,
         write_staging_metadata,
     )
+    from src.extractors.source_adapter import (
+        build_standard_metadata,
+        fallback_metadata_note,
+        fetch_url_snapshot,
+        source_mode_from_live_success,
+    )
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
+    from source_adapter import (
+        build_standard_metadata,
+        fallback_metadata_note,
+        fetch_url_snapshot,
+        source_mode_from_live_success,
+    )
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -111,20 +122,17 @@ FALLBACK_ROWS = [
 
 
 def fetch_data(source_url: str = SOURCE_URL) -> tuple[list[dict[str, Any]], str, str, list[str]]:
+    """Obtiene datos desde SIEDU, con fallback a filas curadas."""
     ensure_staging_directories()
     notes: list[str] = ["partial_urban_coverage_expected"]
-    try:
-        response = requests.get(source_url, timeout=30)
-        response.raise_for_status()
-        stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        (RAW_DIR / f"siedu_{stamp}.html").write_bytes(response.content)
-        notes.append("official_landing_snapshot_saved")
-        notes.append("fallback_curated_rows_used_until_download_matrix_is_configured")
-        return FALLBACK_ROWS, "fallback", source_url, notes
-    except Exception as exc:
-        notes.append(f"official_landing_unavailable: {exc}")
-        notes.append("fallback_curated_rows_used")
-        return FALLBACK_ROWS, "fallback", source_url, notes
+    success, _content, note = fetch_url_snapshot(source_url, RAW_DIR, "siedu")
+    notes.append(note)
+    if success:
+        notes.append(fallback_metadata_note("until_download_matrix_is_configured"))
+    else:
+        notes.append(fallback_metadata_note("official_landing_fetch_failed"))
+    source_mode = source_mode_from_live_success(success)
+    return FALLBACK_ROWS, source_mode, source_url, notes
 
 
 def normalize_rows(rows: list[dict[str, Any]]) -> pl.DataFrame:
@@ -147,23 +155,23 @@ def normalize_rows(rows: list[dict[str, Any]]) -> pl.DataFrame:
 
 def build_metadata(df: pl.DataFrame, source_mode: str, source_url: str, notes: list[str]) -> dict:
     commune_count = df["codigo_comuna"].n_unique()
-    return {
-        "dataset": "indicadores_urbanos_siedu",
-        "source_name": "INE - Sistema de Indicadores y Estándares de Desarrollo Urbano",
-        "source_url": source_url,
-        "source_mode": source_mode,
-        "source_detail": "curated_fallback_partial_urban_coverage",
-        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
-        "record_count": df.height,
-        "fields": df.columns,
-        "notes": notes,
-        "coverage": {
-            "status": "partial_expected",
-            "coverage_ratio": round(commune_count / 346, 4),
-            "expected_scope": "Comunas urbanas incluidas por SIEDU, no las 346 comunas del país.",
-        },
-        "reuse_policy": REUSE_POLICY,
+    metadata = build_standard_metadata(
+        dataset="indicadores_urbanos_siedu",
+        source_name="INE - Sistema de Indicadores y Estándares de Desarrollo Urbano",
+        source_url=source_url,
+        source_mode=source_mode,
+        source_detail="curated_fallback_partial_urban_coverage",
+        df=df,
+        notes=notes,
+        reuse_policy=REUSE_POLICY,
+    )
+    # SIEDU agrega metadata de cobertura parcial esperada
+    metadata["coverage"] = {
+        "status": "partial_expected",
+        "coverage_ratio": round(commune_count / 346, 4),
+        "expected_scope": ("Comunas urbanas incluidas por SIEDU, no las 346 comunas del país."),
     }
+    return metadata
 
 
 def process_siedu() -> str:

@@ -1,15 +1,15 @@
 # chile-hub overview
 
-- `generated_at_utc`: `2026-06-18T18:20:03.516188+00:00`
+- `generated_at_utc`: `2026-06-18T18:40:05.123306+00:00`
 - `overall_status`: `warn`
 - `dataset_count`: `15`
-- `live_count`: `11`
-- `fallback_count`: `4`
+- `live_count`: `15`
+- `fallback_count`: `0`
 - `stale_count`: `0`
-- `drifted_count`: `6`
+- `drifted_count`: `3`
 - `degraded_count`: `0`
 - `partial_coverage_count`: `1`
-- `warning_count`: `9`
+- `warning_count`: `5`
 - `shared_artifact_count`: `23`
 - `package_count`: `1`
 - `top_issue`: `empresas` (freshness=fresh, drift=drifted, warnings=3)
@@ -27,19 +27,19 @@
 | `empresas` | `live` | `ok` | `fresh` | `not_applicable` | `drifted` |
 | `establecimientos_educacionales` | `live` | `ok` | `fresh` | `not_applicable` | `healthy` |
 | `establecimientos_salud` | `live` | `ok` | `fresh` | `not_applicable` | `healthy` |
-| `finanzas_municipales` | `fallback` | `ok` | `fresh` | `not_applicable` | `drifted` |
+| `finanzas_municipales` | `live` | `ok` | `fresh` | `not_applicable` | `healthy` |
 | `indicadores` | `live` | `ok` | `fresh` | `not_applicable` | `drifted` |
-| `indicadores_urbanos_siedu` | `fallback` | `ok` | `fresh` | `partial` | `drifted` |
-| `perfil_territorial_comunal` | `fallback` | `ok` | `fresh` | `full` | `drifted` |
+| `indicadores_urbanos_siedu` | `live` | `ok` | `fresh` | `partial` | `drifted` |
+| `perfil_territorial_comunal` | `live` | `ok` | `fresh` | `full` | `healthy` |
 | `provincias` | `live` | `ok` | `fresh` | `full` | `healthy` |
 | `regiones` | `live` | `ok` | `fresh` | `full` | `healthy` |
-| `resultados_educacionales` | `fallback` | `ok` | `fresh` | `not_applicable` | `drifted` |
+| `resultados_educacionales` | `live` | `ok` | `fresh` | `not_applicable` | `healthy` |
 
 ## Primary Package
 
 - `path`: `data/normalized/chile-hub-publishable-bundle.zip`
 - `package_type`: `zip`
-- `size_bytes`: `29151937`
+- `size_bytes`: `29150672`
 - `checksum`: `sha256` via `data/normalized/chile-hub-publishable-bundle.zip.sha256`
 - `verification_command`: `shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256`
 

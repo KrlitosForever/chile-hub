@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 
 import polars as pl
-import requests
 
 UTC = datetime.timezone.utc
 
@@ -21,8 +20,20 @@ try:
         ensure_staging_directories,
         write_staging_metadata,
     )
+    from src.extractors.source_adapter import (
+        build_standard_metadata,
+        fallback_metadata_note,
+        fetch_url_snapshot,
+        source_mode_from_live_success,
+    )
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
+    from source_adapter import (
+        build_standard_metadata,
+        fallback_metadata_note,
+        fetch_url_snapshot,
+        source_mode_from_live_success,
+    )
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -75,20 +86,17 @@ FALLBACK_ROWS = [
 
 
 def fetch_data(source_url: str = SOURCE_URL) -> tuple[list[dict[str, Any]], str, str, list[str]]:
+    """Obtiene datos desde MINEDUC, con fallback a filas curadas."""
     ensure_staging_directories()
     notes: list[str] = ["privacy_safe_comuna_year_aggregation"]
-    try:
-        response = requests.get(source_url, timeout=30)
-        response.raise_for_status()
-        stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        (RAW_DIR / f"mineduc_resultados_{stamp}.html").write_bytes(response.content)
-        notes.append("official_landing_snapshot_saved")
-        notes.append("fallback_curated_rows_used_until_direct_outcome_dump_is_configured")
-        return FALLBACK_ROWS, "fallback", source_url, notes
-    except Exception as exc:
-        notes.append(f"official_landing_unavailable: {exc}")
-        notes.append("fallback_curated_rows_used")
-        return FALLBACK_ROWS, "fallback", source_url, notes
+    success, _content, note = fetch_url_snapshot(source_url, RAW_DIR, "mineduc_resultados")
+    notes.append(note)
+    if success:
+        notes.append(fallback_metadata_note("until_direct_outcome_dump_is_configured"))
+    else:
+        notes.append(fallback_metadata_note("official_landing_fetch_failed"))
+    source_mode = source_mode_from_live_success(success)
+    return FALLBACK_ROWS, source_mode, source_url, notes
 
 
 def normalize_rows(rows: list[dict[str, Any]]) -> pl.DataFrame:
@@ -109,18 +117,16 @@ def normalize_rows(rows: list[dict[str, Any]]) -> pl.DataFrame:
 
 
 def build_metadata(df: pl.DataFrame, source_mode: str, source_url: str, notes: list[str]) -> dict:
-    return {
-        "dataset": "resultados_educacionales",
-        "source_name": "Centro de Estudios MINEDUC - Datos Abiertos",
-        "source_url": source_url,
-        "source_mode": source_mode,
-        "source_detail": "curated_fallback_comuna_year_aggregation",
-        "refreshed_at_utc": datetime.datetime.now(UTC).isoformat(),
-        "record_count": df.height,
-        "fields": df.columns,
-        "notes": notes,
-        "reuse_policy": REUSE_POLICY,
-    }
+    return build_standard_metadata(
+        dataset="resultados_educacionales",
+        source_name="Centro de Estudios MINEDUC - Datos Abiertos",
+        source_url=source_url,
+        source_mode=source_mode,
+        source_detail="curated_fallback_comuna_year_aggregation",
+        df=df,
+        notes=notes,
+        reuse_policy=REUSE_POLICY,
+    )
 
 
 def process_mineduc_resultados() -> str:
