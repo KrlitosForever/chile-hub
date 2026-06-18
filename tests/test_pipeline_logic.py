@@ -1854,6 +1854,139 @@ class RemainingValidatorTests(unittest.TestCase):
         self.assertTrue(any("raw" in w for w in result["warnings"]))
 
 
+class PipelineStatusUtilsTests(unittest.TestCase):
+    """Tests para funciones puras de pipeline_status_utils."""
+
+    def test_format_top_issue_summary_empty(self):
+        from src.pipeline_status_utils import format_top_issue_summary
+
+        self.assertEqual(format_top_issue_summary(None), "Sin top issue activo.")
+        self.assertEqual(format_top_issue_summary({}), "Sin top issue activo.")
+
+    def test_format_top_issue_summary_full(self):
+        from src.pipeline_status_utils import format_top_issue_summary
+
+        issue = {
+            "dataset": "empresas",
+            "source_detail": "public_api",
+            "diagnostic_summary": "Cobertura parcial",
+            "recommended_action": "Revisar",
+            "warning_count": 3,
+            "build_freshness_status": "fresh",
+            "drift_status": "healthy",
+        }
+        result = format_top_issue_summary(issue)
+        self.assertIn("empresas", result)
+        self.assertIn("Cobertura parcial", result)
+        self.assertIn("warnings=3", result)
+
+    def test_compute_top_issue_empty_entries(self):
+        from src.pipeline_status_utils import compute_top_issue
+
+        self.assertIsNone(compute_top_issue([]))
+
+    def test_compute_top_issue_warnings_priority_zero(self):
+        from src.pipeline_status_utils import compute_top_issue
+
+        entries = [
+            {
+                "dataset": "a",
+                "warning_count": 0,
+                "freshness_status": "fresh",
+                "drift_status": "healthy",
+            },
+            {
+                "dataset": "b",
+                "warning_count": 2,
+                "freshness_status": "fresh",
+                "drift_status": "healthy",
+            },
+        ]
+        top = compute_top_issue(entries)
+        self.assertEqual(top["dataset"], "b")
+
+    def test_compute_top_issue_stale_priority_zero(self):
+        from src.pipeline_status_utils import compute_top_issue
+
+        entries = [
+            {
+                "dataset": "a",
+                "warning_count": 0,
+                "freshness_status": "stale",
+                "drift_status": "healthy",
+            },
+            {
+                "dataset": "b",
+                "warning_count": 0,
+                "freshness_status": "fresh",
+                "drift_status": "healthy",
+            },
+        ]
+        top = compute_top_issue(entries)
+        self.assertEqual(top["dataset"], "a")
+
+    def test_compute_top_issue_drifted_priority_one(self):
+        from src.pipeline_status_utils import compute_top_issue
+
+        entries = [
+            {
+                "dataset": "a",
+                "warning_count": 0,
+                "freshness_status": "fresh",
+                "drift_status": "drifted",
+            },
+            {
+                "dataset": "b",
+                "warning_count": 0,
+                "freshness_status": "fresh",
+                "drift_status": "drifted",
+            },
+        ]
+        top = compute_top_issue(entries)
+        self.assertIsNotNone(top)
+        self.assertEqual(top["attention_priority"], 1)
+
+    def test_compute_top_issue_all_healthy_returns_none(self):
+        from src.pipeline_status_utils import compute_top_issue
+
+        entries = [
+            {
+                "dataset": "a",
+                "warning_count": 0,
+                "freshness_status": "fresh",
+                "drift_status": "healthy",
+            },
+            {
+                "dataset": "b",
+                "warning_count": 0,
+                "freshness_status": "fresh",
+                "drift_status": "healthy",
+            },
+        ]
+        self.assertIsNone(compute_top_issue(entries))
+
+    def test_format_freshness_statuses(self):
+        from src.pipeline_status_utils import format_freshness
+
+        self.assertEqual(format_freshness(None), "unknown")
+        self.assertEqual(format_freshness({}), "unknown")
+        self.assertIn(
+            "fresh", format_freshness({"status": "fresh", "age_hours": 5, "max_age_hours": 24})
+        )
+        self.assertIn("stale", format_freshness({"status": "stale"}))
+        self.assertEqual(format_freshness({"status": "unknown"}), "unknown")
+
+    def test_format_reuse_policy(self):
+        from src.pipeline_status_utils import format_reuse_policy
+
+        self.assertEqual(format_reuse_policy(None), "unknown")
+        self.assertIn(
+            "open-attribution",
+            format_reuse_policy({"status": "open-attribution", "license": "CC-BY"}),
+        )
+        self.assertEqual(format_reuse_policy({"status": "custom"}), "custom")
+
+
 if __name__ == "__main__":
     import pytest
 
