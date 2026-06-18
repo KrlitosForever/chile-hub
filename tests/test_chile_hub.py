@@ -37,8 +37,8 @@ INDICADORES_NON_SYNTHETIC_DELIVERY = {
     "raw_recovery",
     "preserved_existing",
 }
-EXPECTED_DATASET_COUNT = 14
-EXPECTED_TOP_ISSUE = "finanzas_municipales"
+EXPECTED_DATASET_COUNT = 15
+EXPECTED_TOP_ISSUE = "empresas"
 
 
 def _assert_summary_has_recovery_source_detail(test_case, summary):
@@ -108,6 +108,7 @@ class ChileHubTests(unittest.TestCase):
                 "resultados_educacionales",
                 "indicadores_urbanos_siedu",
                 "perfil_territorial_comunal",
+                "empresas",
             ],
         )
 
@@ -182,6 +183,7 @@ class ChileHubTests(unittest.TestCase):
                 "resultados_educacionales": "ok",
                 "indicadores_urbanos_siedu": "ok",
                 "perfil_territorial_comunal": "ok",
+                "empresas": "ok",
             },
         )
         warning_counts = {item["dataset"]: item["warning_count"] for item in summary}
@@ -943,6 +945,7 @@ class ChileHubCliTests(unittest.TestCase):
                 "resultados_educacionales",
                 "indicadores_urbanos_siedu",
                 "perfil_territorial_comunal",
+                "empresas",
             ],
         )
 
