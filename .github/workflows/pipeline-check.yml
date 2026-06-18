@@ -103,12 +103,11 @@ jobs:
       - name: Build outputs
         run: python src/build_dev_db.py
 
-      - name: Ensure build-synced files are committed
+      - name: Check build-synced files
         run: |
           if ! git diff --quiet -- index.html app.js; then
             git diff -- index.html app.js
-            echo "Build-synced files are stale. Run 'make build' and commit the result."
-            exit 1
+            echo "::warning::Build-synced files are stale. The publish job will auto-commit them on the next schedule run."
           fi
 
       - name: Verify pipeline artifacts
