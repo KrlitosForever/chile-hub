@@ -33,7 +33,7 @@ Problemas que resuelve:
 - evitar rederivar regiones manualmente desde comunas en cada proyecto
 - exponer una capa territorial más simple para casos donde comuna es demasiado granular
 
-## Outputs
+## Salidas
 
 - `data/normalized/regiones.parquet`
 - `data/normalized/regiones.json`
@@ -42,7 +42,7 @@ Problemas que resuelve:
 - tabla `regiones` en `data/normalized/chile_data.db`
 - hoja `Regiones` en `data/normalized/chile_data_latest.xlsx`
 
-## Schema actual
+## Esquema actual
 
 Fuente observada: `data/normalized/chile_data.duckdb`
 
@@ -63,7 +63,7 @@ Cruces sugeridos:
 
 - `codigo_region` para agregaciones, filtros y joins administrativos
 
-## Caveats
+## Advertencias
 
 - no es una fuente primaria independiente; depende de la calidad y cobertura de `comunas`
 - hereda el `source_mode` y las notas operativas de la capa comunal

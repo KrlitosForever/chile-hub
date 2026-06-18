@@ -57,7 +57,7 @@ REGION_TO_CIRCUNSCRIPCION = {
     "16": "16",
 }
 
-# Subdivisions clean names for multi-district regions
+# Nombres limpios de subdivisiones para regiones con múltiples distritos
 dist_7_names = {
     "algarrobo",
     "cartagena",
@@ -237,10 +237,10 @@ def build_electoral_df() -> pl.DataFrame:
         cod_reg = r["codigo_region"]
         clean_name = r["nombre_comuna_clean"]
 
-        # Circunscripcion
+        # Circunscripción
         circ = REGION_TO_CIRCUNSCRIPCION.get(cod_reg, "unknown")
 
-        # District
+        # Distrito
         dist = "unknown"
         if cod_reg == "15":
             dist = "1"

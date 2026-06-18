@@ -1,21 +1,21 @@
-# Security Policy
+# Política de seguridad
 
-## Supported Versions
+## Versiones compatibles
 
-Security fixes are handled on the default branch and published in the next release.
-Use the latest GitHub release or PyPI package unless a maintainer gives other guidance.
+Las correcciones de seguridad se manejan en la default branch y se publican en el siguiente release.
+Usa la última GitHub release o el paquete PyPI a menos que un mantenedor indique lo contrario.
 
-## Reporting a Vulnerability
+## Reportar una vulnerabilidad
 
-Please report suspected vulnerabilities through GitHub private vulnerability reporting:
+Por favor, reporta las vulnerabilidades sospechadas a través del sistema de reporte privado de GitHub:
 
 https://github.com/cortega26/chile-hub/security/advisories/new
 
-Include:
+Incluye:
 
-- affected version, release tag, or commit SHA
-- impact and exploitability notes
-- reproduction steps or a minimal proof of concept
-- whether the issue affects code, packaged data, or release artifacts
+- versión afectada, release tag o commit SHA
+- notas sobre impacto y explotabilidad
+- pasos para reproducir o un proof of concept mínimo
+- si el problema afecta al código, a los datos empaquetados o a los artifacts del release
 
-Do not open a public issue for an unresolved vulnerability.
+No abras un issue público para una vulnerabilidad no resuelta.

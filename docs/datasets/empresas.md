@@ -16,7 +16,7 @@ y Turismo en datos.gob.cl.
 | **Actualización** | Mensual (aproximadamente) |
 | **Cobertura** | ~1.5M constituciones desde mayo 2013 |
 
-## Schema
+## Esquema
 
 | Columna | Tipo | Descripción |
 |:---|:---|:---|
@@ -114,7 +114,7 @@ chile-hub path empresas --output parquet
   dataset en datos.gob.cl (~40 MB total). La primera ejecución puede demorar
   varios segundos.
 
-## Changelog
+## Registro de cambios
 
 - **2026-06-17:** Dataset agregado a chile-hub (extractor, validación, tests,
   documentación).

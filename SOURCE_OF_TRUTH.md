@@ -1,100 +1,100 @@
-# SOURCE_OF_TRUTH.md — Master Navigation Index
+# SOURCE_OF_TRUTH.md — Índice Maestro de Navegación
 
-Read this first. Then follow the pointers. Do not read full files cold.
+Lee esto primero. Luego sigue los punteros. No leas archivos completos en frío.
 
 ---
 
-## What this repo is
+## Qué es este repositorio
 
-`chile-hub` is a curated, reproducible data layer over official Chilean public datasets.
-It runs an extract → build → validate → publish pipeline that produces Parquet, DuckDB,
-JSON, and ZIP artefacts consumable in a single line of code, plus a static landing page
-and a Python CLI/API (`ChileHub`). The goal is fewer, cleaner, trustworthy datasets —
-not comprehensive coverage.
+`chile-hub` es una capa de datos reproducible y curada sobre datasets públicos oficiales de Chile.
+Ejecuta un pipeline de extraccion → construccion → validacion → publicacion que produce artefactos
+Parquet, DuckDB, JSON y ZIP consumibles en una sola linea de codigo, ademas de una landing page
+estatica y una CLI/API de Python (`ChileHub`). El objetivo es tener menos datasets, mas limpios y
+confiables — no una cobertura exhaustiva.
 
 ---
 
 ## Document ownership
 
-| Document | Owns | When to read |
+| Documento | Propietario de | Cuando leerlo |
 |---|---|---|
-| **`SOURCE_OF_TRUTH.md`** ← you are here | Navigation index, invariants summary, file + task map | Always first — ~100 lines |
-| **`AGENTS.md`** | Full pipeline rules, legal policy, 7-step dataset-adding workflow, CI/CD jobs, antipatterns, code conventions | Adding a dataset · debugging pipeline · legal questions · CI changes |
-| **`CLAUDE.md`** | Redirects to AGENTS.md + SOURCE_OF_TRUTH.md; project entry point for Claude Code sessions | First visit to the repo · orientation |
+| **`SOURCE_OF_TRUTH.md`** ← estas aqui | Indice de navegacion, resumen de invariantes, mapa de archivos + tareas | Siempre primero — ~100 lineas |
+| **`AGENTS.md`** | Reglas completas del pipeline, politica legal, flujo de 7 pasos para agregar datasets, jobs de CI/CD, antipatrones, convenciones de codigo | Al agregar un dataset · depurar el pipeline · preguntas legales · cambios en CI |
+| **`CLAUDE.md`** | Redirige a AGENTS.md + SOURCE_OF_TRUTH.md; punto de entrada del proyecto para sesiones de Claude Code | Primera visita al repositorio · orientacion |
 
 ---
 
-## 5 non-negotiable invariants
+## 5 invariantes no negociables
 
-1. **CUT codes are fixed-length strings** — `"01"` (region), `"011"` (province), `"01101"` (commune). Never int.
-2. **Fail loudly** — `raise SystemExit(...)` on validation errors. Never silent warnings for bad data.
-3. **`data/raw/` is append-only** — audit snapshots. Never modify after writing.
-4. **`nombre_comuna_clean` must exist** — lowercase, no accents, no `ñ`. Join key for fuzzy text matching.
-5. **Paths always relative to `__file__`** — never CWD-relative (`"data"`); breaks in CI.
+1. **Los codigos CUT son strings de longitud fija** — `"01"` (region), `"011"` (provincia), `"01101"` (comuna). Nunca int.
+2. **Fallar con estridencia** — `raise SystemExit(...)` en errores de validacion. Nunca advertencias silenciosas para datos incorrectos.
+3. **`data/raw/` es solo append** — snapshots de auditoria. Nunca modificar despues de escribir.
+4. **`nombre_comuna_clean` debe existir** — minusculas, sin acentos, sin `ñ`. Clave de join para busqueda difusa de texto.
+5. **Rutas siempre relativas a `__file__`** — nunca relativas a CWD (`"data"`); se rompe en CI.
 
-→ Full invariant details with code examples: **`AGENTS.md §4`**
+→ Detalles completos de invariantes con ejemplos de codigo: **`AGENTS.md §4`**
 
 ---
 
-## File map — scope your reads
+## Mapa de archivos — delimita tus lecturas
 
 ```
 src/
 ├── extractors/
-│   ├── base.py                    BaseExtractor ABC — 59 lines, read whole
-│   └── {name}_extractor.py        One file per dataset, extends BaseExtractor
-├── validation.py                  ALL validate_*() — ~760 lines, scope reads per validator
-├── build_dev_db.py                ~2 800 lines — scope reads:
-│   L31        imports from validation.py
-│   L2327+     validations = {…} block (where validators are called)
-├── chile_hub.py                   Compatibility shim (21 lines) — delegates to package below
+│   ├── base.py                    ABC BaseExtractor — 59 lineas, leer completo
+│   └── {name}_extractor.py        Un archivo por dataset, extiende BaseExtractor
+├── validation.py                  TODAS las validate_*() — ~760 lineas, leer por validador
+├── build_dev_db.py                ~2 800 lineas — leer por secciones:
+│   L31        importaciones de validation.py
+│   L2327+     bloque validations = {…} (donde se llaman los validadores)
+├── chile_hub.py                   Shim de compatibilidad (21 lineas) — delega al paquete inferior
 ├── chile_hub/
-│   ├── core.py                    ChileHub class + full public API — ~1 570 lines
-│   ├── cli.py                     CLI entry points (5 lines)
-│   ├── data_manager.py            Bundle download, cache, SHA256 — ~200 lines
-│   └── pipeline_status_utils.py   Report builders (health, catalog, redistribution) — ~770 lines
-├── pipeline_status_utils.py       Copy of the above for build_dev_db.py imports
+│   ├── core.py                    Clase ChileHub + API publica completa — ~1 570 lineas
+│   ├── cli.py                     Puntos de entrada de CLI (5 lineas)
+│   ├── data_manager.py            Descarga de bundles, cache, SHA256 — ~200 lineas
+│   └── pipeline_status_utils.py   Constructores de reportes (health, catalog, redistribution) — ~770 lineas
+├── pipeline_status_utils.py       Copia del anterior para importaciones de build_dev_db.py
 
 data/
-├── raw/        Audit snapshots — append-only, never edit
-├── staging/    {dataset}.csv + {dataset}.metadata.json — pipeline inputs
-└── normalized/ Generated artefacts — NEVER edit manually; always regenerate
+├── raw/        Snapshots de auditoria — solo append, nunca editar
+├── staging/    {dataset}.csv + {dataset}.metadata.json — entradas del pipeline
+└── normalized/ Artefactos generados — NUNCA editar manualmente; siempre regenerar
 
 tests/
-├── test_chile_hub.py        Requires data/normalized/ — run `make build` first
-├── test_extractors.py       No normalized data required
-└── test_pipeline_logic.py   No normalized data required
+├── test_chile_hub.py        Requiere data/normalized/ — ejecutar `make build` primero
+├── test_extractors.py       No requiere datos normalizados
+└── test_pipeline_logic.py   No requiere datos normalizados
 ```
 
 ---
 
-## Common tasks → where to look
+## Tareas comunes → donde mirar
 
-| Task | Go to |
+| Tarea | Ir a |
 |---|---|
-| Run full pipeline | `CLAUDE.md` → **Essential commands** → `make refresh` |
-| Run one step | `CLAUDE.md` → `make extract` / `make build` / `make test` |
-| Add a new dataset | **`AGENTS.md §5`** — 7-step checklist |
-| Write a `validate_*()` function | `src/validation.py` — then import in `build_dev_db.py` |
-| Understand CI/CD jobs | **`AGENTS.md §9`** |
-| Check legal redistribution status of a source | **`AGENTS.md §6`** |
-| Check what antipatterns to avoid | **`AGENTS.md §10`** |
-| Navigate large files without cold-reading | `CLAUDE.md` → **CodeGraph** section |
-| Find where a symbol is defined | `codegraph find <name>` or `grep -n "def <name>" src/` |
-| Read ChileHub public API | `src/chile_hub/core.py` (class ChileHub, all public methods) |
-| Read all validation logic | `src/validation.py` (~760 lines — scope reads per validator) |
-| Read extractor contract | `src/extractors/base.py` (59 lines — safe to read whole) |
+| Ejecutar pipeline completo | `CLAUDE.md` → **Comandos esenciales** → `make refresh` |
+| Ejecutar un paso | `CLAUDE.md` → `make extract` / `make build` / `make test` |
+| Agregar un nuevo dataset | **`AGENTS.md §5`** — lista de verificacion de 7 pasos |
+| Escribir una funcion `validate_*()` | `src/validation.py` — luego importar en `build_dev_db.py` |
+| Entender los jobs de CI/CD | **`AGENTS.md §9`** |
+| Verificar estado legal de redistribucion de una fuente | **`AGENTS.md §6`** |
+| Revisar que antipatrones evitar | **`AGENTS.md §10`** |
+| Navegar archivos grandes sin leerlos en frio | `CLAUDE.md` → seccion **CodeGraph** |
+| Encontrar donde esta definido un simbolo | `codegraph find <name>` o `grep -n "def <name>" src/` |
+| Leer API publica de ChileHub | `src/chile_hub/core.py` (clase ChileHub, todos los metodos publicos) |
+| Leer toda la logica de validacion | `src/validation.py` (~760 lineas — leer por validador) |
+| Leer contrato de extractors | `src/extractors/base.py` (59 lineas — seguro de leer completo) |
 
 ---
 
-## Pipeline flow (one-glance summary)
+## Flujo del pipeline (resumen de un vistazo)
 
 ```
 make extract        →  data/staging/{dataset}.{csv,metadata.json}  +  data/raw/
 make build          →  data/normalized/  (Parquet, DuckDB, JSON, ZIP, manifests)
-make verify         →  integrity check (SHA-256, record counts, schema)
-make test           →  pytest (reads normalized/ — does NOT run pipeline)
-make verify-landing →  Playwright smoke tests against index.html
+make verify         →  verificacion de integridad (SHA-256, conteo de registros, schema)
+make test           →  pytest (lee normalized/ — NO ejecuta el pipeline)
+make verify-landing →  pruebas smoke con Playwright contra index.html
 ```
 
-**One command for everything:** `make refresh` runs all five in order + lint + format-check.
+**Un solo comando para todo:** `make refresh` ejecuta los cinco en orden + lint + verificacion de formato.

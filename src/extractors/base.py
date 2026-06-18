@@ -31,7 +31,7 @@ class BaseExtractor(ABC):
     @property
     @abstractmethod
     def dataset_name(self) -> str:
-        """Nombre canonico registrado en el catalogo de datasets."""
+        """Nombre canónico registrado en el catálogo de datasets."""
 
     @abstractmethod
     def fetch(self, **kwargs: Any) -> Any:
@@ -39,11 +39,11 @@ class BaseExtractor(ABC):
 
     @abstractmethod
     def normalize(self, raw_data: Any) -> pl.DataFrame:
-        """Convierte los datos obtenidos al schema canonico."""
+        """Convierte los datos obtenidos al esquema canónico."""
 
     @abstractmethod
     def validate(self, df: pl.DataFrame, metadata: dict[str, Any]) -> dict[str, Any]:
-        """Retorna el resultado de validacion del dataset."""
+        """Retorna el resultado de validación del dataset."""
 
     @abstractmethod
     def write_staging(self, df: pl.DataFrame, metadata: dict[str, Any]) -> Path:

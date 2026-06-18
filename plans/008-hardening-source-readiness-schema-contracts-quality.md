@@ -1,70 +1,74 @@
-# Plan 008: Harden Source Readiness, Schema Contracts, and Quality Gates
+# Plan 008: Fortalecer la madurez de fuente, los contratos de esquema y las compuertas de calidad
 
-> **Executor instructions**: Follow this plan step by step. Run every verification
-> command and confirm the expected result before moving to the next step. If any
-> STOP condition occurs, stop and report instead of improvising.
+> **Instrucciones para el ejecutor**: Sigue este plan paso a paso. Ejecuta cada
+> comando de verificación y confirma el resultado esperado antes de pasar al
+> siguiente paso. Si ocurre alguna condición de detención, detente y reporta en
+> lugar de improvisar.
 >
-> **Drift check (run first)**:
+> **Verificación de desvío (ejecutar primero)**:
 > `git diff --stat 4eb79ce..HEAD -- src/build_dev_db.py src/chile_hub/core.py scripts/verify_pipeline.py .github/workflows/pipeline-check.yml Makefile tests/test_chile_hub.py tests/test_pipeline_logic.py`
 >
-> If any in-scope file changed since this plan was written, compare the current
-> code against this plan before proceeding. If the relevant APIs or file layout no
-> longer match, treat that as a STOP condition.
+> Si algún archivo dentro del alcance cambió desde que se escribió este plan,
+> compara el código actual con este plan antes de proceder. Si las APIs
+> relevantes o la estructura de archivos ya no coinciden, trata eso como una
+> condición de detención.
 
-## Status
+## Estado
 
-- **Priority**: P1
-- **Effort**: L
-- **Risk**: MED
-- **Depends on**: none
-- **Category**: direction / architecture / data-quality / dx
-- **Planned at**: commit `4eb79ce`, 2026-06-17
-- **Status update**: 2026-06-18 — split into smaller implemented pieces: checked-in `contracts/datasets/*.schema.json`, `data/source_registry.json`, and `scripts/verify_pipeline.py` contract/registry gates. Generated `source_readiness.*` artifacts and deeper maturity propagation remain future follow-up work.
+- **Prioridad**: P1
+- **Esfuerzo**: L
+- **Riesgo**: MED
+- **Depende de**: ninguno
+- **Categoría**: direction / architecture / data-quality / dx
+- **Planificado en**: commit `4eb79ce`, 2026-06-17
+- **Actualización de estado**: 2026-06-18 — dividido en piezas más pequeñas implementadas: `contracts/datasets/*.schema.json`, `data/source_registry.json` y `scripts/verify_pipeline.py` con compuertas de contrato/registry. Los artefactos generados `source_readiness.*` y la propagación más profunda de madurez quedan como trabajo futuro.
 
-## Why This Matters
+## Por qué es importante
 
-`chile-hub` now has 14 active layers, including three source-backed candidate
-datasets that currently run in honest `fallback` mode. The existing health,
-drift, status, and changelog artifacts make this visible, but the project still
-lacks explicit source-readiness contracts, dataset maturity states, schema
-contracts, stalling detection, and a split between “developer green” and
-“publication green.”
+`chile-hub` ahora tiene 14 capas activas, incluyendo tres datasets candidatos
+respaldados por fuentes que actualmente operan en modo `fallback` honesto. Los
+artefactos existentes de salud, desvío, estado y changelog hacen visible esto,
+pero el proyecto aún carece de contratos explícitos de madurez de fuente,
+estados de madurez del dataset, contratos de esquema, detección de
+estancamiento y una separación entre "verde para desarrollo" y "verde para
+publicación".
 
-This plan makes those states machine-checkable. The desired outcome is that a
-normal PR can stay green with declared fallbacks, while publication and readiness
-gates fail loudly when a source is stalled, fallback-only, schema-drifted, or not
-legally/publicly ready.
+Este plan hace que esos estados sean verificables por máquina. El resultado
+deseado es que un PR normal pueda mantenerse en verde con fallbacks declarados,
+mientras que las compuertas de publicación y madurez fallen ruidosamente cuando
+una fuente está estancada, es solo fallback, tiene desvío de esquema o no está
+legal/públicamente lista.
 
-## Current State
+## Estado actual
 
-Relevant current implementation:
+Implementación actual relevante:
 
-- `src/build_dev_db.py` owns `DATASET_CATALOG_CONFIG`, freshness, coverage,
-  degradation, drift, `dataset_status.json`, `dataset_changelog.json`, catalog,
-  bundle, manifest, and generated reports.
-- `scripts/verify_pipeline.py` owns artifact verification and publication policy.
-  `--require-live` currently requires all datasets to have `source_mode == "live"`
-  and fresh metadata.
-- `.github/workflows/pipeline-check.yml` has one build-and-test path and passes
-  `--require-live` only for scheduled or publish dispatch builds.
-- `src/chile_hub/core.py` already exposes `dataset_status()` and
-  `dataset_changelog()`.
-- Current candidate fallback layers are `finanzas_municipales`,
-  `resultados_educacionales`, and `indicadores_urbanos_siedu`.
+- `src/build_dev_db.py` posee `DATASET_CATALOG_CONFIG`, frescura, cobertura,
+  degradación, desvío, `dataset_status.json`, `dataset_changelog.json`,
+  catálogo, bundle, manifest e informes generados.
+- `scripts/verify_pipeline.py` posee la verificación de artefactos y la
+  política de publicación. `--require-live` actualmente requiere que todos los
+  datasets tengan `source_mode == "live"` y metadatos frescos.
+- `.github/workflows/pipeline-check.yml` tiene una ruta de build-and-test y
+  pasa `--require-live` solo para builds programados o de publicación.
+- `src/chile_hub/core.py` ya expone `dataset_status()` y `dataset_changelog()`.
+- Las capas candidatas actuales con fallback son `finanzas_municipales`,
+  `resultados_educacionales` e `indicadores_urbanos_siedu`.
 
-Key current behavior to preserve:
+Comportamiento actual clave a preservar:
 
-- `make verify` must remain the normal developer gate and allow declared,
-  validated fallback datasets.
-- `make verify-live` must remain strict and publication-oriented.
-- `data/normalized/` must be regenerated by `make build`; never manually edit
-  generated artifacts.
-- Existing `validate_*()` functions in `src/validation.py` remain semantic
-  validators; schema contracts added by this plan are structural contracts.
+- `make verify` debe seguir siendo la compuerta normal para desarrolladores y
+  permitir datasets con fallback declarados y validados.
+- `make verify-live` debe seguir siendo estricto y orientado a publicación.
+- `data/normalized/` debe ser regenerado por `make build`; nunca editar
+  manualmente los artefactos generados.
+- Las funciones `validate_*()` existentes en `src/validation.py` siguen siendo
+  validadores semánticos; los contratos de esquema agregados por este plan son
+  contratos estructurales.
 
-## Scope
+## Alcance
 
-In scope:
+Dentro del alcance:
 
 - `src/build_dev_db.py`
 - `src/chile_hub/core.py`
@@ -73,39 +77,40 @@ In scope:
 - `Makefile`
 - `tests/test_chile_hub.py`
 - `tests/test_pipeline_logic.py`
-- new `data/source_registry.yml`
-- new `contracts/datasets/*.schema.json`
-- new `docs/dataset-compatibility-policy.md`
-- generated `data/normalized/*` outputs from `make build`
+- nuevo `data/source_registry.yml`
+- nuevos `contracts/datasets/*.schema.json`
+- nuevo `docs/dataset-compatibility-policy.md`
+- salidas generadas `data/normalized/*` de `make build`
 
-Out of scope:
+Fuera del alcance:
 
-- Replacing the fallback implementations for SINIM, MINEDUC outcomes, or SIEDU
-  with true live extractors. This plan should make that debt visible and
-  enforceable, not solve upstream discovery.
-- Removing or renaming public dataset columns.
-- Rewriting all extractors around a new adapter in one pass.
-- Changing package version unless the maintainer explicitly asks for a release
-  bump after implementation.
+- Reemplazar las implementaciones fallback de SINIM, resultados MINEDUC o SIEDU
+  con extractores live verdaderos. Este plan debe hacer visible y exigible esa
+  deuda, no resolver el descubrimiento upstream.
+- Eliminar o renombrar columnas públicas de datasets.
+- Reescribir todos los extractores en torno a un nuevo adaptador en un solo
+  paso.
+- Cambiar la versión del paquete a menos que el mantenedor solicite
+  explícitamente un bump de versión después de la implementación.
 
-## Commands You Will Need
+## Comandos que necesitarás
 
-| Purpose | Command | Expected on success |
+| Propósito | Comando | Esperado en caso de éxito |
 |---|---|---|
-| Extract | `make extract` | exits 0 |
-| Build | `make build` | exits 0 and regenerates normalized artifacts |
-| Dev verify | `make verify` | exits 0 |
-| Tests | `make test` | all tests pass |
-| Landing | `make verify-landing` | exits 0 |
-| Lint | `make lint` | exits 0 |
-| Format check | `make format-check` | exits 0 |
-| Publication verify | `make verify-live` | fails until candidate fallback layers are live; failure must be precise |
+| Extracción | `make extract` | sale con 0 |
+| Build | `make build` | sale con 0 y regenera artefactos normalizados |
+| Verify de desarrollo | `make verify` | sale con 0 |
+| Tests | `make test` | todos los tests pasan |
+| Landing | `make verify-landing` | sale con 0 |
+| Lint | `make lint` | sale con 0 |
+| Formato | `make format-check` | sale con 0 |
+| Verify de publicación | `make verify-live` | falla hasta que las capas candidatas con fallback estén en live; la falla debe ser precisa |
 
-## Implementation Steps
+## Pasos de implementación
 
-### Step 1: Add Dataset Maturity and Source Readiness to the Catalog
+### Paso 1: Agregar madurez del dataset y madurez de fuente al catálogo
 
-Extend every `DATASET_CATALOG_CONFIG` dataset entry with:
+Extiende cada entrada de dataset en `DATASET_CATALOG_CONFIG` con:
 
 ```python
 "maturity": {
@@ -126,33 +131,34 @@ Extend every `DATASET_CATALOG_CONFIG` dataset entry with:
 },
 ```
 
-Initial values:
+Valores iniciales:
 
 - `stable`: regiones, provincias, comunas, comunas_enriquecidas, indicadores,
   censo_comunal, censo_hogares_viviendas, establecimientos_salud,
   distritos_electorales, establecimientos_educacionales.
 - `candidate`: finanzas_municipales, resultados_educacionales,
   indicadores_urbanos_siedu.
-- `stable`: perfil_territorial_comunal, with notes that readiness is inherited
-  from upstream datasets.
-- Candidate fallback source-backed datasets must have `live_ready=False`,
-  `fallback_allowed=True`, `publish_blocking=True`, and a concrete `next_action`.
-- Stable live datasets should have `live_ready=True`, `fallback_allowed=True` only
-  if the current extractor already supports fallback, and `publish_blocking=True`
-  when fallback would be unsafe for publication.
+- `stable`: perfil_territorial_comunal, con notas de que la madurez se hereda
+  de datasets upstream.
+- Los datasets candidatos respaldados por fuente con fallback deben tener
+  `live_ready=False`, `fallback_allowed=True`, `publish_blocking=True` y un
+  `next_action` concreto.
+- Los datasets estables en live deben tener `live_ready=True`,
+  `fallback_allowed=True` solo si el extractor actual ya soporta fallback,
+  y `publish_blocking=True` cuando el fallback sería inseguro para publicación.
 
-Propagate these fields into dataset metadata/catalog outputs:
+Propaga estos campos en los metadatos/salidas del catálogo:
 
 - `pipeline_metadata.json`
 - `dataset_catalog.json`
 - `dataset_status.json`
 - `hub_bundle.json`
 
-**Verify**: `make build && make verify` exits 0.
+**Verificar**: `make build && make verify` sale con 0.
 
-### Step 2: Add a Checked-In Source Registry
+### Paso 2: Agregar un registry de fuentes verificado
 
-Create `data/source_registry.yml` with one entry per dataset:
+Crea `data/source_registry.yml` con una entrada por dataset:
 
 ```yaml
 - source_id: sinim_finanzas_municipales
@@ -164,43 +170,45 @@ Create `data/source_registry.yml` with one entry per dataset:
   live_extractor_status: fallback_only
   fallback_policy: allowed_for_dev_blocked_for_publication
   owner: core
-  next_action: Configure stable direct SINIM export and replace curated fallback rows.
+  next_action: Configurar exportación estable directa de SINIM y reemplazar filas fallback curadas.
   review_by: "2026-07-17"
 ```
 
-Allowed enum values:
+Valores enum permitidos:
 
 - `access_method`: `api`, `direct_file`, `landing_snapshot`, `derived`
 - `license_status`: `open-attribution`, `public-api-review-terms`, `restricted`
 - `live_extractor_status`: `implemented`, `fallback_only`, `derived`
 - `fallback_policy`: `none`, `allowed_for_dev`, `allowed_for_dev_blocked_for_publication`
 
-Add a registry loader to `scripts/verify_pipeline.py`. Use a minimal YAML parser
-only if a dependency already exists; otherwise use JSON-compatible YAML syntax and
-parse with a tiny local parser or switch to `data/source_registry.json`. Prefer no
-new runtime dependency unless the repo already pins YAML support.
+Agrega un cargador de registry a `scripts/verify_pipeline.py`. Usa un
+analizador YAML mínimo solo si ya existe una dependencia; de lo contrario,
+usa sintaxis YAML compatible con JSON y analiza con un pequeño analizador
+local o cambia a `data/source_registry.json`. Prefiere no agregar una nueva
+dependencia en tiempo de ejecución a menos que el repositorio ya tenga
+soporte YAML.
 
-Validation rules:
+Reglas de validación:
 
-- every catalog dataset appears exactly once
-- every registry dataset exists in `DATASET_CATALOG_CONFIG`
-- `license_status` equals catalog `reuse_policy.status`
-- `live_extractor_status=fallback_only` requires `source_readiness.live_ready=False`
-- `fallback_only` source-backed datasets require `source_readiness.publish_blocking=True`
-- `derived` datasets require `access_method=derived`
+- cada dataset del catálogo aparece exactamente una vez
+- cada dataset del registry existe en `DATASET_CATALOG_CONFIG`
+- `license_status` es igual a `reuse_policy.status` del catálogo
+- `live_extractor_status=fallback_only` requiere `source_readiness.live_ready=False`
+- los datasets respaldados por fuente con `fallback_only` requieren `source_readiness.publish_blocking=True`
+- los datasets `derived` requieren `access_method=derived`
 
-**Verify**: add tests in `tests/test_pipeline_logic.py` for success, missing
-dataset, duplicate dataset, and enum failure.
+**Verificar**: agrega tests en `tests/test_pipeline_logic.py` para éxito,
+dataset faltante, dataset duplicado y fallo de enum.
 
-### Step 3: Add Schema Contracts
+### Paso 3: Agregar contratos de esquema
 
-Create:
+Crea:
 
 ```text
 contracts/datasets/<dataset>.schema.json
 ```
 
-One contract per dataset. Each contract must include:
+Un contrato por dataset. Cada contrato debe incluir:
 
 ```json
 {
@@ -223,53 +231,53 @@ One contract per dataset. Each contract must include:
 }
 ```
 
-Contract verification in `scripts/verify_pipeline.py` must:
+La verificación de contratos en `scripts/verify_pipeline.py` debe:
 
-- load each dataset Parquet output
-- confirm required columns exist
-- confirm declared primary key is unique
-- confirm fixed-width CUT columns are strings and have expected length
-- confirm `expected_record_count` only when `coverage_policy=full`
-- allow SIEDU partial coverage only when `coverage_policy=partial_expected`
-- confirm expected publish outputs exist in the catalog and filesystem
+- cargar cada salida Parquet del dataset
+- confirmar que las columnas requeridas existen
+- confirmar que la clave primaria declarada es única
+- confirmar que las columnas CUT de ancho fijo son strings y tienen el largo esperado
+- confirmar `expected_record_count` solo cuando `coverage_policy=full`
+- permitir cobertura parcial de SIEDU solo cuando `coverage_policy=partial_expected`
+- confirmar que las salidas de publicación esperadas existen en el catálogo y el sistema de archivos
 
-Keep Polars as the reader because the project already depends on it.
+Mantén Polars como lector porque el proyecto ya depende de él.
 
-**Verify**: add tests for missing required column, duplicate primary key, invalid
-CUT width, and partial coverage allowed for SIEDU only.
+**Verificar**: agrega tests para columna requerida faltante, clave primaria
+duplicada, ancho CUT inválido y cobertura parcial permitida solo para SIEDU.
 
-### Step 4: Generate Source Readiness Artifacts
+### Paso 4: Generar artefactos de madurez de fuente
 
-Generate from catalog + registry + current metadata:
+Genera a partir del catálogo + registry + metadatos actuales:
 
 ```text
 data/normalized/source_readiness.json
 data/normalized/source_readiness.md
 ```
 
-Each dataset entry should include:
+Cada entrada de dataset debe incluir:
 
 - dataset
-- maturity status
+- estado de madurez
 - source id
 - source mode
-- live readiness
-- fallback allowed
-- publish blocking
-- live extractor status
-- source contract URL
-- stalled status
+- preparación para live
+- fallback permitido
+- bloqueo de publicación
+- estado del extractor live
+- URL del contrato de fuente
+- estado de estancamiento
 - review_by
 - next_action
 - recommended_action
 
-Register both artifacts in:
+Registra ambos artefactos en:
 
-- artifact manifest shared artifacts
-- hub bundle report index
-- verifier required files
+- manifest de artefactos compartidos
+- índice de informes del hub bundle
+- archivos requeridos del verificador
 
-Add public API/CLI:
+Agrega API/CLI pública:
 
 ```python
 hub.source_readiness()
@@ -279,27 +287,27 @@ hub.source_readiness()
 chile-hub source-readiness
 ```
 
-**Verify**: `chile-hub source-readiness` returns all 14 datasets.
+**Verificar**: `chile-hub source-readiness` devuelve los 14 datasets.
 
-### Step 5: Generate Dataset Quality Scorecard
+### Paso 5: Generar tarjeta de puntuación de calidad del dataset
 
-Generate:
+Genera:
 
 ```text
 data/normalized/dataset_quality.json
 data/normalized/dataset_quality.md
 ```
 
-Score dimensions:
+Dimensiones de puntuación:
 
-- `validation`: 0 or 100
-- `schema_contract`: 0 or 100
-- `source_readiness`: 0, 50, or 100
-- `freshness`: 0, 50, or 100
-- `coverage`: 0, 70, or 100
-- `reuse_policy`: 0, 50, or 100
+- `validation`: 0 o 100
+- `schema_contract`: 0 o 100
+- `source_readiness`: 0, 50 o 100
+- `freshness`: 0, 50 o 100
+- `coverage`: 0, 70 o 100
+- `reuse_policy`: 0, 50 o 100
 
-Weights:
+Ponderaciones:
 
 - validation: 25
 - schema_contract: 20
@@ -308,24 +316,23 @@ Weights:
 - coverage: 10
 - reuse_policy: 10
 
-Each dataset entry must include:
+Cada entrada de dataset debe incluir:
 
-- dimension scores
+- puntuaciones por dimensión
 - `overall_score`
-- `grade`: `A`, `B`, `C`, `D`, or `F`
+- `grade`: `A`, `B`, `C`, `D` o `F`
 - `blocking_reasons`
 - `recommended_action`
 
-Expected initial result:
+Resultado inicial esperado:
 
-- stable live datasets score higher than fallback candidate datasets
-- fallback candidate datasets have explicit source-readiness blockers
-- perfil_territorial_comunal includes upstream readiness warnings when upstreams
-  are fallback
+- los datasets estables en live obtienen puntuación más alta que los datasets candidatos con fallback
+- los datasets candidatos con fallback tienen bloqueadores explícitos de madurez de fuente
+- perfil_territorial_comunal incluye advertencias de madurez upstream cuando los upstreams son fallback
 
-Register JSON/Markdown artifacts in manifest, bundle, reports, and verifier.
+Registra los artefactos JSON/Markdown en manifest, bundle, informes y verificador.
 
-Add public API/CLI:
+Agrega API/CLI pública:
 
 ```python
 hub.dataset_quality()
@@ -335,12 +342,13 @@ hub.dataset_quality()
 chile-hub dataset-quality
 ```
 
-**Verify**: tests assert all 14 datasets appear and candidate fallback datasets
-score below stable live datasets.
+**Verificar**: los tests afirman que aparecen los 14 datasets y que los
+datasets candidatos con fallback obtienen puntuación menor que los datasets
+estables en live.
 
-### Step 6: Split Verification Profiles
+### Paso 6: Separar perfiles de verificación
 
-Update `scripts/verify_pipeline.py` CLI:
+Actualiza la CLI de `scripts/verify_pipeline.py`:
 
 ```bash
 python scripts/verify_pipeline.py --profile dev
@@ -348,21 +356,18 @@ python scripts/verify_pipeline.py --profile readiness
 python scripts/verify_pipeline.py --profile publication
 ```
 
-Rules:
+Reglas:
 
-- `dev`: current `make verify` behavior; fallback allowed when declared and valid.
-- `readiness`: validates source registry, maturity, readiness, schema contracts,
-  stalling policy, and quality artifacts.
-- `publication`: equivalent to current strict `--require-live`, plus source
-  readiness and schema contracts. Reject source-backed fallback datasets unless
-  explicitly excluded from publishable bundle.
+- `dev`: comportamiento actual de `make verify`; se permite fallback cuando está declarado y es válido.
+- `readiness`: valida registry de fuentes, madurez, preparación, contratos de esquema, política de estancamiento y artefactos de calidad.
+- `publication`: equivalente al estricto `--require-live` actual, más madurez de fuente y contratos de esquema. Rechaza datasets respaldados por fuente con fallback a menos que se excluyan explícitamente del bundle publicable.
 
-Preserve backward compatibility:
+Preserva la compatibilidad hacia atrás:
 
-- `--require-live` remains supported and maps to `--profile publication`.
-- no profile defaults to `dev`.
+- `--require-live` sigue siendo compatible y se asigna a `--profile publication`.
+- ningún perfil por defecto es `dev`.
 
-Update Makefile:
+Actualiza el Makefile:
 
 ```make
 verify-dev:
@@ -381,56 +386,55 @@ verify-live:
 	$(PYTHON) scripts/verify_pipeline.py --profile publication
 ```
 
-Update CI:
+Actualiza CI:
 
-- PR build uses dev + readiness.
-- scheduled/publish build uses publication.
-- job summary includes source readiness and dataset quality Markdown.
+- el build de PR usa dev + readiness.
+- el build programado/de publicación usa publication.
+- el resumen del job incluye la madurez de fuente y la tarjeta de calidad en Markdown.
 
-**Verify**:
+**Verificar**:
 
-- `make verify` passes.
-- `make verify-readiness` passes with initial future `review_by` values.
-- `make verify-live` fails while candidate layers are fallback, with precise
-  blocker messages.
+- `make verify` pasa.
+- `make verify-readiness` pasa con valores iniciales de `review_by` futuros.
+- `make verify-live` falla mientras las capas candidatas son fallback, con mensajes de bloqueo precisos.
 
-### Step 7: Add Stalling Detection
+### Paso 7: Agregar detección de estancamiento
 
-Use `review_by` and `stalled_after_days` from `source_readiness` / registry.
+Usa `review_by` y `stalled_after_days` de `source_readiness` / registry.
 
-Rules:
+Reglas:
 
-- `experimental`: stalling emits warning.
-- `candidate`: stalling fails `verify-readiness`.
-- `stable`: source readiness regression fails `verify-readiness`.
-- derived datasets can be marked stalled only because of upstream blockers.
+- `experimental`: el estancamiento emite una advertencia.
+- `candidate`: el estancamiento hace fallar `verify-readiness`.
+- `stable`: una regresión en madurez de fuente hace fallar `verify-readiness`.
+- los datasets derivados pueden marcarse como estancados solo por bloqueadores upstream.
 
-Use the current date at runtime. Tests must inject or patch the date to avoid
-time-dependent failures.
+Usa la fecha actual en tiempo de ejecución. Los tests deben inyectar o
+ajustar la fecha para evitar fallos dependientes del tiempo.
 
-**Verify**: tests cover candidate not stalled, candidate stalled, experimental
-stalled warning, stable regression failure.
+**Verificar**: los tests cubren candidato no estancado, candidato estancado,
+advertencia de estancamiento experimental y fallo por regresión estable.
 
-### Step 8: Add Dataset Compatibility Policy and Changelog Severity
+### Paso 8: Agregar política de compatibilidad de datasets y severidad de changelog
 
-Create:
+Crea:
 
 ```text
 docs/dataset-compatibility-policy.md
 ```
 
-Policy:
+Política:
 
-- adding a dataset: minor version
-- adding nullable columns: minor version
-- removing columns: major version
-- renaming columns: major version
-- changing primary keys: major version
-- changing column type incompatibly: major version
-- changing metadata/report-only fields: patch or minor depending on visibility
-- deprecating a dataset requires at least one minor release notice
+- agregar un dataset: versión minor
+- agregar columnas anulables: versión minor
+- eliminar columnas: versión major
+- renombrar columnas: versión major
+- cambiar claves primarias: versión major
+- cambiar el tipo de columna de forma incompatible: versión major
+- cambiar metadatos o campos solo de informe: patch o minor según visibilidad
+- deprecar un dataset requiere al menos un aviso en una versión minor
 
-Extend `dataset_changelog.json` with:
+Extiende `dataset_changelog.json` con:
 
 - `change_severity`: `none | patch | minor | major`
 - `breaking_changes`
@@ -439,98 +443,100 @@ Extend `dataset_changelog.json` with:
 - `primary_key_changed`
 - `contract_changed`
 
-Use schema contracts to classify changes. If no previous contract exists, classify
-as `minor` for new dataset.
+Usa los contratos de esquema para clasificar los cambios. Si no existe un
+contrato previo, clasifica como `minor` para dataset nuevo.
 
-**Verify**: tests cover added nullable column, removed column, primary key change,
-and new dataset severity.
+**Verificar**: los tests cubren columna anulable agregada, columna eliminada,
+cambio de clave primaria y severidad de dataset nuevo.
 
-### Step 9: Optional Source Adapter Foundation
+### Paso 9: Fundación opcional de adaptador de fuente
 
-Add:
+Agrega:
 
 ```text
 src/extractors/source_adapter.py
 ```
 
-Include reusable helpers only:
+Incluye solo helpers reutilizables:
 
 - `fetch_url_snapshot(url, raw_prefix, timeout)`
 - `build_standard_metadata(...)`
 - `fallback_metadata_note(...)`
 - `source_mode_from_live_success(...)`
 
-Use it only in the three candidate extractors for now:
+Úsalo solo en los tres extractores candidatos por ahora:
 
 - `sinim_finanzas_extractor.py`
 - `mineduc_resultados_extractor.py`
 - `siedu_extractor.py`
 
-Do not rewrite stable extractors in this plan.
+No reescribas extractores estables en este plan.
 
-**Verify**: extractor tests continue passing; add focused tests for helper output.
+**Verificar**: los tests de extractores continúan pasando; agrega tests
+enfocados para la salida de los helpers.
 
-## Public Interfaces and Artifacts
+## Interfaces públicas y artefactos
 
-New source-controlled files:
+Nuevos archivos controlados por versión:
 
-- `data/source_registry.yml` or `data/source_registry.json`
+- `data/source_registry.yml` o `data/source_registry.json`
 - `contracts/datasets/*.schema.json`
 - `docs/dataset-compatibility-policy.md`
 
-New generated artifacts:
+Nuevos artefactos generados:
 
 - `data/normalized/source_readiness.json`
 - `data/normalized/source_readiness.md`
 - `data/normalized/dataset_quality.json`
 - `data/normalized/dataset_quality.md`
 
-New API methods:
+Nuevos métodos de API:
 
 - `ChileHub.source_readiness()`
 - `ChileHub.dataset_quality()`
 
-New CLI commands:
+Nuevos comandos CLI:
 
 - `chile-hub source-readiness`
 - `chile-hub dataset-quality`
 
-New hub bundle report keys:
+Nuevas claves de informe del hub bundle:
 
 - `source_readiness_json`
 - `source_readiness_markdown`
 - `dataset_quality_json`
 - `dataset_quality_markdown`
 
-## Test Plan
+## Plan de pruebas
 
-Add or update tests in `tests/test_pipeline_logic.py`:
+Agrega o actualiza tests en `tests/test_pipeline_logic.py`:
 
-- catalog entries require `maturity` and `source_readiness`
-- source registry validates all datasets exactly once
-- invalid registry enum fails
-- fallback-only dataset without publish blocker fails readiness
-- schema contract catches missing required column
-- schema contract catches duplicate primary key
-- schema contract catches invalid CUT width
-- partial SIEDU coverage passes only with `partial_expected`
-- quality score grades fallback candidates below stable live datasets
-- dev profile allows declared fallback datasets
-- readiness profile detects stalled candidates
-- publication profile rejects fallback source-backed datasets
+- las entradas del catálogo requieren `maturity` y `source_readiness`
+- el registry de fuentes valida todos los datasets exactamente una vez
+- un enum inválido del registry falla
+- un dataset solo con fallback sin bloqueador de publicación falla readiness
+- el contrato de esquema detecta columna requerida faltante
+- el contrato de esquema detecta clave primaria duplicada
+- el contrato de esquema detecta ancho CUT inválido
+- la cobertura parcial de SIEDU pasa solo con `partial_expected`
+- las calificaciones de calidad colocan a los candidatos con fallback por debajo de los datasets estables en live
+- el perfil dev permite datasets con fallback declarados
+- el perfil readiness detecta candidatos estancados
+- el perfil publication rechaza datasets respaldados por fuente con fallback
 
-Add or update tests in `tests/test_chile_hub.py`:
+Agrega o actualiza tests en `tests/test_chile_hub.py`:
 
-- `hub.dataset_quality()` returns all 14 datasets
-- `hub.source_readiness()` returns all 14 datasets
-- report index includes quality/readiness artifacts
-- artifact manifest includes new JSON/Markdown shared artifacts
-- CLI smoke tests for `dataset-quality` and `source-readiness`
+- `hub.dataset_quality()` devuelve los 14 datasets
+- `hub.source_readiness()` devuelve los 14 datasets
+- el índice de informes incluye artefactos de calidad/madurez
+- el manifest de artefactos incluye los nuevos artefactos compartidos JSON/Markdown
+- tests smoke de CLI para `dataset-quality` y `source-readiness`
 
-Add or update `scripts/verify_landing.py` only if the landing page surfaces the
-new quality/readiness reports. If not surfaced, no landing UI change is required.
+Agrega o actualiza `scripts/verify_landing.py` solo si la página de landing
+muestra los nuevos informes de calidad/madurez. Si no se muestran, no se
+requiere cambio en la UI de landing.
 
-Final verification:
+Verificación final:
 
 ```bash
 make extract
@@ -544,46 +550,50 @@ make format-check
 make verify-live
 ```
 
-Expected:
+Esperado:
 
-- all commands pass except `make verify-live`
-- `make verify-live` fails until fallback candidate layers are true live sources
-- the `make verify-live` failure names the exact datasets and source-readiness blockers
+- todos los comandos pasan excepto `make verify-live`
+- `make verify-live` falla hasta que las capas candidatas con fallback sean fuentes live verdaderas
+- la falla de `make verify-live` nombra los datasets exactos y los bloqueadores de madurez de fuente
 
-## Done Criteria
+## Criterios de finalización
 
-- [ ] Every dataset has `maturity` and `source_readiness` in catalog/config.
-- [ ] Every dataset has one source registry entry.
-- [ ] Every dataset has one schema contract.
-- [ ] `dataset_quality` and `source_readiness` are generated and exposed in API,
-      CLI, bundle, manifest, and verifier.
-- [ ] Dev verification remains green with declared fallbacks.
-- [ ] Readiness verification prevents stale candidate source work from being
-      forgotten.
-- [ ] Publication verification fails loudly and precisely while candidate layers
-      are fallback.
-- [ ] Tests cover registry, readiness, contracts, scoring, CLI/API, and profiles.
-- [ ] No generated normalized artifact is edited manually.
+- [ ] Cada dataset tiene `maturity` y `source_readiness` en el catálogo/config.
+- [ ] Cada dataset tiene una entrada en el registry de fuentes.
+- [ ] Cada dataset tiene un contrato de esquema.
+- [ ] `dataset_quality` y `source_readiness` se generan y exponen en API,
+      CLI, bundle, manifest y verificador.
+- [ ] La verificación de desarrollo sigue en verde con fallbacks declarados.
+- [ ] La verificación de madurez evita que el trabajo de fuentes candidatas
+      estancadas quede en el olvido.
+- [ ] La verificación de publicación falla ruidosa y precisamente mientras
+      las capas candidatas sean fallback.
+- [ ] Los tests cubren registry, madurez, contratos, puntuación, CLI/API y
+      perfiles.
+- [ ] Ningún artefacto normalizado generado se edita manualmente.
 
-## STOP Conditions
+## Condiciones de detención
 
-Stop and report if:
+Detente y reporta si:
 
-- Adding the source registry requires an unpinned dependency.
-- Contract validation requires changing public dataset schemas.
-- `make verify` cannot remain green while declared fallback datasets are valid.
-- `make verify-live` starts passing while source-backed candidate datasets still
-  have `source_mode=fallback`.
-- Any implementation requires deleting or renaming an existing public dataset or
-  public column.
+- Agregar el registry de fuentes requiere una dependencia no fijada.
+- La validación de contratos requiere cambiar esquemas públicos de datasets.
+- `make verify` no puede mantenerse en verde mientras los datasets con
+  fallback declarados son válidos.
+- `make verify-live` comienza a pasar mientras los datasets candidatos
+  respaldados por fuente aún tienen `source_mode=fallback`.
+- Alguna implementación requiere eliminar o renombrar un dataset público o
+  una columna pública existente.
 
-## Maintenance Notes
+## Notas de mantenimiento
 
-- Treat source readiness and schema contracts as part of the public operating
-  contract. Reviewers should reject new datasets that do not include registry,
-  readiness, maturity, and schema contract entries.
-- Keep `dev`, `readiness`, and `publication` profiles conceptually distinct.
-  Blurring them will recreate the original “green but not publishable” problem.
-- Once SINIM, MINEDUC outcomes, and SIEDU get true live extractors, update their
-  registry entries and source readiness blocks in the same PR as the extractor
-  change.
+- Trata la madurez de fuente y los contratos de esquema como parte del
+  contrato operativo público. Los revisores deben rechazar nuevos datasets
+  que no incluyan entradas de registry, madurez, preparación y contrato de
+  esquema.
+- Mantén los perfiles `dev`, `readiness` y `publication` conceptualmente
+  distintos. Difuminarlos recreará el problema original de "verde pero no
+  publicable".
+- Una vez que SINIM, resultados MINEDUC y SIEDU tengan extractores live
+  verdaderos, actualiza sus entradas de registry y bloqueos de madurez de
+  fuente en el mismo PR que el cambio del extractor.

@@ -4,14 +4,14 @@ Capa comunal oficial con viviendas censadas, viviendas particulares ocupadas y d
 
 ## Fuente y licencia
 
-- Fuente: Instituto Nacional de Estadisticas, Censo 2024.
+- Fuente: Instituto Nacional de Estadísticas, Censo 2024.
 - Formato de origen: XLSX oficial.
-- Licencia: CC BY 4.0; atribucion requerida.
-- Actualizacion esperada: decenal.
+- Licencia: CC BY 4.0; atribución requerida.
+- Actualización esperada: decenal.
 
-## Claves y schema
+## Claves y esquema
 
-La clave primaria es `codigo_comuna` (`str`, cinco caracteres). Incluye tambien `codigo_region`, `codigo_provincia`, nombres territoriales y las seis medidas censales descritas arriba.
+La clave primaria es `codigo_comuna` (`str`, cinco caracteres). Incluye también `codigo_region`, `codigo_provincia`, nombres territoriales y las seis medidas censales descritas arriba.
 
 ## Uso
 

@@ -1,179 +1,179 @@
-# chile-hub product spec
+# Especificación del producto chile-hub
 
-## One-liner
+## Resumen
 
-`chile-hub` is a curated, versioned, and easy-to-consume access layer for Chilean data from open or legally reusable sources.
+`chile-hub` es una capa de acceso curada, versionada y fácil de consumir para datos chilenos de fuentes abiertas o legalmente reutilizables.
 
-## Principle
+## Principio
 
-The product's value is not "having all Chilean data."
+El valor del producto no es "tener todos los datos chilenos".
 
-The value is reducing the time, ambiguity, and failure rate involved in finding, cleaning, understanding, joining, versioning, and consuming reliable Chilean datasets.
+El valor es reducir el tiempo, la ambigüedad y la tasa de fracaso involucrados en encontrar, limpiar, entender, unir, versionar y consumir conjuntos de datos chilenos fiables.
 
-## Viability
+## Viabilidad
 
-The project is viable if it stays narrow in operating model and broad only in long-term vision.
+El proyecto es viable si se mantiene acotado en su modelo operativo y amplio solo en su visión a largo plazo.
 
-It is not viable as:
+No es viable como:
 
-- a promise to cover every relevant dataset in Chile
-- a scraping-heavy portal with unclear licenses
-- a dashboard-first product with weak data foundations
+- una promesa de cubrir todos los conjuntos de datos relevantes en Chile
+- un portal con mucho scraping y licencias poco claras
+- un producto centrado en tableros con bases de datos débiles
 
-It is viable as:
+Es viable como:
 
-- a repository of high-value data layers
-- a repeatable ingestion and normalization framework
-- a trust-oriented catalog with provenance, caveats, and examples
+- un repositorio de capas de datos de alto valor
+- un marco de ingesta y normalización repetible
+- un catálogo orientado a la confianza con procedencia, advertencias y ejemplos
 
-## Core trade-offs
+## Compensaciones fundamentales
 
-- Breadth vs maintainability: more topics increase appeal but also multiply brittle pipelines.
-- Freshness vs reliability: daily automation is useful only when the source is stable enough to justify it.
-- Convenience vs legal clarity: republishing improves usability but should never outrun source permissions.
-- API surface vs operating cost: versioned files are cheaper to maintain than an always-on API.
-- Uniformity vs truthfulness: not every source can meet the same quality bar, so confidence levels must be explicit.
+- Amplitud vs mantenibilidad: más temas aumentan el atractivo pero también multiplican los procesos frágiles.
+- Frescura vs fiabilidad: la automatización diaria es útil solo cuando la fuente es lo suficientemente estable como para justificarla.
+- Comodidad vs claridad legal: republicar mejora la usabilidad pero nunca debe adelantarse a los permisos de la fuente.
+- Superficie de API vs costo operativo: los archivos versionados son más baratos de mantener que una API siempre activa.
+- Uniformidad vs veracidad: no todas las fuentes pueden cumplir el mismo estándar de calidad, por lo que los niveles de confianza deben ser explícitos.
 
-## Automation policy
+## Política de automatización
 
-Not every dataset belongs in the same automation tier.
+No todos los conjuntos de datos pertenecen al mismo nivel de automatización.
 
-### Tier A: fully automatable
+### Nivel A: totalmente automatizable
 
-Use for:
+Útil para:
 
-- stable APIs
-- machine-readable CSV/JSON/Parquet
-- predictable schemas
-- clear legal reuse
+- API estables
+- CSV/JSON/Parquet legibles por máquina
+- esquemas predecibles
+- reutilización legal clara
 
-Expected behavior:
+Comportamiento esperado:
 
-- scheduled refresh
-- schema checks
-- deterministic outputs
+- actualización programada
+- verificaciones de esquema
+- salidas deterministas
 
-### Tier B: semi-automatable
+### Nivel B: semiautomatizable
 
-Use for:
+Útil para:
 
-- Excel files with periodic manual drift
-- stable files with occasional schema changes
-- datasets that need normalization rules maintained by hand
+- archivos Excel con desviación manual periódica
+- archivos estables con cambios ocasionales de esquema
+- conjuntos de datos que necesitan reglas de normalización mantenidas a mano
 
-Expected behavior:
+Comportamiento esperado:
 
-- mostly automated ingestion
-- manual review on schema drift
-- stronger tests and fallback behavior
+- ingesta mayormente automatizada
+- revisión manual ante desviaciones de esquema
+- pruebas más rigurosas y comportamiento de respaldo
 
-### Tier C: research or manual
+### Nivel C: investigación o manual
 
-Use for:
+Útil para:
 
-- PDFs
-- brittle HTML scraping
-- unclear rights
-- unstable publication patterns
+- PDF
+- scraping HTML frágil
+- derechos poco claros
+- patrones de publicación inestables
 
-Expected behavior:
+Comportamiento esperado:
 
-- do not include in MVP
-- document as future research
+- no incluir en el MVP
+- documentar como investigación futura
 
-## Dataset admission criteria
+## Criterios de admisión de conjuntos de datos
 
-A dataset should enter `chile-hub` only if it scores well on most of the following:
+Un conjunto de datos debería ingresar a `chile-hub` solo si obtiene una buena puntuación en la mayoría de los siguientes criterios:
 
-1. Solves a recurring user pain.
-2. Has strong cross-dataset join value.
-3. Comes from a stable and inspectable source.
-4. Has clear or manageable reuse conditions.
-5. Can be refreshed at reasonable cost.
-6. Produces outputs that are useful without custom tooling.
-7. Helps prove the product's differentiation.
+1. Resuelve un problema recurrente del usuario.
+2. Tiene un fuerte valor de unión entre conjuntos de datos.
+3. Proviene de una fuente estable e inspeccionable.
+4. Tiene condiciones de reutilización claras o manejables.
+5. Puede actualizarse a un costo razonable.
+6. Produce salidas útiles sin herramientas personalizadas.
+7. Ayuda a demostrar la diferenciación del producto.
 
-## Initial user priority
+## Prioridad de usuario inicial
 
-### Primary
+### Principal
 
-- developers building Chilean software
-- analysts or BI teams who repeatedly prepare Chilean reference data
+- desarrolladores que construyen software chileno
+- analistas o equipos de BI que preparan repetidamente datos de referencia chilenos
 
-### Secondary
+### Secundario
 
-- journalists, researchers, and civic-tech teams
+- periodistas, investigadores y equipos de tecnología cívica
 
-Non-technical spreadsheet users matter, but they should be served through exports and templates rather than being the primary design center of the MVP.
+Los usuarios no técnicos de hojas de cálculo importan, pero deberían recibir servicio a través de exportaciones y plantillas, en lugar de ser el centro de diseño principal del MVP.
 
-## MVP recommendation
+## Recomendación de MVP
 
-The MVP should prove that `chile-hub` can turn messy Chilean public data into dependable building blocks.
+El MVP debería demostrar que `chile-hub` puede convertir datos públicos chilenos desordenados en componentes confiables.
 
-### Included in MVP
+### Incluido en el MVP
 
-- territorial base layer: region, province, comuna, standardized codes, search-safe names
-- daily economic indicators: UF, USD, EUR, UTM, and similar high-reuse indicators
-- one additional transversal layer chosen by admission criteria, not intuition alone
+- capa base territorial: región, provincia, comuna, códigos estandarizados, nombres seguros para búsqueda
+- indicadores económicos diarios: UF, USD, EUR, UTM e indicadores similares de alto reúso
+- una capa transversal adicional elegida por criterios de admisión, no solo por intuición
 
-Good candidates for the third layer:
+Buenos candidatos para la tercera capa:
 
-- establishments or institutional directories with strong join potential
-- election results with stable official identifiers
-- municipal finance or budget summaries if access and licensing are clean
+- directorios de establecimientos o institucionales con fuerte potencial de unión
+- resultados electorales con identificadores oficiales estables
+- resúmenes de finanzas o presupuestos municipales si el acceso y las licencias son limpios
 
-### Explicitly excluded from MVP
+### Explícitamente excluido del MVP
 
-- universal "all Chilean data" coverage
-- complex dashboards
-- a public API that must stay online 24/7
-- fragile scraping as the product's core promise
-- sources with unclear redistribution conditions
+- cobertura universal de "todos los datos chilenos"
+- tableros complejos
+- una API pública que deba mantenerse en línea 24/7
+- scraping frágil como la promesa central del producto
+- fuentes con condiciones de redistribución poco claras
 
-## Consumption modes
+## Modos de consumo
 
-### Must-have
+### Imprescindible
 
-- versioned flat files: CSV, JSON, Parquet
-- local analytical database: DuckDB
-- SQLite export
-- documentation with copy-paste examples
+- archivos planos versionados: CSV, JSON, Parquet
+- base de datos analítica local: DuckDB
+- exportación SQLite
+- documentación con ejemplos copiables
 
-### Nice-to-have after MVP
+### Deseable después del MVP
 
-- Python helper package
-- richer search UI
-- hosted file index or release catalog
+- paquete auxiliar de Python
+- interfaz de búsqueda más completa
+- índice de archivos alojado o catálogo de versiones
 
-### Usually overkill for MVP
+### Generalmente excesivo para el MVP
 
-- REST API
-- auth
-- interactive dashboard suite
+- API REST
+- autenticación
+- suite de tableros interactivos
 
-## Trust model
+## Modelo de confianza
 
-Every data layer should publish:
+Cada capa de datos debería publicar:
 
-- source
-- access method
-- update frequency
-- legal notes
-- schema
-- normalization rules
-- known caveats
-- freshness timestamp
-- confidence tier
+- fuente
+- método de acceso
+- frecuencia de actualización
+- notas legales
+- esquema
+- reglas de normalización
+- advertencias conocidas
+- marca de tiempo de actualización
+- nivel de confianza
 
-## Definition of success
+## Definición de éxito
 
-The MVP succeeds if a technical user can:
+El MVP tiene éxito si un usuario técnico puede:
 
-1. discover a dataset quickly
-2. understand whether it is trustworthy
-3. load it in one line
-4. join it with their own data without cleanup work
+1. descubrir un conjunto de datos rápidamente
+2. entender si es confiable
+3. cargarlo en una línea
+4. unirlo con sus propios datos sin trabajo de limpieza
 
-## Immediate next step
+## Siguiente paso inmediato
 
-Build the repo around a visible catalog of data layers and a strict admission rubric before expanding source coverage.
+Construye el repositorio en torno a un catálogo visible de capas de datos y una rúbrica de admisión estricta antes de expandir la cobertura de fuentes.

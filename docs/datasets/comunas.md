@@ -35,7 +35,7 @@ Problemas que resuelve:
 - falta de una llave territorial estable para cruces
 - necesidad de búsquedas insensibles a acentos
 
-## Outputs
+## Salidas
 
 - `data/normalized/comunas.parquet`
 - `data/normalized/comunas.json`
@@ -44,7 +44,7 @@ Problemas que resuelve:
 - tabla `comunas` en `data/normalized/chile_data.db`
 - hoja `Comunas y Regiones` en `data/normalized/chile_data_latest.xlsx`
 
-## Schema actual
+## Esquema actual
 
 Fuente observada: `data/normalized/chile_data.duckdb`
 
@@ -76,7 +76,7 @@ Campos recomendados para cruce:
 - `codigo_region`: útil para agregaciones
 - `nombre_comuna_clean`: apoyo para matching cuando el dato externo está sucio
 
-## Caveats
+## Advertencias
 
 - la fuente BCN actual entrega una fila `Zona sin demarcar` sin códigos y omite `Antártica (12202)`, por lo que el extractor aplica un pequeño parche defensivo
 - SUBDERE sigue disponible solo como fallback secundario y su URL conocida hoy es inestable

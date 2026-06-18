@@ -1,28 +1,30 @@
-# Data Licensing And Attribution
+# Licencias de datos y atribución
 
-`chile-hub` code is distributed under the MIT License.
+El código de `chile-hub` se distribuye bajo la licencia MIT.
 
-The datasets published by `chile-hub` keep their source-specific reuse terms,
-licenses, and attribution requirements. The canonical machine-readable source
-of truth is the generated metadata in:
+Los datasets publicados por `chile-hub` mantienen sus términos de reutilización,
+licencias y requisitos de atribución específicos de cada fuente. La fuente de
+verdad canónica y legible por máquina es el metadata generado en:
 
 - `data/normalized/dataset_catalog.json`
 - `data/normalized/redistribution_report.json`
 - `data/normalized/provenance_report.json`
 
-The PyPI package does not bundle generated datasets in the wheel. It downloads
-verified GitHub Release assets and uses the metadata above to expose source,
-license, provenance, redistribution, and attribution information.
+El paquete PyPI no incluye los datasets generados en la wheel. Descarga
+assets verificados de GitHub Release y utiliza el metadata anterior para
+exponer información sobre fuente, licencia, procedencia, redistribución y
+atribución.
 
-Current source families include BCN ArcGIS, Banco Central de Chile via
-`mindicador.cl`, INE, MINSAL/datos.gob.cl, BCN/SERVEL legal mappings, MINEDUC,
-SINIM/SUBDERE, and derived chile-hub profile/status artifacts. Before
-redistributing derived artifacts, inspect:
+Las familias de fuentes actuales incluyen BCN ArcGIS, Banco Central de Chile vía
+`mindicador.cl`, INE, MINSAL/datos.gob.cl, BCN/SERVEL (mapeos legales), MINEDUC,
+SINIM/SUBDERE, y artefactos derivados de perfil/estado de chile-hub. Antes de
+redistribuir artefactos derivados, inspecciona:
 
 ```bash
 chile-hub redistribution
 chile-hub provenance
 ```
 
-If a source has ambiguous or restricted terms, the project policy is to exclude
-it from public bundles until the redistribution status is resolved.
+Si una fuente tiene términos ambiguos o restrictivos, la política del proyecto es
+excluirla de los paquetes públicos hasta que se resuelva el estado de
+redistribución.

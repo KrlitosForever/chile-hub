@@ -1,16 +1,16 @@
-"""Public exception hierarchy for chile-hub."""
+"""Jerarquía pública de excepciones de chile-hub."""
 
 
 class ChileHubError(Exception):
-    """Base class for expected chile-hub runtime errors."""
+    """Clase base para errores de ejecución esperados de chile-hub."""
 
 
 class ChileHubDataError(ChileHubError, RuntimeError):
-    """Raised when release data cannot be resolved or verified."""
+    """Se lanza cuando los datos de una release no pueden resolverse o verificarse."""
 
 
 class _ChileHubKeyError(ChileHubError, KeyError):
-    """KeyError variant with a user-facing string representation."""
+    """Variante de KeyError con representación de cadena para el usuario."""
 
     def __str__(self) -> str:
         if not self.args:
@@ -19,12 +19,12 @@ class _ChileHubKeyError(ChileHubError, KeyError):
 
 
 class ChileHubDatasetError(_ChileHubKeyError):
-    """Raised when a dataset name is not registered in the catalog."""
+    """Se lanza cuando un nombre de dataset no está registrado en el catálogo."""
 
 
 class ChileHubOutputError(_ChileHubKeyError):
-    """Raised when a dataset output type is not available."""
+    """Se lanza cuando un tipo de salida de dataset no está disponible."""
 
 
 class ChileHubExampleError(_ChileHubKeyError):
-    """Raised when an example kind is not available for a dataset."""
+    """Se lanza cuando un tipo de ejemplo no está disponible para un dataset."""

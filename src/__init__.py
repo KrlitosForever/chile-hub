@@ -1,1 +1,1 @@
-"""Core package for chile-hub helpers and build utilities."""
+"""Paquete principal para utilidades y herramientas de compilación de chile-hub."""

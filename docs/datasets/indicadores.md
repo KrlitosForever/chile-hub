@@ -53,9 +53,9 @@ Problemas que resuelve:
 
 - consultas repetidas para indicadores de uso cotidiano
 - inconsistencias entre formatos de fecha y nombres de indicador
-- necesidad de un output local y simple para pipelines o dashboards
+- necesidad de una salida local y simple para pipelines o dashboards
 
-## Outputs
+## Salidas
 
 - `data/normalized/indicadores.parquet`
 - `data/normalized/indicadores_hoy.json`
@@ -64,7 +64,7 @@ Problemas que resuelve:
 - tabla `indicadores` en `data/normalized/chile_data.db`
 - hoja `Indicadores Diarios` en `data/normalized/chile_data_latest.xlsx`
 
-## Schema actual
+## Esquema actual
 
 Fuente observada: `data/normalized/chile_data.duckdb`
 
@@ -96,9 +96,9 @@ Cruces sugeridos:
 - `fecha` para análisis temporales
 - `codigo_indicador` para pivoteo o series comparativas
 
-## Caveats
+## Advertencias
 
-- el output puede provenir de datos live, de una mezcla live + recuperación parcial o de fallback local
+- la salida puede provenir de datos live, de una mezcla live + recuperación parcial o de fallback local
 - `indicadores_hoy.json` es un nombre orientado a consumo, pero el dataset puede incluir más de una fecha
 - la cobertura histórica sigue siendo oportunista; no es todavía un archivo histórico oficial curado capa por capa
 - la capa sirve bien para conveniencia operativa, pero no aún como fuente definitiva de archivo histórico

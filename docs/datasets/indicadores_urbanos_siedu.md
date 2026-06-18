@@ -10,7 +10,7 @@ Indicadores urbanos del Sistema de Indicadores y Estándares de Desarrollo Urban
 - URL: https://www.ine.gob.cl/herramientas/portal-de-mapas/siedu
 - Licencia: Licencia de Datos Abiertos INE
 
-## Schema
+## Esquema
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -42,6 +42,6 @@ FROM 'data/normalized/indicadores_urbanos_siedu.parquet';
 
 `coverage.status` se marca como parcial cuando corresponde. No debe interpretarse la ausencia de una comuna como valor cero.
 
-## Changelog
+## Registro de cambios
 
 - v1: Dataset agregado con cobertura parcial explícita y validación de claves largas.

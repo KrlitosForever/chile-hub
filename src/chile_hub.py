@@ -1,6 +1,6 @@
-"""Compatibility shim for the pre-package `src.chile_hub` import path.
+"""Shim de compatibilidad para la ruta de importación pre-paquete `src.chile_hub`.
 
-New code should import from `chile_hub`:
+El código nuevo debe importar desde `chile_hub`:
 
     from chile_hub import ChileHub
 """

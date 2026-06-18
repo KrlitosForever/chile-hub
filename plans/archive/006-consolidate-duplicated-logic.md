@@ -1,28 +1,28 @@
 # Plan 006: Consolidar lógica duplicada y corregir violación de capas
 
-> **Executor instructions**: Follow this plan step by step. Run every
-> verification command and confirm the expected result before moving to the
-> next step. If anything in the "STOP conditions" section occurs, stop and
-> report — do not improvise. When done, update the status row for this plan
-> in `plans/README.md`.
+> **Instrucciones para el ejecutor**: Sigue este plan paso a paso. Ejecuta cada
+> comando de verificación y confirma el resultado esperado antes de pasar al
+> siguiente paso. Si ocurre algo de la sección "Condiciones de detención", detente e
+> informa — no improvises. Al terminar, actualiza la fila de estado de este plan
+> en `plans/README.md`.
 
-> **Drift check (run first)**:
+> **Verificación de desviación (ejecutar primero)**:
 > `git diff --stat ba2f434..HEAD -- src/pipeline_status_utils.py src/chile_hub.py src/build_dev_db.py src/extractors/subdere_extractor.py src/extractors/bcentral_extractor.py`
-> If any of these files changed since this plan was written, compare the
-> "Current state" excerpts against the live code before proceeding; on a
-> mismatch, treat it as a STOP condition.
+> Si alguno de estos archivos cambió desde que se escribió este plan, compara los
+> extractos de "Estado actual" con el código real antes de proceder; si hay
+> discrepancia, trátalo como una condición de detención.
 
-## Status
+## Estado
 
-- **Priority**: P1
-- **Effort**: S
-- **Risk**: LOW
-- **Depends on**: none (pero 005 toca build_dev_db.py — coordinar orden)
-- **Category**: tech-debt
-- **Planned at**: commit `ba2f434`, 2026-06-13
-- **Resolved**: 2026-06-18 — validation lives in `src/validation.py`, extractors import validators from that neutral module, and `src/chile_hub/core.py` uses shared `compute_top_issue` / freshness helpers.
+- **Prioridad**: P1
+- **Esfuerzo**: S
+- **Riesgo**: BAJO
+- **Depende de**: ninguno (pero 005 toca build_dev_db.py — coordinar orden)
+- **Categoría**: deuda-técnica
+- **Planificado en**: commit `ba2f434`, 2026-06-13
+- **Resuelto**: 2026-06-18 — las validaciones viven en `src/validation.py`, los extractores importan validadores desde ese módulo neutral, y `src/chile_hub/core.py` usa `compute_top_issue` / helpers de frescura compartidos.
 
-## Why this matters
+## Por qué es importante
 
 Tres formas de duplicación y una violación arquitectónica crean riesgo de
 divergencia y mantenimiento frágil:
@@ -30,11 +30,11 @@ divergencia y mantenimiento frágil:
 1. **Top-issue duplicado**: `pipeline_status_utils.py:83` y
    `chile_hub.py:72` implementan la misma lógica de priorización con
    pequeñas diferencias (una usa `freshness_status` del build, la otra
-   `current_freshness_status` de runtime). Si se agrega un nuevo tier
+   `current_freshness_status` de runtime). Si se agrega un nuevo nivel
    de prioridad, hay que actualizar dos lugares.
 
-2. **Freshness duplicado**: `build_dev_db.py:208` y `chile_hub.py:792`
-   computan `age_hours` y `fresh/stale/unknown` con la misma fórmula pero
+2. **Frescura duplicada**: `build_dev_db.py:208` y `chile_hub.py:792`
+   calculan `age_hours` y `fresh/stale/unknown` con la misma fórmula pero
    en implementaciones separadas.
 
 3. **Violación de capas**: los extractores (`subdere_extractor.py:669` y
@@ -43,7 +43,7 @@ divergencia y mantenimiento frágil:
    inversa (extracción depende de build). Las funciones de validación deben
    vivir en un módulo neutral.
 
-## Current state
+## Estado actual
 
 ### Duplicación de top_issue
 
@@ -97,7 +97,7 @@ def top_issue(self):
 Con `_attention_priority_for_dataset()` en `chile_hub.py:72-80` usando
 `current_freshness_status` en vez de `freshness_status`.
 
-### Duplicación de freshness
+### Duplicación de frescura
 
 - `src/build_dev_db.py:208-225`:
 
@@ -140,19 +140,19 @@ Las funciones `validate_comunas` (línea 413), `validate_regiones` (447),
 `validate_provincias` (463) y `validate_indicadores` (479) están definidas
 en `src/build_dev_db.py`.
 
-## Commands you will need
+## Comandos que necesitarás
 
-| Purpose | Command | Expected on success |
-|---------|---------|---------------------|
-| Run extractors | `make extract` | exit 0 |
-| Run build | `make build` | exit 0 |
-| Verify artifacts | `make verify` | exit 0 |
-| Run tests | `make test` | exit 0 |
-| Run lint | `make lint` | exit 0 |
+| Propósito | Comando | Esperado al éxito |
+|-----------|---------|-------------------|
+| Ejecutar extractores | `make extract` | exit 0 |
+| Ejecutar build | `make build` | exit 0 |
+| Verificar artifacts | `make verify` | exit 0 |
+| Ejecutar tests | `make test` | exit 0 |
+| Ejecutar lint | `make lint` | exit 0 |
 
-## Scope
+## Alcance
 
-**In scope** (files to modify):
+**In scope** (archivos a modificar):
 - `src/build_dev_db.py` — extraer funciones de validación a un nuevo módulo;
   actualizar imports
 - `src/validation.py` — **CREAR**: contiene `validate_comunas`,
@@ -167,15 +167,15 @@ en `src/build_dev_db.py`.
 - `tests/test_pipeline_logic.py` — actualizar imports de validación
 - `tests/test_chile_hub.py` — actualizar import de `validate_indicadores`
 
-**Out of scope** (do NOT touch):
+**Out of scope** (NO tocar):
 - Cambios en el comportamiento de las validaciones — solo se mueven de lugar.
 - `src/extractors/base.py` — no se modifica en este plan.
 - Cambios en la API pública de `ChileHub` — `top_issue()` debe mantener
   exactamente el mismo contrato (mismos campos de retorno).
 
-## Steps
+## Pasos
 
-### Step 1: Crear `src/validation.py` con las funciones de validación
+### Paso 1: Crear `src/validation.py` con las funciones de validación
 
 Mover estas funciones desde `src/build_dev_db.py` al nuevo archivo
 `src/validation.py`:
@@ -201,9 +201,9 @@ EXPECTED_LIVE_COMUNAS_COUNT = 346
 
 Y en `build_dev_db.py`, re-importarlas desde `src.validation`.
 
-**Verify**: `make lint` → exit 0. Los imports deben resolverse correctamente.
+**Verificar**: `make lint` → exit 0. Los imports deben resolverse correctamente.
 
-### Step 2: Actualizar imports en todos los callers
+### Paso 2: Actualizar imports en todos los callers
 
 Actualizar los imports en:
 
@@ -219,9 +219,9 @@ Actualizar los imports en:
 - `tests/test_pipeline_logic.py`: actualizar todos los imports de funciones
   de validación y constantes.
 
-**Verify**: `make build && make test` → exit 0. Todos los tests pasan.
+**Verificar**: `make build && make test` → exit 0. Todos los tests pasan.
 
-### Step 3: Extraer `compute_freshness()` compartido
+### Paso 3: Extraer `compute_freshness()` compartido
 
 En `src/pipeline_status_utils.py`, crear una función `compute_freshness()`:
 
@@ -253,10 +253,10 @@ Actualizar `build_freshness()` en `build_dev_db.py` para delegar en
 Actualizar `ChileHub.freshness_audit()` en `chile_hub.py` para usar
 `compute_freshness()` en vez de la fórmula inline.
 
-**Verify**: `make build && make test` → exit 0. El freshness audit y el
+**Verificar**: `make build && make test` → exit 0. La auditoría de frescura y el
 build deben producir los mismos resultados.
 
-### Step 4: Unificar top_issue en pipeline_status_utils
+### Paso 4: Unificar top_issue en pipeline_status_utils
 
 Hacer que `ChileHub.top_issue()` y `ChileHub._attention_priority_for_dataset()`
 deleguen en `compute_top_issue()` de `pipeline_status_utils`.
@@ -265,7 +265,7 @@ El desafío: el `top_issue()` de `ChileHub` usa `current_freshness_status` del
 runtime freshness audit, mientras que `compute_top_issue()` usa
 `freshness_status` del build.
 
-Solución: parametrizar el campo de freshness. Agregar un parámetro
+Solución: parametrizar el campo de frescura. Agregar un parámetro
 `freshness_field="freshness_status"` a `compute_top_issue()`:
 
 ```python
@@ -276,21 +276,21 @@ def compute_top_issue(entries, freshness_field="freshness_status"):
         ...
 ```
 
-En `build_hub_health()`, llamar con el default (`"freshness_status"`).
+En `build_hub_health()`, llamar con el valor por defecto (`"freshness_status"`).
 En `ChileHub.top_issue()`, construir entries con el campo
 `freshness_status` poblado desde `current_freshness_status` y llamar a
 `compute_top_issue(entries)`.
 
-**Verify**: `make test` → exit 0. Los tests `test_top_issue`,
+**Verificar**: `make test` → exit 0. Los tests `test_top_issue`,
 `test_top_issue_table`, `test_overview`, `test_bundle_summary` deben
 seguir pasando con los mismos valores.
 
-### Step 5: Ejecutar el pipeline completo
+### Paso 5: Ejecutar el pipeline completo
 
-**Verify**: `make refresh` → exit 0. Todos los artifacts se generan
+**Verificar**: `make refresh` → exit 0. Todos los artifacts se generan
 correctamente. `make lint` → exit 0.
 
-## Test plan
+## Plan de pruebas
 
 - Los tests existentes son la red de seguridad: `make test` debe pasar
   exactamente igual que antes.
@@ -301,7 +301,7 @@ correctamente. `make lint` → exit 0.
 - Si algún test falla, verificar que los imports se actualizaron
   correctamente y que las funciones movidas no cambiaron de comportamiento.
 
-## Done criteria
+## Criterios de finalización
 
 - [ ] `src/validation.py` existe con las 4 funciones de validación y las 3
       constantes
@@ -319,27 +319,27 @@ correctamente. `make lint` → exit 0.
 - [ ] `make test` sale con exit 0
 - [ ] `make lint` sale con exit 0
 
-## STOP conditions
+## Condiciones de detención
 
-Stop and report back (do not improvise) if:
+Detente e informa (no improvises) si:
 
-- Los excerpts de "Current state" no coinciden con el código actual.
+- Los extractos de "Estado actual" no coinciden con el código actual.
 - Mover las funciones de validación rompe tests (verificar imports primero).
 - La unificación de `compute_freshness()` produce resultados diferentes a
   los originales (posible si hay diferencias sutiles en el manejo de
   timezone o redondeo).
 - La unificación de `compute_top_issue()` cambia el resultado de
   `top_issue()` en los tests (indicaría que la parametrización del campo
-  de freshness no es suficiente).
+  de frescura no es suficiente).
 - `make refresh` falla en cualquier paso.
 
-## Maintenance notes
+## Notas de mantenimiento
 
 - Si se agrega un nuevo dataset con su propia validación, la función
   `validate_{nombre}()` debe ir en `src/validation.py`.
-- Si se modifica la política de priorización de top_issue (nuevos tiers),
+- Si se modifica la política de priorización de top_issue (nuevos niveles),
   solo hay que modificar `compute_top_issue()` en `pipeline_status_utils.py`.
-- `compute_freshness()` acepta un parámetro `checked_at` para testing; si no
+- `compute_freshness()` acepta un parámetro `checked_at` para pruebas; si no
   se provee, usa `datetime.now(UTC)`. Esto facilita tests deterministas.
 - Los extractores ya no dependen del módulo build — esto permite en el
   futuro mover `build_dev_db.py` a un paquete separado sin romper los

@@ -1,15 +1,15 @@
 # Plan 005: Eliminar escrituras redundantes en la sección final del build
 
-> **Executor instructions**: Follow this plan step by step. Run every
-> verification command and confirm the expected result before moving to the
-> next step. If anything in the "STOP conditions" section occurs, stop and
-> report — do not improvise. When done, update the status row for this plan
-> in `plans/README.md`.
+> **Instrucciones para el ejecutor**: Sigue este plan paso a paso. Ejecuta cada
+> comando de verificación y confirma el resultado esperado antes de pasar al
+> siguiente paso. Si ocurre algo de la sección "Condiciones de detención", detente e
+> informa — no improvises. Al terminar, actualiza la fila de estado de este plan
+> en `plans/README.md`.
 
-> **Drift check (run first)**: `git diff --stat ba2f434..HEAD -- src/build_dev_db.py`
-> If `src/build_dev_db.py` changed since this plan was written, compare the
-> "Current state" excerpts against the live code before proceeding; on a
-> mismatch, treat it as a STOP condition.
+> **Verificación de desviación (ejecutar primero)**: `git diff --stat ba2f434..HEAD -- src/build_dev_db.py`
+> Si `src/build_dev_db.py` cambió desde que se escribió este plan, compara los
+> extractos de "Estado actual" con el código real antes de proceder; si hay
+> discrepancia, trátalo como una condición de detención.
 
 ## Status
 
@@ -21,7 +21,7 @@
 - **Planned at**: commit `ba2f434`, 2026-06-13
 - **Resolved**: 2026-06-18 — final build section now writes the base manifest once, creates the ZIP/checksum, attaches package metadata, then writes hub bundle and overview once.
 
-## Why this matters
+## Por qué es importante
 
 La sección final de `main()` en `build_dev_db.py` (líneas 1491–1546) tiene
 tres ineficiencias que suman tiempo de build y complejidad innecesaria:
@@ -46,7 +46,7 @@ bundle/overview con los metadatos del ZIP. La Fase 2 es necesaria, pero la
 Fase 1 puede ser eliminada — el manifest puede escribirse una sola vez
 después de que el ZIP está listo.
 
-## Current state
+## Estado actual
 
 - `src/build_dev_db.py:1491-1546` — la sección a refactorizar:
 
@@ -93,7 +93,7 @@ write_overview_markdown_file(overview)          # ← 2ª escritura overview.md
 | Run tests | `make test` | exit 0 |
 | Run lint | `make lint` | exit 0 |
 
-## Scope
+## Alcance
 
 **In scope** (the only files you should modify):
 - `src/build_dev_db.py` — solo la sección `main()` desde línea ~1491 hasta
@@ -107,7 +107,7 @@ write_overview_markdown_file(overview)          # ← 2ª escritura overview.md
 - `scripts/package_publishable_bundle.py` — maneja ZIP para publicación
   externa; no se toca.
 
-## Steps
+## Pasos
 
 ### Step 1: Eliminar la Fase 1 de artifact_manifest, hub_bundle y overview
 
@@ -218,7 +218,7 @@ necesiten.
 
 **Verify**: `make refresh` → exit 0. `make test` → exit 0. `make lint` → exit 0.
 
-## Test plan
+## Plan de pruebas
 
 - Los tests existentes (`make test`) validan la estructura y contenido de
   `artifact_manifest.json`, `hub_bundle.json`, `overview.json` y demás
@@ -229,7 +229,7 @@ necesiten.
 - El test `test_pipeline_logic.py:131` (`test_write_publishable_bundle_zip_fails_before_creating_partial_zip`)
   prueba `write_publishable_bundle_zip()` directamente — no debería afectarse.
 
-## Done criteria
+## Criterios de finalización
 
 - [ ] `make build` sale con exit 0
 - [ ] `make verify` sale con exit 0
@@ -242,11 +242,11 @@ necesiten.
 - [ ] Ningún archivo fuera de `src/build_dev_db.py` y
       `src/pipeline_status_utils.py` fue modificado
 
-## STOP conditions
+## Condiciones de detención
 
-Stop and report back (do not improvise) if:
+Detente e informa (no improvises) si:
 
-- El código en las líneas citadas en "Current state" no coincide con los
+- El código en las líneas citadas en "Estado actual" no coincide con los
   excerpts (el archivo cambió desde que este plan fue escrito).
 - `make build` falla después de la refactorización.
 - `make verify` detecta diferencias en el contenido de los artifacts
@@ -257,7 +257,7 @@ Stop and report back (do not improvise) if:
   (ej. `hub_bundle.json` debe incluir el package ZIP; si se genera antes,
   no lo incluirá).
 
-## Maintenance notes
+## Notas de mantenimiento
 
 - Si se agregan nuevos reportes al pipeline, deben seguir el mismo patrón:
   escribir una vez, mantener el dict en memoria si se necesita downstream.

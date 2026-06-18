@@ -1,10 +1,10 @@
-# Contributing
+# Contribuir
 
-Thanks for helping keep chile-hub reliable.
+Gracias por ayudar a mantener chile-hub confiable.
 
-## Local Checks
+## Verificaciones Locales
 
-Run the smallest useful checks before opening a pull request:
+Ejecuta las verificaciones útiles más pequeñas antes de abrir un pull request:
 
 ```bash
 make lint
@@ -12,7 +12,7 @@ make format-check
 make test
 ```
 
-For changes that affect generated public files, run:
+Para cambios que afectan archivos públicos generados, ejecuta:
 
 ```bash
 make build
@@ -20,12 +20,12 @@ make verify
 make verify-landing
 ```
 
-## Data Changes
+## Cambios de Datos
 
-New datasets must follow `AGENTS.md`: evaluate source rights first, add an extractor, write staging metadata, validate in `src/validation.py`, wire the build, add tests, update CI, and document the dataset.
+Los nuevos conjuntos de datos deben seguir `AGENTS.md`: evalúa los derechos de la fuente primero, agrega un extractor, escribe metadatos de staging, valida en `src/validation.py`, conecta la compilación, agrega pruebas, actualiza CI y documenta el conjunto de datos.
 
-Never edit `data/normalized/` by hand. Regenerate it through the pipeline.
+Nunca edites `data/normalized/` manualmente. Regenera los datos a través del pipeline.
 
 ## Pull Requests
 
-Use conventional commit prefixes in commit titles when possible, such as `fix:`, `feat:`, `docs:`, or `chore:`. Releases are generated from commit history after the full pipeline passes.
+Usa prefijos de commits convencionales en los títulos de los commits cuando sea posible, como `fix:`, `feat:`, `docs:` o `chore:`. Los lanzamientos se generan a partir del historial de commits después de que el pipeline completo pase.

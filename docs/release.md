@@ -1,50 +1,54 @@
-# Release Process
+# Proceso de publicación
 
-`chile-hub` publishes software releases to PyPI and data refreshes as verified
-normalized artifacts. These are related but intentionally separate flows.
+`chile-hub` publica lanzamientos de software en PyPI y actualizaciones de datos
+como artefactos normalizados verificados. Estos son flujos relacionados pero
+intencionalmente separados.
 
-## Versioning
+## Versionado
 
-Use Conventional Commits:
+Usa Conventional Commits:
 
-- `fix:` bumps PATCH.
-- `feat:` bumps MINOR.
-- `feat!:` or `BREAKING CHANGE:` bumps MAJOR.
-- `docs:`, `test:`, `style:`, and data refresh commits do not publish by default.
+- `fix:` incrementa PATCH.
+- `feat:` incrementa MINOR.
+- `feat!:` o `BREAKING CHANGE:` incrementa MAJOR.
+- `docs:`, `test:`, `style:` y los commits de actualización de datos no
+  publican por defecto.
 
-The canonical software version is `project.version` in `pyproject.toml`.
-`python-semantic-release` updates it, creates a Git tag, creates a GitHub
-Release, builds the wheel and source distribution, and publishes through PyPI
-Trusted Publishing.
+La versión canónica del software es `project.version` en `pyproject.toml`.
+`python-semantic-release` la actualiza, crea un Git tag, crea un GitHub
+Release, compila el wheel y la source distribution, y publica a través de
+PyPI Trusted Publishing.
 
 ## TestPyPI
 
-Use the manual `TestPyPI Package Smoke` workflow before enabling a production
-release for a major packaging change. It builds the package, publishes to
-TestPyPI, installs the wheel in a clean environment, imports `chile_hub`, and
-runs `chile-hub --help`.
+Usa el flujo manual `TestPyPI Package Smoke` antes de habilitar un lanzamiento
+de producción para un cambio importante en el empaquetado. Compila el paquete,
+lo publica en TestPyPI, instala el wheel en un entorno limpio, importa
+`chile_hub` y ejecuta `chile-hub --help`.
 
-## Coverage
+## Cobertura
 
-Local coverage checks use `make coverage`, which runs `pytest-cov` against
-`src/` and writes both a terminal `term-missing` report and `coverage.xml`.
-The main pipeline workflow runs the same coverage command during unit and
-contract tests, so release candidates include the coverage signal used locally.
+Las verificaciones locales de cobertura usan `make coverage`, que ejecuta
+`pytest-cov` sobre `src/` y escribe tanto un reporte de terminal
+`term-missing` como `coverage.xml`. El flujo principal del pipeline ejecuta el
+mismo comando de cobertura durante las pruebas unitarias y de contrato, por lo
+que los release candidates incluyen la señal de cobertura usada localmente.
 
-## Production PyPI
+## Producción PyPI
 
-The `PyPI Release` workflow runs on pushes to `main`. It skips `[skip ci]`
-commits, computes the next version from Conventional Commits, publishes through
-OIDC Trusted Publishing, and attaches the latest verified data bundle plus
-metadata assets to the GitHub Release.
+El flujo `PyPI Release` se ejecuta al hacer push a `main`. Omite los commits
+con `[skip ci]`, calcula la siguiente versión a partir de Conventional Commits,
+publica a través de OIDC Trusted Publishing y adjunta el paquete de datos
+verificado más reciente junto con los metadatos al GitHub Release.
 
-## Data-Only Refreshes
+## Actualizaciones solo de datos
 
-Scheduled data refreshes keep using the pipeline workflow. They validate live
-data, update `data/normalized/`, and commit with:
+Las actualizaciones programadas de datos continúan usando el flujo del
+pipeline. Validan los datos en vivo, actualizan `data/normalized/` y realizan
+un commit con:
 
 ```text
 chore(data): daily refresh [skip ci]
 ```
 
-Those commits do not create a new PyPI version.
+Estos commits no crean una nueva versión en PyPI.

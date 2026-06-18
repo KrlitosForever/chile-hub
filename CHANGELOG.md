@@ -1,92 +1,96 @@
-# Changelog
+# Registro de cambios
 
-This project uses Conventional Commits and `python-semantic-release` to generate
-release notes for PyPI releases.
+Este proyecto usa Conventional Commits y `python-semantic-release` para generar
+notas de lanzamiento para publicaciones en PyPI.
 
-Data-only refresh commits such as `chore(data): daily refresh [skip ci]` do not
-represent software releases and are intentionally excluded from release notes.
+Los commits de actualización de datos, como `chore(data): daily refresh [skip ci]`, no
+representan lanzamientos de software y se excluyen intencionalmente de las notas de lanzamiento.
 
 ## 1.2.0 - 2026-06-17
 
-### Added
+### Agregado
 
-- Added new public dataset surface: `empresas` (Registro de Empresas y
+- Agregada nueva superficie de dataset público: `empresas` (Registro de Empresas y
   Sociedades del Ministerio de Economía, ~1.57M registros con RUT, razón
   social, tipo societario y comuna tributaria).
-- Added `res_extractor.py` with live fetch from datos.gob.cl, raw snapshot,
-  CSV staging, and metadata generation.
-- Added `validate_empresas()` in `src/validation.py` with referential
-  integrity checks against the DPA.
-- Added auto-split logic in `build_excel()` for datasets exceeding Excel's
-  1,048,576 row limit (`empresas` splits into multiple numbered sheets
-  automatically).
-- Added `docs/datasets/empresas.md` with full schema, source, license, and
-  usage examples.
+- Agregado `res_extractor.py` con obtención en vivo desde datos.gob.cl, snapshot
+  crudo, staging CSV y generación de metadatos.
+- Agregada `validate_empresas()` en `src/validation.py` con verificaciones de
+  integridad referencial contra el DPA.
+- Agregada lógica de división automática en `build_excel()` para datasets que
+  exceden el límite de 1,048,576 filas de Excel (`empresas` se divide en múltiples
+  hojas numeradas automáticamente).
+- Agregado `docs/datasets/empresas.md` con esquema, fuente, licencia y ejemplos
+  de uso completos.
 
-### Changed
+### Cambiado
 
-- Expanded the active catalog from 14 to 15 datasets.
-- Centralized version management: `pyproject.toml` is the single source of
-  truth; `__init__.py` reads it dynamically.
-- Optimized `build_dev_db.py`: single `.to_pandas()` conversion (was 2×),
-  multi-row SQLite inserts, skip JSON for tables >100K rows, progress output.
-- Updated README, SOURCE_OF_TRUTH.md, AGENTS.md, and CHANGELOG to reflect
-  the current 15-capas catalog, package structure, and line counts.
+- Catálogo activo expandido de 14 a 15 datasets.
+- Gestión de versión centralizada: `pyproject.toml` es la fuente única de
+  verdad; `__init__.py` la lee dinámicamente.
+- Optimizado `build_dev_db.py`: conversión única `.to_pandas()` (antes 2×),
+  inserciones SQLite multi-fila, omisión de JSON para tablas >100K filas,
+  salida de progreso.
+- Actualizados README, SOURCE_OF_TRUTH.md, AGENTS.md y CHANGELOG para reflejar
+  el catálogo actual de 15 capas, la estructura del paquete y el conteo de líneas.
 
-### Removed
+### Eliminado
 
-- `puntos_interes` (OpenStreetMap POIs) — extractor, config, tests, CI, and
-  docs. The Overpass API proved too unreliable for CI; will be reconsidered
-  when an official Chilean POI source becomes available.
-  `validate_puntos_interes()` is preserved in `src/validation.py` for future
-  reuse.
+- `puntos_interes` (POIs de OpenStreetMap) — extractor, configuración, tests, CI y
+  documentación. La API de Overpass resultó demasiado inestable para CI; se
+  reconsiderará cuando haya una fuente oficial chilena de POIs disponible.
+  `validate_puntos_interes()` se conserva en `src/validation.py` para
+  reutilización futura.
 
-### Notes
+### Notas
 
-- `empresas` is live-extracted from datos.gob.cl (CC-BY 3.0 CL); the Excel
-  output splits into multiple sheets to stay within Excel's row limit.
+- `empresas` se extrae en vivo desde datos.gob.cl (CC-BY 3.0 CL); la salida
+  Excel se divide en múltiples hojas para mantenerse dentro del límite de filas de Excel.
 
 ## 1.1.0 - 2026-06-17
 
-### Added
+### Agregado
 
-- Added four new public dataset surfaces: `finanzas_municipales`,
-  `resultados_educacionales`, `indicadores_urbanos_siedu`, and derived
+- Agregadas cuatro nuevas superficies de dataset público: `finanzas_municipales`,
+  `resultados_educacionales`, `indicadores_urbanos_siedu` y el derivado
   `perfil_territorial_comunal`.
-- Added extractor, staging metadata, centralized validation, normalized
-  Parquet/JSON, DuckDB, SQLite, Excel, catalog, provenance, redistribution,
-  health, bundle, CI, and docs integration for the new layers.
-- Added machine-readable operational artifacts `dataset_status.json` and
+- Agregadas integración de extractor, metadatos de staging, validación centralizada,
+  Parquet/JSON normalizado, DuckDB, SQLite, Excel, catálogo, procedencia,
+  redistribución, health, bundle, CI y documentación para las nuevas capas.
+- Agregados artefactos operativos legibles por máquina `dataset_status.json` y
   `dataset_changelog.json`.
-- Added `ChileHub.dataset_status()`, `ChileHub.dataset_changelog()`, and matching
-  CLI commands `chile-hub dataset-status` and `chile-hub dataset-changelog`.
+- Agregados `ChileHub.dataset_status()`, `ChileHub.dataset_changelog()` y los
+  comandos CLI correspondientes `chile-hub dataset-status` y `chile-hub dataset-changelog`.
 
-### Changed
+### Cambiado
 
-- Expanded the active catalog from 10 to 14 datasets.
-- Updated the landing smoke tests and top-issue expectations so fallback layers
-  can become the correctly surfaced operational priority.
+- Catálogo activo expandido de 10 a 14 datasets.
+- Actualizadas las pruebas de humo del landing page y las expectativas de
+  incidencias principales para que las capas de respaldo puedan convertirse en
+  la prioridad operativa correctamente identificada.
 
-### Notes
+### Notas
 
-- `finanzas_municipales`, `resultados_educacionales`, and
-  `indicadores_urbanos_siedu` currently build in `fallback` mode until stable
-  direct live exports are configured. `make verify` passes; `make verify-live`
-  is expected to reject those layers until live extraction is completed.
+- `finanzas_municipales`, `resultados_educacionales` e
+  `indicadores_urbanos_siedu` actualmente se construyen en modo `fallback` hasta
+  que se configuren exportaciones directas estables. `make verify` pasa;
+  se espera que `make verify-live` rechace esas capas hasta que se complete la
+  extracción en vivo.
 
 ## 1.0.1 - 2026-06-17
 
-### Added
+### Agregado
 
-- Added `pytest-cov` to the development toolchain, with local `make coverage`
-  support and CI coverage reporting for the `src/` package.
-- Updated development and release tooling pins to their latest compatible stable
-  versions, including `build`, `pre-commit`, `pytest-cov`, and
-  `python-semantic-release`.
+- Agregado `pytest-cov` a la cadena de herramientas de desarrollo, con soporte
+  local de `make coverage` y reportes de cobertura en CI para el paquete `src/`.
+- Actualizadas las dependencias de desarrollo y publicación a sus últimas
+  versiones estables compatibles, incluyendo `build`, `pre-commit`, `pytest-cov`
+  y `python-semantic-release`.
 
-### Fixed
+### Corregido
 
-- Restored Python 3.10 runtime compatibility by replacing Python 3.11-only
-  `datetime.UTC` usage with `datetime.timezone.utc`.
-- Fixed the PyPI release workflow so `python-semantic-release` skips its
-  internal build step and the pinned job environment performs the package build.
+- Restaurada la compatibilidad con Python 3.10 reemplazando el uso de
+  `datetime.UTC` (solo Python 3.11) con `datetime.timezone.utc`.
+- Corregido el flujo de publicación en PyPI para que `python-semantic-release`
+  omita su paso de compilación interna y el entorno del job use la compilación
+  del paquete.

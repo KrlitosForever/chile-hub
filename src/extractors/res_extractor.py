@@ -9,7 +9,7 @@ Columnas originales:
   Codigo de sociedad;Tipo de actuacion;Capital;Comuna Social;Region Social
 
 El dataset se consolida en una sola tabla con columnas normalizadas a snake_case.
-No contiene direccion postal (solo comuna y region), ni actividad economica.
+No contiene dirección postal (solo comuna y región), ni actividad económica.
 """
 
 import datetime
@@ -60,7 +60,7 @@ REUSE_POLICY = {
     ),
 }
 
-# Columnas del CSV original -> nombres canonicos en snake_case
+# Columnas del CSV original -> nombres canónicos en snake_case
 COLUMN_RENAME = {
     "ID": "id_res",
     "RUT": "rut",
@@ -79,7 +79,7 @@ COLUMN_RENAME = {
     "Region Social": "region_social",
 }
 
-# Tipos de sociedad que mapean a abreviaturas canonicas
+# Tipos de sociedad que mapean a abreviaturas canónicas
 SOCIEDAD_MAP = {
     "SRL": "SRL",
     "SPA": "SpA",
@@ -99,8 +99,8 @@ SOCIEDAD_MAP = {
 def fetch_resources() -> tuple[list[bytes], str, str]:
     """Obtiene todos los CSVs del dataset RES desde datos.gob.cl.
 
-    Returns:
-        Tuple con (lista_de_contenidos_csv_bytes, source_mode, source_detail).
+    Retorna:
+        Tupla con (lista_de_contenidos_csv_bytes, source_mode, source_detail).
     """
     ensure_staging_directories()
 
@@ -144,7 +144,7 @@ def parse_resources(contents: list[bytes]) -> pl.DataFrame:
     Args:
         contents: Lista de contenidos CSV en bytes (uno por año).
 
-    Returns:
+    Retorna:
         DataFrame de Polars con todas las constituciones normalizadas.
     """
     frames = []
@@ -155,7 +155,7 @@ def parse_resources(contents: list[bytes]) -> pl.DataFrame:
         df_year = pl.read_csv(
             io.StringIO(text),
             separator=";",
-            infer_schema_length=0,  # todo como string para controlar la normalizacion
+            infer_schema_length=0,  # todo como string para controlar la normalización
         )
 
         # Renombrar columnas al canon snake_case
@@ -169,7 +169,7 @@ def parse_resources(contents: list[bytes]) -> pl.DataFrame:
 
     df = pl.concat(frames, how="diagonal_relaxed")
 
-    # ── Normalizacion ──────────────────────────────────────────────────────
+    # ── Normalización ─────────────────────────────────────────────────────
 
     # RUT: limpiar espacios, conservar guion y digito verificador
     df = df.with_columns(pl.col("rut").str.strip_chars().alias("rut"))
@@ -205,7 +205,7 @@ def parse_resources(contents: list[bytes]) -> pl.DataFrame:
                 pl.col(col).str.strip_chars().str.to_lowercase().str.to_titlecase().alias(col)
             )
 
-    # regiones: codigo numerico a string con padding (2 digitos)
+    # regiones: código numérico a string con padding (2 dígitos)
     for col in ("region_tributaria", "region_social"):
         if col in df.columns:
             df = df.with_columns(
@@ -309,8 +309,8 @@ def process() -> str:
         "notes": [
             "Solo incluye empresas constituidas bajo el Regimen Simplificado "
             "(Ley 20.659) desde mayo 2013.",
-            "No contiene direccion postal (solo comuna y region).",
-            "No contiene actividad economica (giro).",
+            "No contiene dirección postal (solo comuna y región).",
+            "No contiene actividad económica (giro).",
             "No refleja cese de actividades ni modificaciones posteriores.",
             "Los codigos de region usan el formato numerico del SII (1-15), "
             "distinto del codigo CUT (01-16). Verificar antes de cruzar con DPA.",

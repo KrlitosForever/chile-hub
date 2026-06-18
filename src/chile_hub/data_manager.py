@@ -1,4 +1,4 @@
-"""Runtime access to versioned chile-hub data release assets."""
+"""Acceso en tiempo de ejecución a activos de release de datos versionados de chile-hub."""
 
 from __future__ import annotations
 

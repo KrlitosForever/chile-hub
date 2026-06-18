@@ -9,7 +9,7 @@ Directorio vigente de establecimientos de salud publicado por el Ministerio de S
 - Licencia: CC0.
 - Frecuencia declarada por la fuente: mensual.
 
-## Schema
+## Esquema
 
 `codigo_establecimiento`, `nombre_establecimiento`, `tipo_establecimiento`, `dependencia_administrativa`, `nivel_atencion`, `codigo_region`, `nombre_region`, `codigo_comuna`, `nombre_comuna`, `tiene_servicio_urgencia`, `tipo_urgencia`, `latitud`, `longitud`, `estado_funcionamiento`.
 
@@ -30,8 +30,8 @@ ORDER BY establecimientos DESC;
 
 ## Limitaciones
 
-El directorio mezcla establecimientos publicos y privados y conserva las clasificaciones entregadas por MINSAL. La ausencia de coordenadas no se imputa.
+El directorio mezcla establecimientos públicos y privados y conserva las clasificaciones entregadas por MINSAL. La ausencia de coordenadas no se imputa.
 
-## Changelog
+## Registro de cambios
 
-- 2026-06: primera version con identidad, clasificacion, urgencia, estado y coordenadas.
+- 2026-06: primera versión con identidad, clasificación, urgencia, estado y coordenadas.

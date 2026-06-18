@@ -514,11 +514,11 @@ def validate_empresas(
     """Valida el dataset de empresas (Registro de Empresas y Sociedades).
 
     Verifica:
-    - DataFrame no vacio
-    - RUT presente y sin duplicados (una misma razon social + RUT puede
-      aparecer mas de una vez si tiene multiples constituciones)
+    - DataFrame no vacío
+    - RUT presente y sin duplicados (una misma razón social + RUT puede
+      aparecer más de una vez si tiene múltiples constituciones)
     - Columnas requeridas presentes
-    - Tipos de sociedad validos
+    - Tipos de sociedad válidos
     - Fechas dentro de rangos esperados (2013+)
     - Capital no negativo
     """
@@ -567,7 +567,7 @@ def validate_empresas(
     if dup_count > 0:
         warnings.append(f"found {dup_count} duplicate (rut, razon_social, fecha_registro) rows")
 
-    # Tipo de sociedad: codigos conocidos
+    # Tipo de sociedad: códigos conocidos
     known_sociedad = {
         "SRL",
         "SPA",
@@ -601,7 +601,7 @@ def validate_empresas(
         if negative_capital:
             errors.append(f"found {negative_capital} rows with negative capital")
 
-    # Codigos de region tributaria: deben ser 2 digitos
+    # Códigos de región tributaria: deben ser 2 dígitos
     if "region_tributaria" in df.columns:
         invalid_region = df.filter(
             pl.col("region_tributaria").is_not_null()
@@ -646,12 +646,12 @@ def validate_puntos_interes(
     """Valida el dataset de puntos de interes (OpenStreetMap).
 
     Verifica:
-    - DataFrame no vacio
-    - osm_id unico
+    - DataFrame no vacío
+    - osm_id único
     - Coordenadas dentro del bounding box de Chile
-    - categoria en el conjunto conocido
+    - categoría en el conjunto conocido
     - direccion presente (warning si muchas nulas)
-    - codigo_comuna con formato CUT (5 caracteres) si esta presente
+    - codigo_comuna con formato CUT (5 caracteres) si está presente
     """
     errors = []
     warnings = []
@@ -694,7 +694,7 @@ def validate_puntos_interes(
     if out_of_bounds > 0:
         errors.append(f"found {out_of_bounds} POIs with coordinates outside Chile bounds")
 
-    # Categoria valida
+    # Categoria válida
     if "categoria" in df.columns:
         invalid_cats = set(df["categoria"].drop_nulls().unique().to_list()) - _CATEGORIAS_VALIDAS
         if invalid_cats:

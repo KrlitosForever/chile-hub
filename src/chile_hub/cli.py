@@ -1,4 +1,4 @@
-"""Console entry point for chile-hub."""
+"""Punto de entrada de consola para chile-hub."""
 
 from .core import main
 

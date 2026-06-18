@@ -10,7 +10,7 @@ Resultados educacionales agregados por comuna y año desde publicaciones MINEDUC
 - URL: https://centroestudios.mineduc.cl/datos-abiertos/
 - Licencia: CC-BY-3.0 Chile
 
-## Schema
+## Esquema
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -41,6 +41,6 @@ FROM 'data/normalized/resultados_educacionales.parquet';
 
 La capa se publica solo agregada por comuna y año. No contiene registros de estudiantes ni información personal.
 
-## Changelog
+## Registro de cambios
 
 - v1: Dataset agregado con validación de porcentajes, conteos no negativos y privacidad por agregación.

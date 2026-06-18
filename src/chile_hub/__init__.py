@@ -1,4 +1,4 @@
-"""Python access layer for curated Chilean public datasets."""
+"""Capa de acceso en Python para datasets públicos chilenos curados."""
 
 from __future__ import annotations
 
@@ -28,14 +28,14 @@ __all__ = [
 
 
 def _get_version() -> str:
-    """Read the package version from the single source of truth: pyproject.toml.
+    """Lee la versión del paquete desde la fuente única de verdad: pyproject.toml.
 
-    In development (source checkout), the version is parsed directly from
-    ``pyproject.toml`` on disk.  When installed from a PyPI wheel — where
-    ``pyproject.toml`` is not distributed — we fall back to the version
-    embedded in the wheel's METADATA by the build backend.
+    En desarrollo (checkout del código fuente), la versión se parsea directamente
+    desde ``pyproject.toml`` en disco. Cuando se instala desde una rueda PyPI
+    (donde ``pyproject.toml`` no se distribuye), se recurre a la versión
+    incrustada en los metadatos de la rueda por el build backend.
     """
-    # 1. Development checkout — read directly from pyproject.toml.
+    # 1. Development checkout — lectura directa de pyproject.toml.
     _pyproject = Path(__file__).resolve().parents[2] / "pyproject.toml"
     if _pyproject.is_file():
         try:
@@ -47,7 +47,7 @@ def _get_version() -> str:
             if _match:
                 return _match.group(1)
 
-    # 2. Installed from PyPI wheel — version is in wheel METADATA.
+    # 2. Instalado desde rueda PyPI — la versión está en los metadatos de la rueda.
     if sys.version_info >= (3, 8):  # pragma: no cover – always true on 3.10+
         try:
             from importlib.metadata import PackageNotFoundError, version
@@ -56,7 +56,7 @@ def _get_version() -> str:
         except PackageNotFoundError:
             pass
 
-    # 3. Last resort — should never happen in practice.
+    # 3. Último recurso — nunca debería ocurrir en la práctica.
     return "0.0.0"
 
 

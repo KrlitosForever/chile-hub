@@ -9,7 +9,7 @@ Mapeo comunal oficial de la asociación de comunas de Chile con sus respectivos 
 - Licencia: CC0 / Dominio Público (redistribución libre sin restricciones).
 - Actualización esperada: Estable (estática, solo se actualiza ante reformas electorales del Estado de Chile).
 
-## Claves y schema
+## Claves y esquema
 
 La clave primaria es `codigo_comuna` (`str`, cinco caracteres).
 

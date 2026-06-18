@@ -406,7 +406,7 @@ def fetch_bcn_comunas():
         if attrs.get("cod_comuna") is None or attrs.get("codregion") is None:
             skipped_null_codes += 1
             continue
-        codigo_comuna = str(int(attrs["cod_comuna"]))  # cod_comuna can arrive as numeric
+        codigo_comuna = str(int(attrs["cod_comuna"]))  # cod_comuna puede llegar como valor numérico
         codigo_comuna = codigo_comuna.rjust(5, "0")
         codigo_region = str(int(attrs["codregion"])).rjust(2, "0")
         codigo_provincia = codigo_comuna[:3]

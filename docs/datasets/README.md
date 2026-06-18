@@ -1,4 +1,4 @@
-# Dataset catalog
+# Catálogo de datasets
 
 Este catálogo describe las capas de datos publicadas hoy por `chile-hub`.
 
@@ -8,7 +8,7 @@ Cada ficha busca responder cinco preguntas rápido:
 2. de dónde viene
 3. qué tan confiable y automatizable es
 4. cómo se cruza con otros datos
-5. qué caveats debes conocer antes de usarla
+5. qué advertencias debes conocer antes de usarla
 
 Las propuestas de nuevas capas se evalúan con los criterios públicos de
 [`docs/dataset-inclusion-criteria.md`](../dataset-inclusion-criteria.md).
@@ -43,8 +43,8 @@ Las propuestas de nuevas capas se evalúan con los criterios públicos de
 - fuente y método de acceso
 - frecuencia esperada
 - notas legales
-- schema
+- esquema
 - reglas de normalización
 - campos de join sugeridos
-- caveats
+- advertencias
 - nivel de confianza

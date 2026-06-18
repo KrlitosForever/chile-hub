@@ -1,8 +1,8 @@
-# Status y Changelog de Datasets
+# Estado y registro de cambios de datasets
 
 ## Descripción
 
-Artefactos machine-readable para monitorear la salud del hub sin leer todos los reportes Markdown.
+Artefactos legibles por máquina para monitorear la salud del hub sin leer todos los reportes Markdown.
 
 ## Artefactos
 
@@ -25,6 +25,6 @@ status = hub.dataset_status()
 changelog = hub.dataset_changelog()
 ```
 
-## Changelog
+## Registro de cambios
 
 - v1: Artefactos agregados al bundle y expuestos por API/CLI.

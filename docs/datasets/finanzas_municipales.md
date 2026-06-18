@@ -10,7 +10,7 @@ Indicadores financieros municipales anuales provenientes de SINIM/SUBDERE, norma
 - URL: https://datos.sinim.gov.cl/datos_municipales.php
 - Reutilización: datos públicos municipales con atribución; términos sujetos a revisión operativa.
 
-## Schema
+## Esquema
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -42,6 +42,6 @@ FROM 'data/normalized/finanzas_municipales.parquet';
 
 La primera versión usa una capa fallback curada hasta configurar una exportación directa estable desde SINIM. Los metadatos `source_mode` y `source_detail` indican si el build es publicable como live.
 
-## Changelog
+## Registro de cambios
 
 - v1: Dataset agregado al pipeline con validación centralizada y artefactos Parquet/JSON/DuckDB/SQLite/Excel.

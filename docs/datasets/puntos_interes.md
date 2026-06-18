@@ -16,7 +16,7 @@ talleres y atracciones turísticas con nombre, dirección postal y coordenadas.
 | **Actualización** | Quincenal (recomendada) |
 | **Cobertura** | Parcial: densidad urbana > rural |
 
-## Schema
+## Esquema
 
 | Columna | Tipo | Descripción |
 |:---|:---|:---|
@@ -120,7 +120,7 @@ chile-hub path puntos_interes --output parquet
 - **Atribución:** Todo uso público de estos datos debe incluir:
   "© OpenStreetMap contributors".
 
-## Changelog
+## Registro de cambios
 
 - **2026-06-17:** Dataset agregado a chile-hub (extractor Overpass API,
   validación, tests, documentación).

@@ -9,7 +9,7 @@ Directorio oficial de establecimientos educacionales vigentes en Chile, publicad
 - Licencia: CC BY 3.0 CL.
 - Frecuencia declarada por la fuente: anual (Directorio Oficial de Establecimientos).
 
-## Schema
+## Esquema
 
 `rbd`, `dv_rbd`, `nombre_establecimiento`, `codigo_region`, `codigo_comuna`, `dependencia_administrativa`, `latitud`, `longitud`, `estado_funcionamiento`.
 
@@ -32,6 +32,6 @@ ORDER BY total_establecimientos DESC;
 
 El directorio se filtra para excluir establecimientos cerrados permanentemente. Las coordenadas provienen de la georreferenciación oficial del Ministerio de Educación.
 
-## Changelog
+## Registro de cambios
 
 - 2026-06: Primera versión con RBD, nombre del establecimiento, comuna, región, dependencia administrativa y coordenadas.

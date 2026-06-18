@@ -9,7 +9,7 @@ Tabla derivada con una fila por comuna que consolida la DPA, Censo 2024, hogares
 - Fuente: derivada de datasets validados de chile-hub.
 - Reutilización: heredada de las fuentes abiertas de origen; requiere atribución.
 
-## Schema
+## Esquema
 
 Incluye campos DPA canónicos (`codigo_comuna`, `nombre_comuna`, región, provincia, coordenadas), métricas censales, conteos de establecimientos, distritos electorales y métricas headline de las capas nuevas.
 
@@ -31,6 +31,6 @@ FROM 'data/normalized/perfil_territorial_comunal.parquet';
 
 Las columnas derivadas de capas parciales pueden venir nulas o en cero según corresponda. SIEDU resume solo comunas presentes en la fuente urbana.
 
-## Changelog
+## Registro de cambios
 
 - v1: Perfil derivado agregado con validación de 346 comunas únicas.

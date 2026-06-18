@@ -1,30 +1,30 @@
 # Comunas enriquecidas
 
-Dataset territorial de 346 comunas con codigos CUT, jerarquia administrativa,
-coordenadas de cabecera y poblacion estimada. Reutiliza la capa `comunas` ya
-enriquecida durante la extraccion y la expone como superficie explicita para
-analisis geoespacial y demografico.
+Dataset territorial de 346 comunas con códigos CUT, jerarquía administrativa,
+coordenadas de cabecera y población estimada. Reutiliza la capa `comunas` ya
+enriquecida durante la extracción y la expone como superficie explícita para
+análisis geoespacial y demográfico.
 
 ## Fuentes y reutilizacion
 
-- Division territorial: BCN ArcGIS, CC BY con atribucion.
+- División territorial: BCN ArcGIS, CC BY con atribución.
 - Coordenadas: tabla de referencia territorial incluida en el proyecto.
-- Poblacion: estimaciones y proyecciones INE, base Censo 2017, referencia 2022.
+- Población: estimaciones y proyecciones INE, base Censo 2017, referencia 2022.
 
-## Schema
+## Esquema
 
 | Columna | Tipo | Descripcion |
 |---|---|---|
-| `codigo_comuna` | string(5) | Codigo CUT de comuna |
+| `codigo_comuna` | string(5) | Código CUT de comuna |
 | `nombre_comuna` | string | Nombre oficial |
-| `nombre_comuna_clean` | string | Nombre normalizado para busqueda |
-| `codigo_provincia` | string(3) | Codigo CUT de provincia |
+| `nombre_comuna_clean` | string | Nombre normalizado para búsqueda |
+| `codigo_provincia` | string(3) | Código CUT de provincia |
 | `nombre_provincia` | string | Nombre de provincia |
-| `codigo_region` | string(2) | Codigo CUT de region |
-| `nombre_region` | string | Nombre de region |
+| `codigo_region` | string(2) | Código CUT de región |
+| `nombre_region` | string | Nombre de región |
 | `latitud_cabecera` | float64 | Latitud de la cabecera comunal |
 | `longitud_cabecera` | float64 | Longitud de la cabecera comunal |
-| `poblacion_estimada` | int32 | Poblacion estimada de referencia |
+| `poblacion_estimada` | int32 | Población estimada de referencia |
 
 ## Uso
 
@@ -43,5 +43,5 @@ LIMIT 10;
 ```
 
 Las coordenadas representan cabeceras comunales, no centroides administrativos.
-Los valores de poblacion son estimaciones de referencia y no reemplazan cifras
+Los valores de población son estimaciones de referencia y no reemplazan cifras
 censales oficiales para decisiones regulatorias.

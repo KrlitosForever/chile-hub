@@ -33,7 +33,7 @@ Problemas que resuelve:
 - necesidad de un join administrativo intermedio
 - reducción de trabajo repetido para derivar provincias desde comunas
 
-## Outputs
+## Salidas
 
 - `data/normalized/provincias.parquet`
 - `data/normalized/provincias.json`
@@ -42,7 +42,7 @@ Problemas que resuelve:
 - tabla `provincias` en `data/normalized/chile_data.db`
 - hoja `Provincias` en `data/normalized/chile_data_latest.xlsx`
 
-## Schema actual
+## Esquema actual
 
 Fuente observada: `data/normalized/chile_data.duckdb`
 
@@ -66,7 +66,7 @@ Cruces sugeridos:
 - `codigo_provincia` + `codigo_region` para máxima seguridad
 - `codigo_provincia` en fuentes que ya usen CUT provincial consistente
 
-## Caveats
+## Advertencias
 
 - no es una fuente primaria independiente; depende de la calidad y cobertura de `comunas`
 - la unicidad se valida sobre `codigo_region` + `codigo_provincia`, no solo sobre `codigo_provincia`
