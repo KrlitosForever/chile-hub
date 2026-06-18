@@ -128,7 +128,7 @@ jobs:
         run: python -m pytest -v --cov=src --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@d062fc105cdf8d8fe84bdea7e09227781ee79ba8 # v5.4.2
+        uses: codecov/codecov-action@v5
         with:
           files: coverage.xml
           flags: unittests
