@@ -18,6 +18,8 @@ from src.extractors import (
     bcentral_extractor,
     censo_extractor,
     censo_hogares_viviendas_extractor,
+    electoral_extractor,
+    mineduc_establecimientos_extractor,
     mineduc_resultados_extractor,
     res_extractor,
     salud_extractor,
@@ -630,6 +632,155 @@ class BaseExtractorEdgeTests(unittest.TestCase):
         ensure_staging_directories()
         ensure_staging_directories()
         # Si no lanza excepción, el test pasa
+
+
+class ElectoralExtractorTests(unittest.TestCase):
+    """Tests para el extractor de mapeo electoral (electoral_extractor.py)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._orig_staging_dir = electoral_extractor.STAGING_DIR
+
+    def _write_comunas_stub(self, staging_dir: Path) -> Path:
+        """Escribe un CSV de comunas mínimo para alimentar build_electoral_df."""
+        csv_path = staging_dir / "comunas.csv"
+        csv_path.write_text(
+            "codigo_region,codigo_comuna,nombre_comuna,nombre_comuna_clean\n"
+            "01,01101,Iquique,iquique\n"
+            "13,13101,Santiago,santiago\n"
+            "13,13114,Las Condes,las condes\n"
+            "13,13120,Nunoa,nunoa\n"
+        )
+        return csv_path
+
+    def test_build_electoral_df_no_comunas_csv_raises(self):
+        """build_electoral_df lanza FileNotFoundError sin comunas.csv."""
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(electoral_extractor, "STAGING_DIR", tmp):
+                with self.assertRaises(FileNotFoundError):
+                    electoral_extractor.build_electoral_df()
+
+    def test_build_electoral_df_produces_expected_columns(self):
+        """build_electoral_df produce row con columnas requeridas."""
+        with tempfile.TemporaryDirectory() as tmp:
+            staging = Path(tmp)
+            self._write_comunas_stub(staging)
+            with patch.object(electoral_extractor, "STAGING_DIR", str(staging)):
+                df = electoral_extractor.build_electoral_df()
+            self.assertIn("distrito_electoral", df.columns)
+            self.assertIn("circunscripcion_senatorial", df.columns)
+            self.assertIn("codigo_comuna", df.columns)
+            self.assertIn("nombre_comuna", df.columns)
+            self.assertGreaterEqual(df.height, 1)
+
+    def test_electoral_extractor_dry_run(self):
+        """ElectoralExtractor.run(dry_run=True) retorna validación sin escribir."""
+        with tempfile.TemporaryDirectory() as tmp:
+            staging = Path(tmp)
+            self._write_comunas_stub(staging)
+            with patch.object(electoral_extractor, "STAGING_DIR", str(staging)):
+                extractor = electoral_extractor.ElectoralExtractor()
+                result = extractor.run(dry_run=True)
+            self.assertIn("status", result)
+            # No debe crear archivos en staging durante dry_run
+            csv_candidates = list(staging.glob("distritos_electorales*"))
+            self.assertEqual(len(csv_candidates), 0)
+
+    def test_electoral_extractor_dataset_name(self):
+        """dataset_name retorna el identificador canónico."""
+        self.assertEqual(
+            electoral_extractor.ElectoralExtractor().dataset_name,
+            "distritos_electorales",
+        )
+
+
+class MineducEstablecimientosExtractorTests(unittest.TestCase):
+    """Tests para el extractor de establecimientos educacionales MINEDUC."""
+
+    _CSV_HEADER = (
+        "RBD;DGV_RBD;NOM_RBD;COD_REG_RBD;COD_COM_RBD;COD_DEPE2;LATITUD;LONGITUD;ESTADO_ESTAB\n"
+    )
+
+    def _write_fixture_csv(self, path: Path, extra_rows: str = "") -> Path:
+        # El CSV oficial de MINEDUC usa coma como separador decimal en latitud/longitud
+        rows = (
+            "1;5;Escuela Uno;13;13101;1;-33,45;-70,65;1\n"
+            "2;7;Liceo Dos;13;13114;2;-33,42;-70,60;2\n"
+            "99;3;Colegio Cerrado;13;13101;3;-33,44;-70,63;3\n"
+        )
+        path.write_text(self._CSV_HEADER + rows + extra_rows, encoding="utf-8")
+        return path
+
+    def test_parse_csv_filters_closed_establishments(self):
+        """parse_csv excluye establecimientos con ESTADO_ESTAB=3 (Cerrado)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "test_ee.csv"
+            self._write_fixture_csv(csv_path)
+            df = mineduc_establecimientos_extractor.parse_csv(csv_path)
+            # El registro con ESTADO_ESTAB=3 debe ser filtrado
+            self.assertEqual(df.height, 2)
+            rbd_values = df["rbd"].to_list()
+            self.assertIn("1", rbd_values)
+            self.assertIn("2", rbd_values)
+            self.assertNotIn("99", rbd_values)
+
+    def test_parse_csv_required_columns(self):
+        """parse_csv produce las columnas del esquema canónico."""
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "test_ee.csv"
+            self._write_fixture_csv(csv_path)
+            df = mineduc_establecimientos_extractor.parse_csv(csv_path)
+            expected = {
+                "rbd",
+                "dv_rbd",
+                "nombre_establecimiento",
+                "codigo_region",
+                "codigo_comuna",
+                "dependencia_administrativa",
+                "latitud",
+                "longitud",
+                "estado_funcionamiento",
+            }
+            self.assertEqual(set(df.columns), expected)
+
+    def test_parse_csv_cut_codes_are_fixed_width(self):
+        """parse_csv asegura codigo_comuna de 5 chars y codigo_region de 2 chars."""
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "test_ee.csv"
+            self._write_fixture_csv(csv_path)
+            df = mineduc_establecimientos_extractor.parse_csv(csv_path)
+            self.assertEqual(df["codigo_comuna"].str.len_chars().unique().to_list(), [5])
+            self.assertEqual(df["codigo_region"].str.len_chars().unique().to_list(), [2])
+
+    def test_extractor_dry_run(self):
+        """MineducEstablecimientosExtractor.run(dry_run=True) no escribe archivos."""
+        with tempfile.TemporaryDirectory() as tmp:
+            csv_path = Path(tmp) / "test_ee.csv"
+            self._write_fixture_csv(csv_path)
+            with (
+                patch.object(
+                    mineduc_establecimientos_extractor,
+                    "fetch_data",
+                    return_value=(csv_path, "live", "https://example.com"),
+                ),
+                patch.object(mineduc_establecimientos_extractor, "STAGING_DIR", tmp),
+                patch.object(
+                    mineduc_establecimientos_extractor, "METADATA_PATH", Path(tmp) / "meta.json"
+                ),
+            ):
+                extractor = mineduc_establecimientos_extractor.MineducEstablecimientosExtractor()
+                result = extractor.run(dry_run=True)
+                self.assertIn("status", result)
+                # No debe escribir staging CSV
+                csv_files = list(Path(tmp).glob("*.csv"))
+                self.assertEqual(len(csv_files), 1)  # solo el fixture
+
+    def test_extractor_dataset_name(self):
+        """dataset_name retorna el identificador canónico."""
+        self.assertEqual(
+            mineduc_establecimientos_extractor.MineducEstablecimientosExtractor().dataset_name,
+            "establecimientos_educacionales",
+        )
 
 
 if __name__ == "__main__":
