@@ -33,7 +33,7 @@ def _derive_dataset_artifact_paths():
     return paths
 
 
-_SHARED_FILES = [
+_LOCAL_BUILD_FILES = [
     STAGING_DIR / "comunas.csv",
     STAGING_DIR / "indicadores.csv",
     STAGING_DIR / "censo_comunal.csv",
@@ -57,6 +57,9 @@ _SHARED_FILES = [
     NORMALIZED_DIR / "chile_data.duckdb",
     NORMALIZED_DIR / "chile_data.db",
     NORMALIZED_DIR / "chile_data_latest.xlsx",
+]
+
+_PUBLISHABLE_FILES = [
     NORMALIZED_DIR / "pipeline_metadata.json",
     NORMALIZED_DIR / "pipeline_status.md",
     NORMALIZED_DIR / "hub_health.json",
@@ -84,7 +87,8 @@ _SHARED_FILES = [
     NORMALIZED_DIR / "chile-hub-publishable-bundle.zip.sha256",
 ]
 
-REQUIRED_FILES = _SHARED_FILES + _derive_dataset_artifact_paths()
+PUBLISHABLE_REQUIRED_FILES = _PUBLISHABLE_FILES + _derive_dataset_artifact_paths()
+REQUIRED_FILES = _LOCAL_BUILD_FILES + PUBLISHABLE_REQUIRED_FILES
 REQUIRED_DATASETS = set(DATASET_CATALOG_CONFIG)
 
 
@@ -526,8 +530,16 @@ def verify_top_issue_summary(summary, top_issue, origin):
         fail(f"{origin} top_issue_summary does not mention dataset '{dataset}': {summary}")
 
 
-def verify_required_files():
-    missing = [str(path.relative_to(ROOT_DIR)) for path in REQUIRED_FILES if not path.exists()]
+def required_files_for_profile(profile):
+    if profile == "readiness":
+        return PUBLISHABLE_REQUIRED_FILES
+    return REQUIRED_FILES
+
+
+def verify_required_files(required_files=None):
+    if required_files is None:
+        required_files = REQUIRED_FILES
+    missing = [str(path.relative_to(ROOT_DIR)) for path in required_files if not path.exists()]
     if missing:
         fail(f"Missing required files: {', '.join(missing)}")
 
@@ -1432,7 +1444,7 @@ def main():
 
     # Verificaciones comunes a todos los perfiles
     verify_staging_not_newer_than_normalized()
-    verify_required_files()
+    verify_required_files(required_files_for_profile(profile))
     verify_pipeline_metadata()
     verify_hub_health()
     verify_hub_status()

@@ -25,6 +25,7 @@ from scripts import package_publishable_bundle
 from scripts.verify_pipeline import (
     UTC,
     _verify_stagnation,
+    required_files_for_profile,
     verify_dataset_contract,
     verify_publication_policy,
     verify_source_registry,
@@ -321,6 +322,29 @@ class PipelineLogicTests(unittest.TestCase):
         with patch("builtins.print") as print_mock, self.assertRaisesRegex(SystemExit, "1"):
             verify_source_registry(registry, catalog)
         self.assertIn("invalid access_method", print_mock.call_args.args[0])
+
+    def test_readiness_required_files_exclude_local_only_build_outputs(self):
+        readiness_paths = {
+            path.relative_to(ROOT_DIR).as_posix()
+            for path in required_files_for_profile("readiness")
+        }
+        publication_paths = {
+            path.relative_to(ROOT_DIR).as_posix()
+            for path in required_files_for_profile("publication")
+        }
+
+        local_only_paths = {
+            "data/staging/comunas.csv",
+            "data/staging/comunas.metadata.json",
+            "data/normalized/chile_data.duckdb",
+            "data/normalized/chile_data.db",
+            "data/normalized/chile_data_latest.xlsx",
+        }
+
+        self.assertTrue(local_only_paths.isdisjoint(readiness_paths))
+        self.assertTrue(local_only_paths.issubset(publication_paths))
+        self.assertIn("data/normalized/pipeline_metadata.json", readiness_paths)
+        self.assertIn("data/normalized/comunas.parquet", readiness_paths)
 
     def test_write_publishable_bundle_zip_fails_before_creating_partial_zip(self):
         with tempfile.TemporaryDirectory() as tmpdir:
