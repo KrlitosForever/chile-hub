@@ -916,13 +916,27 @@ def compute_sha256(path):
 
 def build_publishable_artifact_index():
     artifact_index = {}
+    # Load source registry to filter by public_bundle_eligible
+    registry = load_source_registry()
+    registry_by_dataset = {entry["dataset"]: entry for entry in registry}
+
     for dataset_name, config in DATASET_CATALOG_CONFIG.items():
+        reg_entry = registry_by_dataset.get(dataset_name, {})
+        public_bundle_eligible = reg_entry.get("public_bundle_eligible", True)
+        publication_track = reg_entry.get("publication_track", "stable_publishable")
+
+        # Only include datasets eligible for the public bundle
+        if not isinstance(public_bundle_eligible, bool) or not public_bundle_eligible:
+            continue
+
         outputs = config.get("outputs", {})
         for output_type, path in outputs.items():
             if isinstance(path, str) and path.startswith("data/normalized/"):
                 artifact_index[path] = {
                     "dataset": dataset_name,
                     "output_type": output_type,
+                    "publication_track": publication_track,
+                    "public_bundle_eligible": True,
                 }
     shared_artifacts = {
         "data/normalized/pipeline_metadata.json": {
@@ -1032,7 +1046,11 @@ def write_artifact_manifest():
         if not os.path.isfile(path):
             continue
         relative_path = f"data/normalized/{filename}"
-        artifact_metadata = artifact_index.get(relative_path, {})
+        artifact_metadata = artifact_index.get(relative_path)
+        # Only include artifacts that have metadata in the index.
+        # Candidate dataset artifacts are excluded from the index and will be skipped.
+        if artifact_metadata is None:
+            continue
         artifacts.append(
             {
                 "path": relative_path,
@@ -1814,11 +1832,31 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
             },
         )
 
+    # Load registry to separate stable_publishable from candidate datasets
+    registry = load_source_registry()
+    registry_by_dataset = {entry["dataset"]: entry for entry in registry}
+
+    stable_publicable_datasets = {
+        entry["dataset"]
+        for entry in registry
+        if entry.get("publication_track") == "stable_publishable"
+        and entry.get("public_bundle_eligible") is True
+    }
+    candidate_datasets = {
+        entry["dataset"] for entry in registry if entry.get("publication_track") == "candidate"
+    }
+
+    full_catalog_count = dataset_catalog.get("dataset_count")
+    public_dataset_count = len(stable_publicable_datasets)
+    candidate_dataset_count = len(candidate_datasets)
+
     bundle = {
         "version": pipeline_metadata.get("version", "unknown"),
         "generated_at_utc": pipeline_metadata.get("generated_at_utc"),
         "overall_status": hub_health.get("overall_status"),
-        "dataset_count": dataset_catalog.get("dataset_count"),
+        "dataset_count": full_catalog_count,
+        "public_dataset_count": public_dataset_count,
+        "candidate_dataset_count": candidate_dataset_count,
         "health": {
             "ok_count": hub_health.get("ok_count"),
             "warn_count": hub_health.get("warn_count"),
@@ -1841,6 +1879,7 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
         "top_issue": hub_health.get("top_issue"),
         "top_issue_summary": hub_health.get("top_issue_summary"),
         "datasets": [],
+        "candidate_datasets": [],
         "reports": reports,
         "shared_artifacts": shared_artifacts,
         "packages": artifact_manifest.get("packages", []),
@@ -1851,35 +1890,53 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
     for dataset in dataset_catalog.get("datasets", []):
         dataset_name = dataset["dataset"]
         dataset_health = health_by_dataset.get(dataset_name, {})
-        bundle["datasets"].append(
-            {
+
+        if dataset_name in stable_publicable_datasets:
+            bundle["datasets"].append(
+                {
+                    "dataset": dataset_name,
+                    "description": dataset.get("description"),
+                    "source_name": dataset.get("source_name"),
+                    "source_url": dataset.get("source_url"),
+                    "source_mode": dataset.get("source_mode"),
+                    "source_detail": dataset.get("source_detail"),
+                    "refreshed_at_utc": dataset.get("refreshed_at_utc"),
+                    "record_count": dataset.get("record_count"),
+                    "indicator_codes": dataset.get("indicator_codes", []),
+                    "indicator_delivery": dataset.get("indicator_delivery", {}),
+                    "join_keys": dataset.get("join_keys", []),
+                    "confidence_tier": dataset.get("confidence_tier"),
+                    "reuse_policy": dataset.get("reuse_policy", {}),
+                    "validation_status": dataset.get("validation_status"),
+                    "freshness": dataset.get("freshness", {}),
+                    "coverage": dataset.get("coverage", {}),
+                    "warning_count": len(dataset.get("warnings", [])),
+                    "severity": dataset_health.get("severity"),
+                    "publishability_status": dataset_health.get("publishability_status"),
+                    "degradation": dataset.get("degradation", {}),
+                    "drift": dataset.get("drift", {}),
+                    "documentation": dataset.get("documentation"),
+                    "outputs": dataset.get("outputs", {}),
+                    "usage_examples": dataset.get("usage_examples", {}),
+                    "artifacts": artifacts_by_dataset.get(dataset_name, []),
+                }
+            )
+
+        if dataset_name in candidate_datasets:
+            reg_entry = registry_by_dataset.get(dataset_name, {})
+            candidate_entry = {
                 "dataset": dataset_name,
-                "description": dataset.get("description"),
-                "source_name": dataset.get("source_name"),
-                "source_url": dataset.get("source_url"),
+                "maturity_status": reg_entry.get("maturity_status", "unknown"),
+                "publication_track": "candidate",
+                "public_bundle_eligible": False,
                 "source_mode": dataset.get("source_mode"),
                 "source_detail": dataset.get("source_detail"),
-                "refreshed_at_utc": dataset.get("refreshed_at_utc"),
-                "record_count": dataset.get("record_count"),
-                "indicator_codes": dataset.get("indicator_codes", []),
-                "indicator_delivery": dataset.get("indicator_delivery", {}),
-                "join_keys": dataset.get("join_keys", []),
-                "confidence_tier": dataset.get("confidence_tier"),
-                "reuse_policy": dataset.get("reuse_policy", {}),
-                "validation_status": dataset.get("validation_status"),
                 "freshness": dataset.get("freshness", {}),
-                "coverage": dataset.get("coverage", {}),
-                "warning_count": len(dataset.get("warnings", [])),
-                "severity": dataset_health.get("severity"),
-                "publishability_status": dataset_health.get("publishability_status"),
-                "degradation": dataset.get("degradation", {}),
-                "drift": dataset.get("drift", {}),
-                "documentation": dataset.get("documentation"),
-                "outputs": dataset.get("outputs", {}),
-                "usage_examples": dataset.get("usage_examples", {}),
-                "artifacts": artifacts_by_dataset.get(dataset_name, []),
+                "next_action": reg_entry.get("next_action", ""),
             }
-        )
+            if reg_entry.get("upstream_datasets"):
+                candidate_entry["upstream_datasets"] = reg_entry["upstream_datasets"]
+            bundle["candidate_datasets"].append(candidate_entry)
 
     output_path = os.path.join(NORMALIZED_DIR, "hub_bundle.json")
     write_json_atomic(bundle, output_path, ensure_ascii=False, indent=2)

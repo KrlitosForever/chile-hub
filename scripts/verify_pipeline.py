@@ -207,6 +207,10 @@ def verify_source_registry(registry=None, catalog=None):
         "allowed_for_dev_blocked_for_publication",
     }
     valid_maturity_statuses = {"stable", "candidate", "experimental", "deprecated"}
+    valid_publication_tracks = {"stable_publishable", "candidate"}
+
+    # Build lookup for upstream inheritance checks
+    registry_by_name = {e.get("dataset"): e for e in registry}
 
     for entry in registry:
         dataset_name = entry.get("dataset")
@@ -251,6 +255,81 @@ def verify_source_registry(registry=None, catalog=None):
         stalled_after = entry.get("stalled_after_days")
         if stalled_after is not None and (not isinstance(stalled_after, int) or stalled_after < 1):
             fail(f"{dataset_name} has invalid stalled_after_days: {stalled_after}")
+
+        # ---- Publication track validation ----
+        track = entry.get("publication_track")
+        if track is None:
+            fail(f"{dataset_name} is missing publication_track")
+        if track not in valid_publication_tracks:
+            fail(f"{dataset_name} has invalid publication_track: {track}")
+
+        eligible = entry.get("public_bundle_eligible")
+        if eligible is None:
+            fail(f"{dataset_name} is missing public_bundle_eligible")
+        if not isinstance(eligible, bool):
+            fail(f"{dataset_name} has non-boolean public_bundle_eligible: {eligible}")
+
+        # fallback_only must always imply candidate + not public-bundle-eligible
+        # Checked BEFORE track-specific rules so fallback_only entries cannot
+        # be mistakenly marked as stable_publishable.
+        if entry.get("live_extractor_status") == "fallback_only":
+            if track != "candidate":
+                fail(f"{dataset_name} fallback_only must have publication_track=candidate")
+            if eligible is not False:
+                fail(f"{dataset_name} fallback_only must have public_bundle_eligible=false")
+
+        # stable_publishable rules
+        if track == "stable_publishable":
+            if eligible is not True:
+                fail(f"{dataset_name} stable_publishable must have public_bundle_eligible=true")
+            if entry.get("maturity_status") != "stable":
+                fail(f"{dataset_name} stable_publishable requires maturity_status=stable")
+            if entry.get("live_ready") is not True:
+                fail(f"{dataset_name} stable_publishable requires live_ready=true")
+            if entry.get("live_extractor_status") == "fallback_only":
+                fail(f"{dataset_name} stable_publishable cannot have fallback_only extractor")
+
+        # candidate rules
+        if track == "candidate":
+            if eligible is not False:
+                fail(f"{dataset_name} candidate must have public_bundle_eligible=false")
+            if entry.get("maturity_status") not in {"candidate", "experimental", "deprecated"}:
+                fail(
+                    f"{dataset_name} candidate requires maturity_status=candidate, "
+                    f"experimental or deprecated"
+                )
+        if entry.get("live_extractor_status") == "fallback_only":
+            if track != "candidate":
+                fail(f"{dataset_name} fallback_only must have publication_track=candidate")
+            if eligible is not False:
+                fail(f"{dataset_name} fallback_only must have public_bundle_eligible=false")
+
+        # Derived datasets inherit upstream non-publishable status
+        if entry.get("access_method") == "derived":
+            upstream = entry.get("upstream_datasets", [])
+            if upstream:
+                upstream_non_publishable = [
+                    u
+                    for u in upstream
+                    if u in registry_by_name
+                    and (
+                        registry_by_name[u].get("publication_track") == "candidate"
+                        or registry_by_name[u].get("public_bundle_eligible") is False
+                    )
+                ]
+                if upstream_non_publishable:
+                    if track != "candidate":
+                        fail(
+                            f"{dataset_name} derived dataset has upstream non-publishable "
+                            f"datasets ({', '.join(upstream_non_publishable)}) "
+                            f"but publication_track={track}"
+                        )
+                    if eligible is not False:
+                        fail(
+                            f"{dataset_name} derived dataset has upstream non-publishable "
+                            f"datasets ({', '.join(upstream_non_publishable)}) "
+                            f"but public_bundle_eligible={eligible}"
+                        )
 
 
 def _verify_stagnation(report=None, reference_date=None):
@@ -356,50 +435,108 @@ def verify_staging_not_newer_than_normalized():
         )
 
 
-def verify_publication_policy(metadata=None):
+def stable_publishable_dataset_names(registry):
+    """Return dataset names whose publication track is stable_publishable."""
+    return {
+        entry["dataset"]
+        for entry in registry
+        if entry.get("publication_track") == "stable_publishable"
+        and entry.get("public_bundle_eligible") is True
+    }
+
+
+def verify_publication_policy(metadata=None, registry=None, manifest=None):
     if metadata is None:
         metadata = load_json(NORMALIZED_DIR / "pipeline_metadata.json")
 
+    if registry is None:
+        registry = load_json(SOURCE_REGISTRY_PATH)
+
+    if manifest is None:
+        manifest_path = NORMALIZED_DIR / "artifact_manifest.json"
+        if manifest_path.exists():
+            manifest = load_json(manifest_path)
+
     violations = []
-    for dataset_name in sorted(REQUIRED_DATASETS):
+    stable_publicable = stable_publishable_dataset_names(registry)
+    candidate_names = {
+        entry["dataset"] for entry in registry if entry.get("publication_track") == "candidate"
+    }
+
+    # Build fallback_policy lookup from registry
+    registry_fallback_policy = {
+        entry["dataset"]: entry.get("fallback_policy", "none") for entry in registry
+    }
+
+    # Check stable_publishable datasets: require live + fresh
+    for dataset_name in sorted(stable_publicable):
         dataset = metadata.get("datasets", {}).get(dataset_name, {})
+        if not dataset:
+            violations.append(f"{dataset_name}: missing from pipeline_metadata")
+            continue
         freshness = dataset.get("freshness", {})
         if dataset.get("source_mode") != "live":
             violations.append(f"{dataset_name}: source_mode={dataset.get('source_mode')}")
         if freshness.get("status") != "fresh":
             violations.append(f"{dataset_name}: freshness={freshness.get('status')}")
+        fallback_policy = registry_fallback_policy.get(dataset_name, "none")
+        if fallback_policy == "allowed_for_dev_blocked_for_publication":
+            if dataset.get("source_mode") == "fallback":
+                violations.append(
+                    f"{dataset_name}: data in fallback mode but publication track is "
+                    f"stable_publishable and fallback_policy forbids publication"
+                )
 
-    indicadores = metadata.get("datasets", {}).get("indicadores", {})
-    allowed_indicator_source_details = {
-        "public_api",
-        "public_api_with_published_backfill",
-    }
-    if indicadores.get("source_detail") not in allowed_indicator_source_details:
-        violations.append(f"indicadores: source_detail={indicadores.get('source_detail')}")
-    failed_diagnostics = {
-        field: indicadores.get(field, [])
-        for field in (
-            "fetch_failures",
-            "raw_recoveries",
-            "preserved_existing_pairs",
-            "empty_live_pairs",
-        )
-        if indicadores.get(field)
-    }
-    if failed_diagnostics:
-        violations.append(f"indicadores: recovery diagnostics={failed_diagnostics}")
-    unsafe_delivery = {
-        code: status
-        for code, status in indicadores.get("indicator_delivery", {}).items()
-        if status not in {"live", "published_backfill"}
-    }
-    if unsafe_delivery:
-        violations.append(f"indicadores: unsafe delivery={unsafe_delivery}")
+    # Check candidate datasets: must be absent from public manifest/ZIP
+    if manifest is not None:
+        manifest_artifact_datasets = {
+            entry.get("dataset") for entry in manifest.get("artifacts", []) if entry.get("dataset")
+        }
+        present_candidates = sorted(candidate_names & manifest_artifact_datasets)
+        if present_candidates:
+            violations.append(
+                f"Candidate datasets present in artifact manifest: {', '.join(present_candidates)}"
+            )
+
+    # Strict checks for indicadores (only while it remains stable_publishable)
+    if "indicadores" in stable_publicable:
+        indicadores = metadata.get("datasets", {}).get("indicadores", {})
+        allowed_indicator_source_details = {
+            "public_api",
+            "public_api_with_published_backfill",
+        }
+        if indicadores.get("source_detail") not in allowed_indicator_source_details:
+            violations.append(f"indicadores: source_detail={indicadores.get('source_detail')}")
+        failed_diagnostics = {
+            field: indicadores.get(field, [])
+            for field in (
+                "fetch_failures",
+                "raw_recoveries",
+                "preserved_existing_pairs",
+                "empty_live_pairs",
+            )
+            if indicadores.get(field)
+        }
+        if failed_diagnostics:
+            violations.append(f"indicadores: recovery diagnostics={failed_diagnostics}")
+        unsafe_delivery = {
+            code: status
+            for code, status in indicadores.get("indicator_delivery", {}).items()
+            if status not in {"live", "published_backfill"}
+        }
+        if unsafe_delivery:
+            violations.append(f"indicadores: unsafe delivery={unsafe_delivery}")
 
     if violations:
         fail("Publication policy rejected this build: " + "; ".join(violations))
 
-    print("Publication policy passed: all datasets are fresh and publication-safe.")
+    stable_count = len(stable_publicable)
+    candidate_count = len(candidate_names)
+    print(
+        "Publication policy passed: "
+        f"{stable_count} stable_publishable datasets verified, "
+        f"{candidate_count} candidate datasets excluded from public bundle."
+    )
 
 
 def verify_indicadores_diagnostics(dataset_metadata, validation, origin):
@@ -1029,6 +1166,10 @@ def verify_hub_bundle():
 
     if bundle.get("dataset_count") != len(REQUIRED_DATASETS):
         fail(f"hub_bundle.json has unexpected dataset_count: {bundle.get('dataset_count')}")
+    if bundle.get("public_dataset_count") is None:
+        fail("hub_bundle.json is missing public_dataset_count")
+    if bundle.get("candidate_dataset_count") is None:
+        fail("hub_bundle.json is missing candidate_dataset_count")
     if bundle.get("overall_status") not in {"ok", "warn", "error"}:
         fail(f"hub_bundle.json has invalid overall_status: {bundle.get('overall_status')}")
     health = bundle.get("health", {})
@@ -1062,10 +1203,33 @@ def verify_hub_bundle():
             "hub_bundle.json health",
         )
 
+    # datasets contains only stable_publishable entries
     datasets = bundle.get("datasets", [])
     dataset_names = {entry.get("dataset") for entry in datasets}
-    if dataset_names != REQUIRED_DATASETS:
-        fail(f"hub_bundle.json has unexpected datasets: {sorted(dataset_names)}")
+    if not dataset_names.issubset(REQUIRED_DATASETS):
+        fail(
+            f"hub_bundle.json datasets has unexpected entries: {sorted(dataset_names - REQUIRED_DATASETS)}"
+        )
+    if len(dataset_names) != bundle.get("public_dataset_count", 0):
+        fail(
+            f"hub_bundle.json datasets count mismatch: "
+            f"{len(dataset_names)} vs public_dataset_count={bundle.get('public_dataset_count')}"
+        )
+
+    # candidate_datasets lists transparent metadata for non-public layers
+    candidate_datasets = bundle.get("candidate_datasets", [])
+    candidate_names = {entry.get("dataset") for entry in candidate_datasets}
+    if not candidate_names.issubset(REQUIRED_DATASETS):
+        fail(
+            f"hub_bundle.json candidate_datasets has unexpected entries: "
+            f"{sorted(candidate_names - REQUIRED_DATASETS)}"
+        )
+    if len(candidate_names) != bundle.get("candidate_dataset_count", 0):
+        fail(
+            f"hub_bundle.json candidate_datasets count mismatch: "
+            f"{len(candidate_names)} vs candidate_dataset_count={bundle.get('candidate_dataset_count')}"
+        )
+
     reports = bundle.get("reports", {})
     expected_reports = {
         "status_markdown": ("pipeline_status", "markdown"),

@@ -17,7 +17,7 @@ Los planes 005–007 tienen dependencias.
 | 006 | [Consolidar lógica duplicada y corregir violación de capas](archive/006-consolidate-duplicated-logic.md) | S | LOW | — | DONE (archivado) |
 | 007 | [Mejoras de tooling — pre-commit, editorconfig, CI](archive/007-tooling-improvements.md) | S | LOW | 004 | DONE (archivado) |
 | 008 | [Hardening de source readiness, schema contracts y quality gates](008-hardening-source-readiness-schema-contracts-quality.md) | L | MED | — | PARTIAL (schema contracts + source registry + source_readiness + dataset_quality + perfiles dev/readiness/publication implementados; estancamiento, changelog severity y source adapter quedan como trabajo futuro) |
-| 009 | [Separar carriles stable_publishable y candidate](009-split-stable-publishable-and-candidate-tracks.md) | M | MED | 008 (partes implementadas) | TODO |
+| 009 | [Separar carriles stable_publishable y candidate](009-split-stable-publishable-and-candidate-tracks.md) | M | MED | 008 (partes implementadas) | ✅ 2026-06-18 |
 
 ## Grafo de dependencias
 

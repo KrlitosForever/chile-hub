@@ -594,7 +594,21 @@ class ChileHubTests(unittest.TestCase):
         bundle = self.bundle
         self.assertEqual(bundle["overall_status"], self.health["overall_status"])
         self.assertEqual(bundle["dataset_count"], EXPECTED_DATASET_COUNT)
-        self.assertEqual(len(bundle["datasets"]), EXPECTED_DATASET_COUNT)
+        self.assertEqual(bundle["public_dataset_count"], 11)
+        self.assertEqual(bundle["candidate_dataset_count"], 4)
+        self.assertEqual(len(bundle["datasets"]), bundle["public_dataset_count"])
+        self.assertEqual(len(bundle["candidate_datasets"]), bundle["candidate_dataset_count"])
+        # Verify candidate names
+        candidate_names = {e["dataset"] for e in bundle["candidate_datasets"]}
+        self.assertEqual(
+            candidate_names,
+            {
+                "finanzas_municipales",
+                "resultados_educacionales",
+                "indicadores_urbanos_siedu",
+                "perfil_territorial_comunal",
+            },
+        )
         self.assertEqual(
             bundle["reports"]["health_json"]["path"], "data/normalized/hub_health.json"
         )

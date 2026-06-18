@@ -1,7 +1,7 @@
 {
-  "version": "1.3.1",
+  "version": "1.4.0",
   "public_site_url": "https://tooltician.com/chile-hub/",
-  "generated_at_utc": "2026-06-18T18:40:05.123306+00:00",
+  "generated_at_utc": "2026-06-18T20:41:45.607602+00:00",
   "datasets": {
     "regiones": {
       "dataset": "regiones",
@@ -30,9 +30,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.16,
+        "age_hours": 2.18,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-18T18:40:05.120500+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.605898+00:00"
       },
       "degradation": {
         "status": "none",
@@ -94,9 +94,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.16,
+        "age_hours": 2.18,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-18T18:40:05.120621+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.605927+00:00"
       },
       "degradation": {
         "status": "none",
@@ -167,9 +167,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.16,
+        "age_hours": 2.18,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-18T18:40:05.120640+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.605938+00:00"
       },
       "degradation": {
         "status": "none",
@@ -243,9 +243,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.16,
+        "age_hours": 2.18,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-18T18:40:05.120651+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.605946+00:00"
       },
       "degradation": {
         "status": "none",
@@ -335,9 +335,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.18,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-06-18T18:40:05.121227+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606187+00:00"
       },
       "degradation": {
         "status": "warning",
@@ -411,9 +411,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.18,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-18T18:40:05.121264+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606206+00:00"
       },
       "degradation": {
         "status": "none",
@@ -488,9 +488,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.17,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-18T18:40:05.121283+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606215+00:00"
       },
       "degradation": {
         "status": "none",
@@ -557,9 +557,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.17,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-18T18:40:05.121297+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606222+00:00"
       },
       "degradation": {
         "status": "none",
@@ -630,9 +630,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.18,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-18T18:40:05.121311+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606229+00:00"
       },
       "degradation": {
         "status": "none",
@@ -696,9 +696,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.17,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-18T18:40:05.121320+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606235+00:00"
       },
       "degradation": {
         "status": "none",
@@ -766,9 +766,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.17,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-18T18:40:05.121330+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606243+00:00"
       },
       "degradation": {
         "status": "none",
@@ -839,9 +839,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.17,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-18T18:40:05.121339+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606249+00:00"
       },
       "degradation": {
         "status": "none",
@@ -920,9 +920,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 2.17,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-18T18:40:05.121347+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606254+00:00"
       },
       "degradation": {
         "status": "warning",
@@ -962,7 +962,7 @@
       "source_url": "https://github.com/cortega26/chile-hub",
       "source_mode": "live",
       "source_detail": "derived_from_validated_chile_hub_layers",
-      "refreshed_at_utc": "2026-06-18T18:40:05.121363+00:00",
+      "refreshed_at_utc": "2026-06-18T20:41:45.606262+00:00",
       "record_count": 346,
       "fields": [
         "codigo_region",
@@ -1024,7 +1024,7 @@
         "status": "fresh",
         "age_hours": 0.0,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-18T18:40:05.121391+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606273+00:00"
       },
       "degradation": {
         "status": "none",
@@ -1105,9 +1105,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.05,
+        "age_hours": 2.08,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-18T18:40:05.121408+00:00"
+        "checked_at_utc": "2026-06-18T20:41:45.606283+00:00"
       },
       "degradation": {
         "status": "warning",
@@ -1155,7 +1155,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.16
+      "freshness_age_hours": 2.18
     },
     "provincias": {
       "dataset": "provincias",
@@ -1164,7 +1164,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.16
+      "freshness_age_hours": 2.18
     },
     "comunas": {
       "dataset": "comunas",
@@ -1173,7 +1173,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.16
+      "freshness_age_hours": 2.18
     },
     "comunas_enriquecidas": {
       "dataset": "comunas_enriquecidas",
@@ -1182,7 +1182,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.16
+      "freshness_age_hours": 2.18
     },
     "indicadores": {
       "dataset": "indicadores",
@@ -1200,7 +1200,7 @@
         "utm"
       ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.18
     },
     "censo_comunal": {
       "dataset": "censo_comunal",
@@ -1209,7 +1209,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.18
     },
     "establecimientos_salud": {
       "dataset": "establecimientos_salud",
@@ -1218,7 +1218,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.17
     },
     "censo_hogares_viviendas": {
       "dataset": "censo_hogares_viviendas",
@@ -1227,7 +1227,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.18
     },
     "distritos_electorales": {
       "dataset": "distritos_electorales",
@@ -1236,7 +1236,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.17
     },
     "establecimientos_educacionales": {
       "dataset": "establecimientos_educacionales",
@@ -1245,7 +1245,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.17
     },
     "finanzas_municipales": {
       "dataset": "finanzas_municipales",
@@ -1254,7 +1254,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.17
     },
     "resultados_educacionales": {
       "dataset": "resultados_educacionales",
@@ -1263,7 +1263,7 @@
       "errors": [],
       "warnings": [],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.17
     },
     "indicadores_urbanos_siedu": {
       "dataset": "indicadores_urbanos_siedu",
@@ -1274,7 +1274,7 @@
         "indicadores_urbanos_siedu has intentionally partial urban coverage"
       ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.15
+      "freshness_age_hours": 2.17
     },
     "empresas": {
       "dataset": "empresas",
@@ -1287,7 +1287,7 @@
         "RES solo cubre constituciones bajo Ley 20.659 (regimen simplificado). No incluye empresas del regimen tradicional (Diario Oficial) ni empresas anteriores a mayo 2013."
       ],
       "freshness_status": "fresh",
-      "freshness_age_hours": 0.05
+      "freshness_age_hours": 2.08
     },
     "perfil_territorial_comunal": {
       "dataset": "perfil_territorial_comunal",

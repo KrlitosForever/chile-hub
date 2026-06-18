@@ -133,6 +133,36 @@ class PipelineLogicTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "no cumple con el esquema obligatorio"):
                 load_metadata(str(incomplete_json_file))
 
+    def _stable_registry_entry(self, name, fallback_policy="none"):
+        """Build a minimal stable_publishable registry entry for testing."""
+        return {
+            "dataset": name,
+            "license_status": "open-attribution",
+            "access_method": "api",
+            "live_extractor_status": "implemented",
+            "fallback_policy": fallback_policy,
+            "maturity_status": "stable",
+            "live_ready": True,
+            "publish_blocking": True,
+            "publication_track": "stable_publishable",
+            "public_bundle_eligible": True,
+        }
+
+    def _candidate_registry_entry(self, name):
+        """Build a minimal candidate registry entry for testing."""
+        return {
+            "dataset": name,
+            "license_status": "open-attribution",
+            "access_method": "landing_snapshot",
+            "live_extractor_status": "fallback_only",
+            "fallback_policy": "allowed_for_dev_blocked_for_publication",
+            "maturity_status": "candidate",
+            "live_ready": False,
+            "publish_blocking": True,
+            "publication_track": "candidate",
+            "public_bundle_eligible": False,
+        }
+
     def test_publication_policy_accepts_fresh_live_data(self):
         datasets = {
             name: {
@@ -145,8 +175,9 @@ class PipelineLogicTests(unittest.TestCase):
         datasets["indicadores"]["indicator_delivery"] = {
             code: "live" for code in EXPECTED_INDICATOR_CODES
         }
+        registry = [self._stable_registry_entry(name) for name in DATASET_CATALOG_CONFIG]
 
-        verify_publication_policy({"datasets": datasets})
+        verify_publication_policy({"datasets": datasets}, registry=registry)
 
     def test_publication_policy_accepts_clean_published_monthly_backfill(self):
         datasets = {
@@ -168,8 +199,9 @@ class PipelineLogicTests(unittest.TestCase):
                 "empty_live_pairs": [],
             }
         )
+        registry = [self._stable_registry_entry(name) for name in DATASET_CATALOG_CONFIG]
 
-        verify_publication_policy({"datasets": datasets})
+        verify_publication_policy({"datasets": datasets}, registry=registry)
 
     def test_publication_policy_rejects_fallback_and_partial_delivery(self):
         datasets = {
@@ -195,12 +227,104 @@ class PipelineLogicTests(unittest.TestCase):
                 "preserved_existing_pairs": ["uf/2026"],
             }
         )
+        registry = [
+            self._stable_registry_entry(name)
+            for name in [
+                "regiones",
+                "provincias",
+                "comunas",
+                "comunas_enriquecidas",
+                "indicadores",
+            ]
+        ]
 
         with (
             patch("builtins.print"),
             self.assertRaisesRegex(SystemExit, "1"),
         ):
-            verify_publication_policy({"datasets": datasets})
+            verify_publication_policy({"datasets": datasets}, registry=registry)
+
+    def test_publication_policy_candidate_fallback_passes_when_excluded_from_manifest(self):
+        """Candidate dataset in fallback passes when its artifact is absent from manifest."""
+        datasets = {
+            "finanzas_municipales": {
+                "source_mode": "fallback",
+                "source_detail": "generated_fallback",
+                "freshness": {"status": "unknown"},
+            }
+        }
+        registry = [self._candidate_registry_entry("finanzas_municipales")]
+        manifest = {
+            "artifacts": [
+                {"path": "data/normalized/comunas.parquet", "dataset": "comunas"},
+            ]
+        }
+
+        verify_publication_policy({"datasets": datasets}, registry=registry, manifest=manifest)
+
+    def test_publication_policy_candidate_fallback_fails_when_in_manifest(self):
+        """Candidate artifact present in manifest triggers violation."""
+        datasets = {
+            "finanzas_municipales": {
+                "source_mode": "fallback",
+                "source_detail": "generated_fallback",
+                "freshness": {"status": "unknown"},
+            }
+        }
+        registry = [self._candidate_registry_entry("finanzas_municipales")]
+        manifest = {
+            "artifacts": [
+                {
+                    "path": "data/normalized/finanzas_municipales.parquet",
+                    "dataset": "finanzas_municipales",
+                },
+            ]
+        }
+
+        with (
+            patch("builtins.print"),
+            self.assertRaisesRegex(SystemExit, "1"),
+        ):
+            verify_publication_policy({"datasets": datasets}, registry=registry, manifest=manifest)
+
+    def test_publication_policy_stable_publishable_in_fallback_still_fails(self):
+        """Stable_publishable dataset in fallback is rejected."""
+        datasets = {
+            "comunas": {
+                "source_mode": "fallback",
+                "source_detail": "public_api",
+                "freshness": {"status": "fresh"},
+            }
+        }
+        registry = [self._stable_registry_entry("comunas")]
+
+        with (
+            patch("builtins.print"),
+            self.assertRaisesRegex(SystemExit, "1"),
+        ):
+            verify_publication_policy({"datasets": datasets}, registry=registry)
+
+    def test_publication_policy_indicadores_raw_recovery_still_fails(self):
+        """indicadores with raw_recoveries fails even with candidates excluded."""
+        datasets = {
+            "indicadores": {
+                "source_mode": "live",
+                "source_detail": "public_api_with_raw_recovery",
+                "freshness": {"status": "fresh"},
+                "indicator_delivery": {"uf": "raw_recovery", "dolar": "live"},
+                "fetch_failures": ["uf/2026: timeout"],
+                "raw_recoveries": ["uf/2026"],
+                "preserved_existing_pairs": [],
+                "empty_live_pairs": [],
+            }
+        }
+        registry = [self._stable_registry_entry("indicadores")]
+
+        with (
+            patch("builtins.print"),
+            self.assertRaisesRegex(SystemExit, "1"),
+        ):
+            verify_publication_policy({"datasets": datasets}, registry=registry)
 
     def test_dataset_contract_accepts_valid_dataframe(self):
         df = pl.DataFrame(
@@ -270,7 +394,7 @@ class PipelineLogicTests(unittest.TestCase):
             verify_dataset_contract("demo", contract, df, {}, ROOT_DIR)
         self.assertIn("outside width 5", print_mock.call_args.args[0])
 
-    def test_source_registry_accepts_catalog_subset_and_config_entries(self):
+    def test_source_registry_accepts_stable_publishable_entry(self):
         catalog = {"datasets": [{"dataset": "comunas"}]}
         registry = [
             {
@@ -282,10 +406,173 @@ class PipelineLogicTests(unittest.TestCase):
                 "maturity_status": "stable",
                 "live_ready": True,
                 "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
             }
         ]
 
         verify_source_registry(registry, catalog)
+
+    def test_source_registry_accepts_candidate_fallback_only_entry(self):
+        catalog = {"datasets": [{"dataset": "finanzas_municipales"}]}
+        registry = [
+            {
+                "dataset": "finanzas_municipales",
+                "license_status": "public-api-review-terms",
+                "access_method": "landing_snapshot",
+                "live_extractor_status": "fallback_only",
+                "fallback_policy": "allowed_for_dev_blocked_for_publication",
+                "maturity_status": "candidate",
+                "live_ready": False,
+                "publish_blocking": True,
+                "publication_track": "candidate",
+                "public_bundle_eligible": False,
+            }
+        ]
+
+        verify_source_registry(registry, catalog)
+
+    def test_source_registry_rejects_stable_publishable_for_fallback_only(self):
+        catalog = {"datasets": [{"dataset": "finanzas_municipales"}]}
+        registry = [
+            {
+                "dataset": "finanzas_municipales",
+                "license_status": "public-api-review-terms",
+                "access_method": "landing_snapshot",
+                "live_extractor_status": "fallback_only",
+                "fallback_policy": "allowed_for_dev_blocked_for_publication",
+                "maturity_status": "stable",
+                "live_ready": False,
+                "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
+            }
+        ]
+
+        with patch("builtins.print") as print_mock, self.assertRaisesRegex(SystemExit, "1"):
+            verify_source_registry(registry, catalog)
+        self.assertIn(
+            "fallback_only must have publication_track=candidate", print_mock.call_args.args[0]
+        )
+
+    def test_source_registry_rejects_candidate_with_public_bundle_eligible_true(self):
+        catalog = {"datasets": [{"dataset": "finanzas_municipales"}]}
+        registry = [
+            {
+                "dataset": "finanzas_municipales",
+                "license_status": "public-api-review-terms",
+                "access_method": "landing_snapshot",
+                "live_extractor_status": "fallback_only",
+                "fallback_policy": "allowed_for_dev_blocked_for_publication",
+                "maturity_status": "candidate",
+                "live_ready": False,
+                "publish_blocking": True,
+                "publication_track": "candidate",
+                "public_bundle_eligible": True,
+            }
+        ]
+
+        with patch("builtins.print") as print_mock, self.assertRaisesRegex(SystemExit, "1"):
+            verify_source_registry(registry, catalog)
+        # fallback_only check runs before candidate check
+        self.assertIn(
+            "fallback_only must have public_bundle_eligible=false", print_mock.call_args.args[0]
+        )
+
+    def test_source_registry_rejects_candidate_non_fallback_with_public_bundle_eligible_true(self):
+        catalog = {"datasets": [{"dataset": "finanzas_municipales"}]}
+        registry = [
+            {
+                "dataset": "finanzas_municipales",
+                "license_status": "public-api-review-terms",
+                "access_method": "landing_snapshot",
+                "live_extractor_status": "implemented",
+                "fallback_policy": "allowed_for_dev",
+                "maturity_status": "candidate",
+                "live_ready": False,
+                "publish_blocking": True,
+                "publication_track": "candidate",
+                "public_bundle_eligible": True,
+            }
+        ]
+
+        with patch("builtins.print") as print_mock, self.assertRaisesRegex(SystemExit, "1"):
+            verify_source_registry(registry, catalog)
+        self.assertIn(
+            "candidate must have public_bundle_eligible=false", print_mock.call_args.args[0]
+        )
+
+    def test_source_registry_rejects_derived_public_when_upstream_is_candidate(self):
+        catalog = {"datasets": [{"dataset": "comunas"}, {"dataset": "perfil_territorial_comunal"}]}
+        registry = [
+            {
+                "dataset": "comunas",
+                "license_status": "open-attribution",
+                "access_method": "api",
+                "live_extractor_status": "implemented",
+                "fallback_policy": "allowed_for_dev",
+                "maturity_status": "stable",
+                "live_ready": True,
+                "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
+            },
+            {
+                "dataset": "perfil_territorial_comunal",
+                "license_status": "open-attribution",
+                "access_method": "derived",
+                "live_extractor_status": "derived",
+                "fallback_policy": "allowed_for_dev_blocked_for_publication",
+                "maturity_status": "stable",
+                "live_ready": True,
+                "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
+                "upstream_datasets": ["comunas"],
+            },
+        ]
+
+        # Both comunas and perfil are stable_publishable, so this should pass
+        verify_source_registry(registry, catalog)
+
+    def test_source_registry_rejects_derived_public_when_upstream_is_candidate_with_upstream(self):
+        catalog = {
+            "datasets": [
+                {"dataset": "finanzas_municipales"},
+                {"dataset": "perfil_territorial_comunal"},
+            ]
+        }
+        registry = [
+            {
+                "dataset": "finanzas_municipales",
+                "license_status": "public-api-review-terms",
+                "access_method": "landing_snapshot",
+                "live_extractor_status": "fallback_only",
+                "fallback_policy": "allowed_for_dev_blocked_for_publication",
+                "maturity_status": "candidate",
+                "live_ready": False,
+                "publish_blocking": True,
+                "publication_track": "candidate",
+                "public_bundle_eligible": False,
+            },
+            {
+                "dataset": "perfil_territorial_comunal",
+                "license_status": "open-attribution",
+                "access_method": "derived",
+                "live_extractor_status": "derived",
+                "fallback_policy": "allowed_for_dev_blocked_for_publication",
+                "maturity_status": "stable",
+                "live_ready": True,
+                "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
+                "upstream_datasets": ["finanzas_municipales"],
+            },
+        ]
+
+        with patch("builtins.print") as print_mock, self.assertRaisesRegex(SystemExit, "1"):
+            verify_source_registry(registry, catalog)
+        self.assertIn("upstream non-publishable datasets", print_mock.call_args.args[0])
 
     def test_source_registry_rejects_duplicate_dataset(self):
         catalog = {"datasets": [{"dataset": "comunas"}]}
@@ -299,6 +586,8 @@ class PipelineLogicTests(unittest.TestCase):
                 "maturity_status": "stable",
                 "live_ready": True,
                 "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
             },
             {
                 "dataset": "comunas",
@@ -309,6 +598,8 @@ class PipelineLogicTests(unittest.TestCase):
                 "maturity_status": "stable",
                 "live_ready": True,
                 "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
             },
         ]
 
@@ -328,6 +619,8 @@ class PipelineLogicTests(unittest.TestCase):
                 "maturity_status": "stable",
                 "live_ready": True,
                 "publish_blocking": True,
+                "publication_track": "stable_publishable",
+                "public_bundle_eligible": True,
             }
         ]
 
