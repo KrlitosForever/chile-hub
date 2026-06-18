@@ -167,13 +167,26 @@ def verify_landing():
         if browser_errors:
             fail(f"Browser errors while rendering landing: {browser_errors}")
 
-        # Version and public URL verification
+        # Version and public URL verification.
+        # La versión se lee de hub_bundle.json (fuente única de verdad) y app.js
+        # la inyecta dinámicamente en el badge. Así no hay riesgo de desincronización
+        # entre pyproject.toml e index.html.
         project_metadata, public_site_url = load_project_metadata()
         public_data_base = public_site_url + "data/normalized"
-        expected_version = project_metadata.get("version")
+        expected_version = bundle.get("version")
+        if not expected_version:
+            fail("hub_bundle.json is missing version field")
         navbar_badge = page.locator(".badge-alpha")
         if navbar_badge.count() != 1:
             fail("Expected exactly one .badge-alpha version badge in the navbar")
+        # Espera a que app.js haya poblado el badge desde hub_bundle.json.
+        try:
+            page.wait_for_function(
+                "document.querySelector('.badge-alpha')?.textContent?.startsWith('v')",
+                timeout=5000,
+            )
+        except Exception:
+            fail("Version badge was not populated by app.js within 5 seconds")
         navbar_badge_text = navbar_badge.inner_text()
         if navbar_badge_text != f"v{expected_version}":
             fail(

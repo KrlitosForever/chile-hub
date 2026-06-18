@@ -368,6 +368,12 @@ function loadCatalog() {
             .catch(() => null)
     ])
         .then(([bundle, manifest]) => {
+            // Sincroniza la versión del badge con el bundle (fuente única de verdad).
+            var versionBadge = document.querySelector(".badge-alpha");
+            if (versionBadge && bundle.version) {
+                versionBadge.textContent = "v" + bundle.version;
+            }
+
             artifactManifestByPath = Object.fromEntries(
                 (manifest?.artifacts || []).map(entry => [entry.path, entry])
             );

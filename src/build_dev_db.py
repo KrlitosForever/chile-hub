@@ -757,20 +757,20 @@ def write_json_atomic(data, path, **kwargs):
     os.replace(tmp_path, path)
 
 
-def sync_landing_metadata(version, public_site_url):
+def sync_landing_metadata(public_site_url):
     index_path = os.path.join(ROOT_DIR, "index.html")
     app_path = os.path.join(ROOT_DIR, "app.js")
     public_site_url = public_site_url.rstrip("/") + "/"
     public_data_base = public_site_url + "data/normalized"
     try:
+        # La versión del badge se inyecta dinámicamente en app.js desde
+        # hub_bundle.json — ya no se hardcodea en index.html.  Solo
+        # mantenemos la URL pública por si index.html referencia la URL
+        # legacy de GitHub Pages.
         if os.path.exists(index_path):
             with open(index_path, "r", encoding="utf-8") as f:
                 content = f.read()
             replacements = [
-                (
-                    r'(<span class="badge-alpha">)v[^<]+(</span>)',
-                    rf"\g<1>v{version}\g<2>",
-                ),
                 (
                     r"https://cortega26\.github\.io/chile-hub/",
                     public_site_url,
@@ -782,10 +782,7 @@ def sync_landing_metadata(version, public_site_url):
             if new_content != content:
                 with open(index_path, "w", encoding="utf-8") as f:
                     f.write(new_content)
-                print(
-                    "Sincronización Landing: "
-                    f"index.html actualizado a v{version} y {public_site_url}"
-                )
+                print(f"Sincronización Landing: index.html actualizado a {public_site_url}")
         if os.path.exists(app_path):
             with open(app_path, "r", encoding="utf-8") as f:
                 content = f.read()
@@ -819,7 +816,7 @@ def write_pipeline_metadata(dataset_metadata, validations):
         print(f"Advertencia: No se pudo obtener la versión de pyproject.toml: {e}")
 
     if version != "unknown":
-        sync_landing_metadata(version, public_site_url)
+        sync_landing_metadata(public_site_url)
 
     pipeline_metadata = {
         "version": version,
