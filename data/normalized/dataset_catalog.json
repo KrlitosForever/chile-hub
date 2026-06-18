@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-17T17:29:16.338743+00:00",
+  "generated_at_utc": "2026-06-18T00:23:06.004190+00:00",
   "dataset_count": 14,
   "datasets": [
     {
@@ -31,9 +31,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.64,
+        "age_hours": 7.54,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-17T17:29:16.335888+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003021+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -108,9 +108,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.64,
+        "age_hours": 7.54,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-17T17:29:16.335983+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003049+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -192,9 +192,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.64,
+        "age_hours": 7.54,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-17T17:29:16.336010+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003058+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -275,9 +275,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.64,
+        "age_hours": 7.54,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-17T17:29:16.336026+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003063+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -363,9 +363,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-06-17T17:29:16.336638+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003225+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 72,
@@ -454,9 +454,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-17T17:29:16.336706+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003236+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 87600,
@@ -540,9 +540,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-17T17:29:16.336728+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003243+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 1080,
@@ -618,9 +618,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-17T17:29:16.336738+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003248+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -700,9 +700,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-17T17:29:16.336752+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003253+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 87600,
@@ -770,9 +770,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-17T17:29:16.336758+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003257+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 87600,
@@ -846,9 +846,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-17T17:29:16.336765+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003262+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -929,9 +929,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-17T17:29:16.336772+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003267+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -1015,9 +1015,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.63,
+        "age_hours": 7.53,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-17T17:29:16.336778+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003271+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -1071,7 +1071,7 @@
       "source_url": "https://github.com/cortega26/chile-hub",
       "source_mode": "fallback",
       "source_detail": "derived_from_validated_chile_hub_layers",
-      "refreshed_at_utc": "2026-06-17T17:29:16.336789+00:00",
+      "refreshed_at_utc": "2026-06-18T00:23:06.003278+00:00",
       "record_count": 346,
       "fields": [
         "codigo_region",
@@ -1135,7 +1135,7 @@
         "status": "fresh",
         "age_hours": 0.0,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-17T17:29:16.336806+00:00"
+        "checked_at_utc": "2026-06-18T00:23:06.003286+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 1080,
