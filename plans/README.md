@@ -6,14 +6,19 @@ Planes de implementación generados por auditoría `/improve deep` en commits `b
 
 | # | Plan | Prioridad | Esfuerzo | Riesgo | Depende de | Estado |
 |---|------|----------|----------|--------|-----------|--------|
-| 010 | [Corregir bugs en extractores y validación](010-fix-extractor-and-validation-bugs.md) | P1 | S | LOW | — | TODO |
 | 011 | [Robustecer manejo de errores en API pública](011-harden-api-error-handling.md) | P1 | S | LOW | — | TODO |
 | 012 | [Hardening de seguridad — TOCTOU, integridad binario y paths](012-security-hardening.md) | P2 | S | LOW | — | TODO |
-| 013 | [Cache en memoria para la API de ChileHub](013-api-performance-caching.md) | P2 | S | LOW | — | TODO |
-| 014 | [Limpieza de arquitectura — catálogo externo, imports, alias](014-architecture-cleanup.md) | P2 | M | MED | 010 | TODO |
-| 015 | [Robustez de tests — HTTP mocking, CLI coverage, assertions](015-test-robustness.md) | P2 | M | LOW | 011 | TODO |
-| 016 | [Cache de staging en CI](016-ci-staging-cache.md) | P3 | S | MED | — | TODO |
-| 017 | [Nuevas capacidades de API — cruces, validación, exit codes, búsqueda](017-new-api-capabilities.md) | P3 | M | LOW | 011, 013 | TODO |
+| 014 | [Limpieza de arquitectura — catálogo externo, imports, alias](014-architecture-cleanup.md) | P2 | M | MED | — | TODO |
+| 017 | [Nuevas capacidades de API — cruces, validación, exit codes, búsqueda](017-new-api-capabilities.md) | P3 | M | LOW | 011 | TODO |
+
+## Planes archivados (auditoría 2026-06-19, ejecutados)
+
+| # | Plan | Esfuerzo | Riesgo | Estado |
+|---|------|----------|--------|--------|
+| 010 | [Corregir bugs en extractores y validación](archive/010-fix-extractor-and-validation-bugs.md) | S | LOW | DONE |
+| 013 | [Cache en memoria para la API de ChileHub](archive/013-api-performance-caching.md) | S | LOW | DONE |
+| 015 | [Robustez de tests — HTTP mocking, CLI coverage, assertions](archive/015-test-robustness.md) | M | LOW | DONE |
+| 016 | [Cache de staging en CI](archive/016-ci-staging-cache.md) | S | MED | DONE |
 
 ## Planes archivados (auditoría 2026-06-13, completados)
 
@@ -32,19 +37,17 @@ Planes de implementación generados por auditoría `/improve deep` en commits `b
 ## Grafo de dependencias (planes activos)
 
 ```
-010 (independiente) ───────────────────────────────────────────► 014
-011 (independiente) ──► 015, 017
+011 (independiente) ──► 017
 012 (independiente)
-013 (independiente) ──► 017
-016 (independiente)
-017 ── depende de 011, 013
+014 (independiente)   ← dependencia 010 ya satisfecha
+017 ── depende de 011
 ```
 
 ## Orden de ejecución recomendado
 
-1. **Primero**: 010, 011, 012, 013 (independientes, esfuerzo S, máximo leverage)
-2. **Segundo**: 014 (depende de 010), 015 (depende de 011)
-3. **Tercero**: 016, 017 (menor criticidad; 017 depende de 011 y 013)
+1. **Primero**: 011, 012 (independientes, esfuerzo S, máximo leverage)
+2. **Segundo**: 014 (dependencia 010 ya está DONE)
+3. **Tercero**: 017 (depende de 011)
 
 ## Hallazgos considerados y rechazados (2026-06-19)
 
