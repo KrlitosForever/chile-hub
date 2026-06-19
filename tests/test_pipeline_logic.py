@@ -2039,6 +2039,25 @@ class RemainingValidatorTests(unittest.TestCase):
         result = validate_censo_hogares_viviendas(df, None, valid_commune_codes=["01101"])
         self.assertTrue(any("unknown communes" in e for e in result["errors"]))
 
+    def test_validate_censo_hogares_viviendas_null_commune_not_unknown(self):
+        """Null codigo_comuna should not be reported as unknown commune."""
+        df = pl.DataFrame(
+            {
+                "codigo_comuna": ["01101", None, "01107"],
+                "viviendas_censadas": [120, 130, 140],
+                "viviendas_particulares_ocupadas": [100, 110, 120],
+                "viviendas_particulares_desocupadas": [18, 18, 18],
+                "viviendas_colectivas": [2, 2, 2],
+            }
+        )
+        result = validate_censo_hogares_viviendas(df, None, valid_commune_codes=["01101", "01107"])
+        unknown_errors = [e for e in result["errors"] if "unknown communes" in e]
+        self.assertEqual(
+            len(unknown_errors),
+            0,
+            f"Null codigo_comuna triggered false unknown commune error: {unknown_errors}",
+        )
+
     def test_validate_establecimientos_educacionales_accepts_valid(self):
         df = pl.DataFrame(
             {

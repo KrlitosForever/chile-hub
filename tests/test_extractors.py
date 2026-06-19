@@ -80,6 +80,7 @@ def mock_response(payload, status_code=200):
     response = MagicMock()
     response.status_code = status_code
     response.json.return_value = payload
+    response.__enter__.return_value = response
     if status_code >= 400:
         response.raise_for_status.side_effect = HTTPError(f"HTTP {status_code}")
     return response
@@ -640,6 +641,7 @@ class SourceAdapterTests(unittest.TestCase):
             mock_resp = MagicMock()
             mock_resp.status_code = 200
             mock_resp.content = mock_content
+            mock_resp.__enter__.return_value = mock_resp
             mock_get.return_value = mock_resp
 
             with tempfile.TemporaryDirectory() as tmp:
