@@ -756,7 +756,9 @@ def validate_metadata_schema(path, content):
         "reuse_policy",
     }
     if not isinstance(content, dict):
-        raise SystemExit(f"Error: Metadatos en {path} no es un objeto JSON (dict).")
+        raise SystemExit(
+            f"Error: Metadatos en {os.path.relpath(path, ROOT_DIR)} no es un objeto JSON (dict)."
+        )
 
     missing_fields = required_fields - set(content.keys())
     if missing_fields:
@@ -773,7 +775,10 @@ def load_metadata(path):
         with open(path, encoding="utf-8") as f:
             content = json.load(f)
     except json.JSONDecodeError as e:
-        raise SystemExit(f"Error: Archivo de metadatos {path} contiene un JSON malformado: {e}")
+        raise SystemExit(
+            f"Error: Archivo de metadatos {os.path.relpath(path, ROOT_DIR)} "
+            f"contiene un JSON malformado: {e}"
+        )
 
     validate_metadata_schema(path, content)
     return content
