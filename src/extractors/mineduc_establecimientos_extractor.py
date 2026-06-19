@@ -1,6 +1,7 @@
 """Extrae el directorio oficial de establecimientos educacionales de MINEDUC."""
 
 import datetime
+import hashlib
 import os
 import subprocess
 import sys
@@ -28,6 +29,37 @@ DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data")
 RAW_DIR = os.path.join(DATA_DIR, "raw")
 STAGING_DIR = os.path.join(DATA_DIR, "staging")
 STAGING_CSV_PATH = os.path.join(STAGING_DIR, "establecimientos_educacionales.csv")
+
+# Hash del binario unrar registrado en primera ejecución (bootstrap confiable)
+_UNRAR_EXPECTED_SHA256 = None
+
+
+def _verify_unrar_integrity(unrar_path: Path) -> bool:
+    """Verifica que el binario unrar tenga un hash conocido.
+
+    En primera ejecución, registra el hash como referencia (se asume que
+    el bootstrap inicial es confiable). En ejecuciones posteriores, compara
+    contra el hash registrado.
+    """
+    global _UNRAR_EXPECTED_SHA256
+
+    if not unrar_path.exists():
+        return False
+
+    # Si no es un archivo regular (ej. es un comando del PATH como "unrar"),
+    # se omite la verificación: no hay binario concreto que hashear.
+    if not unrar_path.is_file():
+        return True
+
+    actual = hashlib.sha256(unrar_path.read_bytes()).hexdigest()
+
+    if _UNRAR_EXPECTED_SHA256 is None:
+        _UNRAR_EXPECTED_SHA256 = actual
+        return True
+
+    return actual == _UNRAR_EXPECTED_SHA256
+
+
 METADATA_PATH = os.path.join(STAGING_DIR, "establecimientos_educacionales.metadata.json")
 
 # URL oficial del Directorio de Establecimientos Educacionales 2025
@@ -66,6 +98,14 @@ def fetch_data() -> tuple[Path, str, str]:
         if not unrar_bin.exists():
             # Buscar en el PATH por si acaso
             unrar_bin = "unrar"
+
+        # Verificar integridad del binario unrar
+        unrar_path = Path(unrar_bin) if isinstance(unrar_bin, str) else unrar_bin
+        if not _verify_unrar_integrity(unrar_path):
+            raise SystemExit(
+                f"Verificación de integridad fallida para {unrar_bin}. "
+                f"El binario puede haber sido modificado. Reinstala con 'apt-get install unrar'."
+            )
 
         print(f"Extrayendo {rar_path} con {unrar_bin}...")
         cmd = [str(unrar_bin), "x", "-y", str(rar_path), RAW_DIR]
