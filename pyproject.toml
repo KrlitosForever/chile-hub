@@ -126,8 +126,17 @@ python_functions = ["test_*"]
 
 [tool.coverage.run]
 branch = true
-source = ["src"]
+source = ["src/chile_hub"]
+omit = [
+    "src/chile_hub/__main__.py",
+    "src/chile_hub/cli.py",
+    "src/chile_hub/pipeline_status_utils.py",
+]
 
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+exclude_also = [
+    "def __repr__",
+    'if __name__ == "__main__":',
+]

@@ -2,14 +2,14 @@ coverage:
   status:
     project:
       default:
-        target: 50%
+        target: 80%
         threshold: 2%
     patch:
       default:
-        target: 70%
-  precision: 1
+        target: 75%
+  precision: 0
   round: down
-  range: "40...70"
+  range: "50...80"
 
 comment:
   layout: "header, diff, files, footer"

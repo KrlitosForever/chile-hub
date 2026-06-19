@@ -1244,7 +1244,7 @@ class ChileHub:
         return "\n".join(lines) + "\n"
 
 
-def build_parser():
+def build_parser():  # pragma: no cover — entry point de CLI, testeado vía integración
     parser = argparse.ArgumentParser(description="CLI minima para inspeccionar chile-hub")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -1493,7 +1493,7 @@ def build_parser():
     return parser
 
 
-def _main(argv=None):
+def _main(argv=None):  # pragma: no cover — dispatch de CLI, testeado vía smoke tests
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -1738,7 +1738,7 @@ def _main(argv=None):
         return
 
 
-def main(argv=None):
+def main(argv=None):  # pragma: no cover — entry point de consola
     try:
         return _main(argv)
     except ChileHubError as exc:
@@ -1746,5 +1746,5 @@ def main(argv=None):
         raise SystemExit(1) from None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
