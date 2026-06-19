@@ -495,6 +495,13 @@ def build_publishable_artifact_index():
     registry_by_dataset = {entry["dataset"]: entry for entry in registry}
 
     for dataset_name, config in DATASET_CATALOG_CONFIG.items():
+        # Los datasets con alias_for son punteros de compatibilidad que comparten
+        # los mismos archivos físicos que el dataset canónico. Saltarlos aquí evita
+        # que sobrescriban el mapeo de artefactos y deja que el dataset canónico
+        # sea el dueño de sus archivos.
+        if config.get("alias_for"):
+            continue
+
         reg_entry = registry_by_dataset.get(dataset_name, {})
         public_bundle_eligible = reg_entry.get("public_bundle_eligible", True)
         publication_track = reg_entry.get("publication_track", "stable_publishable")
@@ -1465,6 +1472,10 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
         dataset_name = dataset["dataset"]
         dataset_health = health_by_dataset.get(dataset_name, {})
 
+        # Si este dataset es un alias de otro, hereda los artefactos del canónico
+        # para que ambos aparezcan en el bundle con los mismos archivos.
+        canonical_name = dataset.get("alias_for") or dataset_name
+
         if dataset_name in stable_publicable_datasets:
             bundle["datasets"].append(
                 {
@@ -1492,7 +1503,7 @@ def write_hub_bundle_json(pipeline_metadata, hub_health, dataset_catalog, artifa
                     "documentation": dataset.get("documentation"),
                     "outputs": dataset.get("outputs", {}),
                     "usage_examples": dataset.get("usage_examples", {}),
-                    "artifacts": artifacts_by_dataset.get(dataset_name, []),
+                    "artifacts": artifacts_by_dataset.get(canonical_name, []),
                 }
             )
 
