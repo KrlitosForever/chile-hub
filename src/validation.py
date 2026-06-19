@@ -181,7 +181,7 @@ def validate_censo_hogares_viviendas(
     if df.height - df["codigo_comuna"].n_unique() > 0:
         errors.append("codigo_comuna must be unique in censo_hogares_viviendas")
     if valid_commune_codes is not None:
-        unknown = set(df["codigo_comuna"].to_list()) - set(valid_commune_codes)
+        unknown = set(df["codigo_comuna"].drop_nulls().to_list()) - set(valid_commune_codes)
         if unknown:
             errors.append(f"censo_hogares_viviendas references unknown communes: {sorted(unknown)}")
     inconsistent = df.filter(
