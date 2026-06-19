@@ -42,6 +42,60 @@ def _format_available(values: list[str], requested: str | None = None) -> str:
     return f"Disponibles: {available}"
 
 
+def _print_result(result, fmt="json", output=None):
+    """Imprime un resultado dict/list en el formato solicitado."""
+    if output:
+        import polars as pl
+
+        if isinstance(result, pl.DataFrame):
+            if output == "csv":
+                result.write_csv(sys.stdout)
+            elif output == "parquet":
+                result.write_parquet(sys.stdout.buffer)
+            elif output == "json":
+                result.write_json(sys.stdout)
+            return
+    if fmt == "json":
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        # table: convertir dict a string formateado
+        if isinstance(result, dict):
+            for k, v in result.items():
+                print(f"{k}: {v}")
+        elif isinstance(result, list):
+            for item in result:
+                if isinstance(item, dict):
+                    print(json.dumps(item, ensure_ascii=False, indent=2))
+                else:
+                    print(item)
+        else:
+            print(result)
+
+
+def _output_dataframe(df, output, fmt):
+    """Escribe un DataFrame a stdout o archivo según output y fmt."""
+    import sys
+
+    if output:
+        out_path = Path(output)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        if output.endswith(".csv"):
+            df.write_csv(out_path)
+        elif output.endswith(".parquet"):
+            df.write_parquet(out_path)
+        elif output.endswith(".json"):
+            df.write_json(out_path)
+        else:
+            raise ValueError(
+                f"Formato de archivo no soportado: {output}. Use .csv, .parquet o .json"
+            )
+        print(f"Escrito en {output}")
+    elif fmt == "json":
+        df.write_json(sys.stdout)
+    else:
+        print(df)
+
+
 class ChileHub:
     def __init__(
         self,
@@ -248,6 +302,187 @@ class ChileHub:
             raise ChileHubDatasetError(f"Error al leer Parquet para '{dataset_name}': {exc}")
         self._df_cache[dataset_name] = df
         return df
+
+    def cross_view(
+        self, datasets: list[str], on: str = "codigo_comuna", how: str = "left"
+    ) -> pl.DataFrame:
+        """Retorna un cruce predefinido de datasets vinculados por clave territorial.
+
+        Args:
+            datasets: Lista de nombres de datasets a cruzar (ej. ["comunas", "censo_comunal"]).
+            on: Clave de join (default: "codigo_comuna").
+            how: Tipo de join (default: "left").
+
+        Returns:
+            DataFrame de Polars con el cruce de todos los datasets.
+
+        Raises:
+            ChileHubDatasetError: Si se pasan menos de 2 datasets.
+        """
+        if len(datasets) < 2:
+            raise ChileHubDatasetError(
+                f"cross_view requiere al menos 2 datasets. Recibido: {len(datasets)}"
+            )
+
+        dfs = []
+        for name in datasets:
+            df = self.load_polars(name)
+            # Prefijar columnas no-clave con el nombre del dataset para evitar colisiones
+            cols_to_prefix = [c for c in df.columns if c != on]
+            df = df.select([pl.col(on)] + [pl.col(c).alias(f"{name}_{c}") for c in cols_to_prefix])
+            dfs.append(df)
+
+        result = dfs[0]
+        for df in dfs[1:]:
+            result = result.join(df, on=on, how=how)
+        return result
+
+    def validate_user_data(self, df: pl.DataFrame, dataset_name: str) -> dict:
+        """Valida un DataFrame de usuario contra el contrato de schema del dataset.
+
+        Usa los archivos de contrato en contracts/datasets/*.schema.json, que definen
+        required_columns, column_types, primary_key y expected_record_count.
+
+        Args:
+            df: DataFrame de Polars a validar.
+            dataset_name: Nombre del dataset de referencia (ej. "comunas").
+
+        Returns:
+            Dict con:
+            - status: "ok" si pasa todas las validaciones, "error" si falla alguna.
+            - errors: lista de strings con mensajes de error (vacía si status=="ok").
+            - warnings: lista de strings con advertencias no bloqueantes.
+            - schema_used: ruta absoluta del schema usado.
+
+        Raises:
+            ChileHubDatasetError: Si no existe contrato para el dataset solicitado.
+        """
+        schema_path = ROOT_DIR / "contracts" / "datasets" / f"{dataset_name}.schema.json"
+        if not schema_path.exists():
+            raise ChileHubDatasetError(
+                f"No existe contrato de schema para '{dataset_name}'. "
+                f"Datasets disponibles: {self.list_datasets()}"
+            )
+
+        import json as json_module
+
+        with open(schema_path, "r", encoding="utf-8") as f:
+            schema = json_module.load(f)
+
+        errors = []
+        warnings = []
+
+        # 1. Validar columnas requeridas (required_columns)
+        required_cols = schema.get("required_columns", [])
+        df_cols = df.columns
+        missing = [c for c in required_cols if c not in df_cols]
+        if missing:
+            errors.append(f"Columnas requeridas faltantes: {missing}")
+
+        # 2. Validar tipos (column_types)
+        column_types = schema.get("column_types", {})
+        type_map = {
+            "string": ["String", "Utf8", "str"],
+            "integer": ["Int64", "Int32", "Int16", "Int8", "UInt32", "UInt16"],
+            "number": ["Float64", "Float32"],
+            "boolean": ["Boolean"],
+            "date": ["Date"],
+        }
+        for col, expected_type in column_types.items():
+            if col not in df_cols:
+                continue
+            actual_dtype = str(df[col].dtype)
+            expected_names = type_map.get(expected_type, [expected_type])
+            if actual_dtype not in expected_names:
+                errors.append(
+                    f"Columna '{col}': se esperaba {expected_type}, se encontró {actual_dtype}"
+                )
+
+        # 3. Validar clave primaria (primary_key)
+        primary_key = schema.get("primary_key", [])
+        if primary_key:
+            pk_cols = [c for c in primary_key if c in df_cols]
+            if pk_cols:
+                if df.select(pk_cols).null_count().sum_horizontal().sum() > 0:
+                    errors.append(f"Clave primaria {primary_key} contiene valores nulos")
+                pk_df = df.select(pk_cols)
+                if pk_df.height != pk_df.unique().height:
+                    errors.append(f"Clave primaria {primary_key} tiene valores duplicados")
+
+        # 4. Verificar expected_record_count (solo advertencia)
+        expected = schema.get("expected_record_count")
+        if expected is not None and df.height != expected:
+            warnings.append(
+                f"Cantidad de registros ({df.height}) difiere de la esperada ({expected})"
+            )
+
+        status = "ok" if not errors else "error"
+        return {
+            "status": status,
+            "errors": errors,
+            "warnings": warnings,
+            "schema_used": str(schema_path),
+        }
+
+    def search_datasets(
+        self, query: str = "", source_name: str = "", maturity: str = ""
+    ) -> list[dict]:
+        """Busca datasets por keyword, fuente, o nivel de madurez.
+
+        Args:
+            query: Texto libre para buscar en nombre y descripción.
+            source_name: Filtrar por fuente (ej. "INE", "MINSAL"). Coincidencia parcial
+                sin distinción de mayúsculas.
+            maturity: Filtrar por maturity_status (ej. "stable", "candidate").
+
+        Returns:
+            Lista de dicts con información de cada dataset que coincide:
+            {"name", "description", "source_name", "record_count", "maturity_status", "fields"}.
+        """
+        results = []
+        query_lower = query.lower().strip() if query else ""
+        source_lower = source_name.lower().strip() if source_name else ""
+        maturity_lower = maturity.lower().strip() if maturity else ""
+
+        # Cargar source_readiness para maturity_status
+        source_readiness = self._load_source_readiness()
+        maturity_by_dataset = {
+            entry["dataset"]: entry.get("maturity_status", "")
+            for entry in source_readiness.get("datasets", [])
+        }
+
+        for entry in self.catalog.get("datasets", []):
+            name = entry.get("dataset", "")
+            desc = entry.get("description", "").lower()
+
+            # Filtro por query
+            if query_lower:
+                if query_lower not in name.lower() and query_lower not in desc:
+                    continue
+
+            # Filtro por fuente
+            entry_source = entry.get("source_name", "").lower()
+            if source_lower and source_lower not in entry_source:
+                continue
+
+            # Filtro por maturity_status
+            if maturity_lower:
+                entry_maturity = maturity_by_dataset.get(name, "").lower()
+                if maturity_lower != entry_maturity:
+                    continue
+
+            results.append(
+                {
+                    "name": name,
+                    "description": entry.get("description", ""),
+                    "source_name": entry.get("source_name", ""),
+                    "record_count": entry.get("record_count", 0),
+                    "maturity_status": maturity_by_dataset.get(name, ""),
+                    "fields": entry.get("fields", []),
+                }
+            )
+
+        return results
 
     def example_usage(self, dataset_name: str, kind: str = "python") -> str:
         dataset = self.get_dataset(dataset_name)
@@ -1401,6 +1636,11 @@ def build_parser():  # pragma: no cover — entry point de CLI, testeado vía in
         default="json",
         help="Formato de salida de status",
     )
+    status_parser.add_argument(
+        "--exit-code",
+        action="store_true",
+        help="Retorna exit code 1 si overall_status no es 'ok'.",
+    )
     subparsers.add_parser("dataset-status", help="Mostrar status detallado por dataset")
     subparsers.add_parser("dataset-changelog", help="Mostrar changelog de datasets")
     subparsers.add_parser("source-readiness", help="Mostrar madurez de fuente por dataset")
@@ -1411,6 +1651,11 @@ def build_parser():  # pragma: no cover — entry point de CLI, testeado vía in
         choices=["json", "table"],
         default="json",
         help="Formato de salida de health",
+    )
+    health_parser.add_argument(
+        "--exit-code",
+        action="store_true",
+        help="Retorna exit code 1 si overall_status no es 'ok'.",
     )
     subparsers.add_parser("bundle", help="Mostrar bundle consolidado del hub")
     freshness_audit_parser = subparsers.add_parser(
@@ -1529,6 +1774,57 @@ def build_parser():  # pragma: no cover — entry point de CLI, testeado vía in
         default=5,
         help="Timeout en segundos para la conexión HTTP",
     )
+    check_sources_parser.add_argument(
+        "--exit-code",
+        action="store_true",
+        help="Retorna exit code 1 si alguna fuente está offline.",
+    )
+
+    # Subcomando: cross
+    cross_parser = subparsers.add_parser("cross", help="Cruza datasets por clave territorial comun")
+    cross_parser.add_argument("datasets", nargs="+", help="Datasets a cruzar (min 2)")
+    cross_parser.add_argument(
+        "--on", default="codigo_comuna", help="Clave de join (default: codigo_comuna)"
+    )
+    cross_parser.add_argument(
+        "--format",
+        choices=["json", "table"],
+        default="table",
+        help="Formato de salida (default: table)",
+    )
+    cross_parser.add_argument(
+        "--output", default=None, help="Archivo de salida (.csv, .parquet, o .json)"
+    )
+
+    # Subcomando: search
+    search_parser = subparsers.add_parser(
+        "search", help="Busca datasets por keyword, fuente o madurez"
+    )
+    search_parser.add_argument(
+        "query", nargs="?", default="", help="Texto de búsqueda en nombre y descripción"
+    )
+    search_parser.add_argument(
+        "--source", default="", help="Filtrar por fuente (ej. 'INE', 'MINSAL')"
+    )
+    search_parser.add_argument(
+        "--maturity", default="", help="Filtrar por madurez ('stable' o 'candidate')"
+    )
+    search_parser.add_argument(
+        "--format",
+        choices=["json", "table"],
+        default="json",
+        help="Formato de salida (default: json)",
+    )
+
+    # Subcomando: validate
+    validate_parser = subparsers.add_parser(
+        "validate", help="Valida un archivo CSV o Parquet contra un schema del hub"
+    )
+    validate_parser.add_argument("path", help="Ruta al archivo a validar (.csv o .parquet)")
+    validate_parser.add_argument(
+        "--dataset", required=True, help="Dataset de referencia (ej. 'comunas')"
+    )
+
     return parser
 
 
@@ -1584,6 +1880,10 @@ def _main(argv=None):  # pragma: no cover — dispatch de CLI, testeado vía smo
             print(hub.check_sources_table(results), end="")
         else:
             print(json.dumps(results, ensure_ascii=False, indent=2))
+        if getattr(args, "exit_code", False):
+            offline = [s for s in results if s.get("status") == "offline"]
+            if offline:
+                raise SystemExit(1)
         return
 
     if args.command == "list":
@@ -1666,6 +1966,10 @@ def _main(argv=None):  # pragma: no cover — dispatch de CLI, testeado vía smo
             print(hub.status_table(), end="")
         else:
             print(json.dumps(hub.status(), ensure_ascii=False, indent=2))
+        if getattr(args, "exit_code", False):
+            status_data = hub.status()
+            if status_data.get("overall_status") != "ok":
+                raise SystemExit(1)
         return
 
     if args.command == "dataset-status":
@@ -1689,6 +1993,10 @@ def _main(argv=None):  # pragma: no cover — dispatch de CLI, testeado vía smo
             print(hub.health_table(), end="")
         else:
             print(json.dumps(hub.health(), ensure_ascii=False, indent=2))
+        if getattr(args, "exit_code", False):
+            health_data = hub.health()
+            if health_data.get("overall_status") != "ok":
+                raise SystemExit(1)
         return
 
     if args.command == "bundle":
@@ -1767,6 +2075,37 @@ def _main(argv=None):  # pragma: no cover — dispatch de CLI, testeado vía smo
             print(hub.drift_table(), end="")
         else:
             print(json.dumps(hub.drift(), ensure_ascii=False, indent=2))
+        return
+
+    if args.command == "cross":
+        df = hub.cross_view(args.datasets, on=args.on)
+        _output_dataframe(df, args.output, args.format)
+        return
+
+    if args.command == "search":
+        results = hub.search_datasets(
+            query=args.query,
+            source_name=args.source,
+            maturity=args.maturity,
+        )
+        _print_result(results, args.format)
+        return
+
+    if args.command == "validate":
+        # Leer archivo de entrada
+        path = Path(args.path)
+        if not path.exists():
+            raise ChileHubError(f"Archivo no encontrado: {args.path}")
+        if path.suffix == ".csv":
+            df = pl.read_csv(path, infer_schema_length=0)
+        elif path.suffix == ".parquet":
+            df = pl.read_parquet(path)
+        else:
+            raise ChileHubError(f"Formato no soportado: {path.suffix}. Use .csv o .parquet.")
+        result = hub.validate_user_data(df, args.dataset)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        if result["status"] == "error":
+            raise SystemExit(1)
         return
 
     if args.command == "summary":

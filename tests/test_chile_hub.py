@@ -811,6 +811,97 @@ class ChileHubTests(unittest.TestCase):
             result["warnings"],
         )
 
+    # ── cross_view tests ────────────────────────────────────────────────────────
+
+    def test_cross_view_basic(self):
+        df = self.hub.cross_view(["comunas", "censo_comunal"])
+        self.assertEqual(df.height, 346)
+        self.assertIn("comunas_nombre_comuna", df.columns)
+        self.assertIn("censo_comunal_poblacion_censada", df.columns)
+
+    def test_cross_view_single_dataset_error(self):
+        with self.assertRaises(ChileHubDatasetError):
+            self.hub.cross_view(["comunas"])
+
+    def test_cross_view_three_datasets(self):
+        df = self.hub.cross_view(["comunas", "censo_comunal", "censo_hogares_viviendas"])
+        self.assertEqual(df.height, 346)
+        self.assertIn("comunas_nombre_comuna", df.columns)
+        self.assertIn("censo_comunal_poblacion_censada", df.columns)
+        self.assertIn("censo_hogares_viviendas_viviendas_censadas", df.columns)
+
+    # ── validate_user_data tests ────────────────────────────────────────────────
+
+    def test_validate_user_data_ok(self):
+        import polars as pl
+
+        df = pl.DataFrame(
+            {
+                "codigo_comuna": ["01101", "01107"],
+                "nombre_comuna": ["Iquique", "Alto Hospicio"],
+                "codigo_provincia": ["011", "011"],
+                "codigo_region": ["01", "01"],
+                "nombre_comuna_clean": ["iquique", "alto hospicio"],
+            }
+        )
+        result = self.hub.validate_user_data(df, "comunas")
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["errors"], [])
+
+    def test_validate_user_data_missing_column(self):
+        import polars as pl
+
+        df = pl.DataFrame({"codigo_comuna": ["01101"]})
+        result = self.hub.validate_user_data(df, "comunas")
+        self.assertEqual(result["status"], "error")
+        self.assertGreater(len(result["errors"]), 0)
+
+    def test_validate_user_data_unknown_dataset(self):
+        import polars as pl
+
+        df = pl.DataFrame({"codigo_comuna": ["01101"]})
+        with self.assertRaises(ChileHubDatasetError):
+            self.hub.validate_user_data(df, "no_existe")
+
+    def test_validate_user_data_duplicate_pk(self):
+        import polars as pl
+
+        df = pl.DataFrame(
+            {
+                "codigo_comuna": ["01101", "01101"],
+                "nombre_comuna": ["Iquique", "Iquique"],
+                "codigo_provincia": ["011", "011"],
+                "codigo_region": ["01", "01"],
+                "nombre_comuna_clean": ["iquique", "iquique"],
+            }
+        )
+        result = self.hub.validate_user_data(df, "comunas")
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(
+            any("duplicados" in e for e in result["errors"]),
+            f"Esperaba error de duplicados, obtuve: {result['errors']}",
+        )
+
+    # ── search_datasets tests ───────────────────────────────────────────────────
+
+    def test_search_datasets_query(self):
+        results = self.hub.search_datasets(query="salud")
+        self.assertGreaterEqual(len(results), 1)
+        names = [r["name"] for r in results]
+        self.assertIn("establecimientos_salud", names)
+
+    def test_search_datasets_source(self):
+        results = self.hub.search_datasets(source_name="INE")
+        self.assertGreaterEqual(len(results), 1)
+
+    def test_search_datasets_maturity(self):
+        results = self.hub.search_datasets(maturity="stable")
+        self.assertGreaterEqual(len(results), 1)
+
+    def test_search_datasets_no_results(self):
+        results = self.hub.search_datasets(query="zzz_no_existe")
+        self.assertEqual(len(results), 0)
+
 
 class ArtifactContractTests(unittest.TestCase):
     @classmethod
@@ -1368,6 +1459,65 @@ class ChileHubCliTests(unittest.TestCase):
         result = self.run_cli("check-sources", "--timeout", "2", "--format", "table")
         self.assertIn("chile-hub check-sources", result.stdout)
         self.assertIn("dataset      status", result.stdout)
+
+    def test_cli_cross(self):
+        result = self.run_cli("cross", "comunas", "censo_comunal", "--format", "json")
+        self.assertIn("comunas_nombre_comuna", result.stdout)
+        self.assertIn("censo_comunal_poblacion_censada", result.stdout)
+
+    def test_cli_search(self):
+        result = self.run_cli("search", "salud")
+        self.assertIn("establecimientos_salud", result.stdout)
+
+    def test_cli_search_source(self):
+        result = self.run_cli("search", "--source", "INE")
+        self.assertGreater(len(result.stdout.strip()), 0)
+
+    def test_cli_search_maturity(self):
+        result = self.run_cli("search", "--maturity", "stable")
+        self.assertGreater(len(result.stdout.strip()), 0)
+
+    def test_cli_validate_ok(self):
+        import polars as pl
+
+        with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
+            csv_path = f.name
+            pl.DataFrame(
+                {
+                    "codigo_comuna": ["01101"],
+                    "nombre_comuna": ["Iquique"],
+                    "codigo_provincia": ["011"],
+                    "codigo_region": ["01"],
+                    "nombre_comuna_clean": ["iquique"],
+                }
+            ).write_csv(csv_path)
+        try:
+            result = self.run_cli("validate", csv_path, "--dataset", "comunas")
+            self.assertIn('"status": "ok"', result.stdout)
+        finally:
+            os.unlink(csv_path)
+
+    def test_cli_validate_error(self):
+        import polars as pl
+
+        with tempfile.NamedTemporaryFile(suffix=".csv", mode="w", delete=False) as f:
+            csv_path = f.name
+            pl.DataFrame(
+                {
+                    "codigo_comuna": ["01101"],
+                }
+            ).write_csv(csv_path)
+        try:
+            result = self.run_cli_raw("validate", csv_path, "--dataset", "comunas")
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("Columnas requeridas faltantes", result.stdout)
+        finally:
+            os.unlink(csv_path)
+
+    def test_cli_health_exit_code(self):
+        # Solo verifica que no crashea (exit code depende del estado real)
+        result = self.run_cli_raw("health", "--exit-code", "--format", "json")
+        self.assertIn("overall_status", result.stdout)
 
 
 class WorkflowContractTests(unittest.TestCase):
