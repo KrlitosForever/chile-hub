@@ -103,13 +103,15 @@ def parse_workbook(path):
             "viviendas_colectivas": int(row[9]),
         }
     for row in workbook["6"].iter_rows(min_row=5, values_only=True):
+        if len(row) < 8:
+            continue
         if not row[4] or int(row[4]) == 0:
             continue
         code = str(int(row[4])).zfill(5)
         records[code].update(
             {
                 "hogares_censados": int(row[6]),
-                "promedio_personas_hogar": None if row[7] == "-" else float(row[7]),
+                "promedio_personas_hogar": None if row[7] in ("-", None) else float(row[7]),
             }
         )
     return pl.DataFrame(list(records.values())).sort("codigo_comuna")
