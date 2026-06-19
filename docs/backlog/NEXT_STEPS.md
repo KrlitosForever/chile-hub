@@ -157,11 +157,47 @@ Futuro:      #7 (API capacidades)
 
 ---
 
-## Issues de GitHub relacionados
+## Issues de GitHub
 
-| Issue | Backlog | Estado |
-|:---|:---|:---|
-| #4 | Plan general estabilización | Actualizado con diagnóstico corregido |
-| #5 | SINIM finanzas_municipales | Cerrable — degradado a candidate |
-| #6 | MINEDUC resultados_educacionales | URLs confirmadas, extractor pendiente |
-| #7 | SIEDU indicadores_urbanos | Investigación completada, extractor pendiente |
+Cuatro Issues abiertos al 2026-06-19. Esto es lo que hay que hacer con cada uno:
+
+### Issue #5 — SINIM finanzas_municipales ✅ CERRADO
+
+Dataset degradado a `candidate` permanente. El portal SINIM requiere sesión PHP +
+formulario POST + JS; no tiene API pública ni CSV/Excel descargable vía GET.
+
+- Degradación documentada en `docs/datasets/finanzas_municipales-degradacion.md`
+- `source_registry.json` actualizado con `degradation_reason`
+- Si en el futuro aparece fuente alternativa (SUBDERE directa, Portal de Transparencia,
+  datos.gob.cl), se puede reabrir y crear un nuevo extractor.
+
+### Issue #6 — MINEDUC resultados_educacionales (abierto, trabajo pendiente)
+
+Extractor live por implementar. URLs de descarga confirmadas:
+
+| Archivo | URL directa | Formato | Aporta |
+|:---|:---|:---|:---|
+| Desvinculación | `.../2025/10/OFICIAL-Tasa-Incidencia-Desvinculacion-2010-2024.xlsx` | XLSX | `tasa_retiro` por comuna |
+| Rendimiento 2024 | `.../2025/04/Rendimiento_2024.rar` | RAR→CSVs | `tasa_aprobacion`, `tasa_reprobacion`, `matricula_total`, `establecimientos_reportados` |
+
+**Acción:** Implementar extractor siguiendo el patrón de `mineduc_establecimientos_extractor.py`
+(descarga directa + `unrar` + `pl.read_csv()` + agregación estudiante→comuna).
+Cerrar el Issue cuando el extractor produzca `source_mode: "live"` con datos reales.
+
+### Issue #7 — SIEDU indicadores_urbanos (abierto, trabajo pendiente)
+
+La Matriz de Indicadores Excel está tras pestañas JavaScript en `siedu.ine.cl`.
+No accesible vía HTTP fetch estándar.
+
+**Acción inmediata:** Usar Playwright para abrir el portal, hacer clic en la pestaña
+INDICADORES, y capturar la URL directa del archivo Excel. Si no se encuentra en
+1-2 semanas, degradar a `candidate` como SINIM y cerrar el Issue.
+
+### Issue #4 — Plan general de estabilización (abierto, issue paraguas)
+
+Issue tracker del progreso global de estabilización. Se cierra cuando:
+- [ ] Issue #6 cerrado (MINEDUC live)
+- [ ] Issue #7 cerrado (SIEDU live o degradado)
+- [ ] `perfil_territorial_comunal` acepta modo mixto live/fallback
+- [ ] `source_registry.json` actualizado para los 4 datasets
+- [ ] `fallback_count` en `hub_health.json` ≤ 1 (solo SINIM, degradado)
