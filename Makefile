@@ -86,18 +86,17 @@ doctor:
 	@$(PYTHON) -c "import duckdb, polars, pyarrow; from importlib.metadata import version; print('duckdb=' + duckdb.__version__); print('polars=' + polars.__version__); print('pyarrow=' + pyarrow.__version__); print('playwright=' + version('playwright'))"
 	@$(PYTHON) scripts/check_validation_registration.py
 
-extract:
-	$(PYTHON) src/extractors/subdere_extractor.py
-	$(PYTHON) src/extractors/bcentral_extractor.py
-	$(PYTHON) src/extractors/censo_extractor.py
-	$(PYTHON) src/extractors/censo_hogares_viviendas_extractor.py
-	$(PYTHON) src/extractors/salud_extractor.py
-	$(PYTHON) src/extractors/electoral_extractor.py
-	$(PYTHON) src/extractors/mineduc_establecimientos_extractor.py
-	$(PYTHON) src/extractors/sinim_finanzas_extractor.py
-	$(PYTHON) src/extractors/mineduc_resultados_extractor.py
-	$(PYTHON) src/extractors/siedu_extractor.py
-	$(PYTHON) src/extractors/res_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/subdere_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/bcentral_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/censo_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/censo_hogares_viviendas_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/salud_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/electoral_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/mineduc_establecimientos_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/sinim_finanzas_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/mineduc_resultados_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/siedu_extractor.py
+	PYTHONPATH=src $(PYTHON) src/extractors/res_extractor.py
 
 build:
 	$(PYTHON) src/build_dev_db.py

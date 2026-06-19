@@ -68,453 +68,14 @@ PUBLISHABLE_ARTIFACT_SUFFIXES = (".json", ".md", ".parquet")
 PUBLISHABLE_BUNDLE_ZIP_NAME = "chile-hub-publishable-bundle.zip"
 PUBLISHABLE_BUNDLE_SHA256_NAME = "chile-hub-publishable-bundle.zip.sha256"
 
-DATASET_CATALOG_CONFIG = {
-    "regiones": {
-        "description": "Capa derivada de regiones para filtros, joins y referencias administrativas de alto nivel.",
-        "join_keys": ["codigo_region"],
-        "confidence_tier": "Tier B",
-        "expected_record_count": 16,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC BY",
-            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
-        },
-        "freshness_policy": {
-            "max_age_hours": 24 * 90,
-            "label": "estable",
-        },
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('regiones')",
-            "duckdb": "SELECT *\nFROM 'data/normalized/regiones.parquet'\nORDER BY codigo_region;",
-            "cli": "chile-hub show regiones",
-        },
-        "outputs": {
-            "parquet": "data/normalized/regiones.parquet",
-            "json": "data/normalized/regiones.json",
-            "duckdb_table": "regiones",
-            "sqlite_table": "regiones",
-            "excel_sheet": "Regiones",
-        },
-        "documentation": "docs/datasets/regiones.md",
-    },
-    "provincias": {
-        "description": "Capa derivada de provincias para cruces intermedios entre region y comuna.",
-        "join_keys": ["codigo_provincia", "codigo_region"],
-        "confidence_tier": "Tier B",
-        "expected_record_count": 56,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC BY",
-            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Derivada de datos abiertos BCN reutilizables con atribucion.",
-        },
-        "freshness_policy": {
-            "max_age_hours": 24 * 90,
-            "label": "estable",
-        },
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('provincias')",
-            "duckdb": "SELECT *\nFROM 'data/normalized/provincias.parquet'\nWHERE codigo_region = '13';",
-            "cli": "chile-hub show provincias",
-        },
-        "outputs": {
-            "parquet": "data/normalized/provincias.parquet",
-            "json": "data/normalized/provincias.json",
-            "duckdb_table": "provincias",
-            "sqlite_table": "provincias",
-            "excel_sheet": "Provincias",
-        },
-        "documentation": "docs/datasets/provincias.md",
-    },
-    "comunas": {
-        "description": "Base territorial normalizada para cruces por region, provincia y comuna.",
-        "join_keys": ["codigo_comuna", "codigo_region"],
-        "confidence_tier": "Tier B",
-        "expected_record_count": 346,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC BY",
-            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Fuente operativa BCN dentro de su superficie de datos abiertos; atribucion requerida.",
-        },
-        "freshness_policy": {
-            "max_age_hours": 24 * 90,
-            "label": "estable",
-        },
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('comunas')",
-            "duckdb": "SELECT codigo_comuna, nombre_comuna, nombre_region\nFROM 'data/normalized/comunas.parquet'\nLIMIT 10;",
-            "cli": "chile-hub path comunas --output parquet",
-        },
-        "outputs": {
-            "parquet": "data/normalized/comunas.parquet",
-            "json": "data/normalized/comunas.json",
-            "duckdb_table": "comunas",
-            "sqlite_table": "comunas",
-            "excel_sheet": "Comunas y Regiones",
-        },
-        "documentation": "docs/datasets/comunas.md",
-    },
-    "comunas_enriquecidas": {
-        "description": (
-            "Comunas con coordenadas de cabecera y poblacion estimada INE, listas para "
-            "analisis territorial sin joins adicionales."
-        ),
-        "join_keys": ["codigo_comuna"],
-        "confidence_tier": "Tier B",
-        "expected_record_count": 346,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC BY",
-            "license_url": "https://datos.bcn.cl/es/informacion/lo-que-esta-haciendo-bcn",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Derivada de datos abiertos BCN con coordenadas e informacion INE.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 90, "label": "estable"},
-        "usage_examples": {
-            "python": (
-                "from chile_hub import ChileHub\n\nhub = ChileHub()\n"
-                "df = hub.load_polars('comunas_enriquecidas')"
-            ),
-            "duckdb": (
-                "SELECT codigo_comuna, nombre_comuna, latitud_cabecera, "
-                "longitud_cabecera, poblacion_estimada\n"
-                "FROM 'data/normalized/comunas_enriquecidas.parquet'\n"
-                "ORDER BY poblacion_estimada DESC LIMIT 10;"
-            ),
-            "cli": "chile-hub show comunas_enriquecidas",
-        },
-        "outputs": {
-            "parquet": "data/normalized/comunas_enriquecidas.parquet",
-            "json": "data/normalized/comunas_enriquecidas.json",
-            "duckdb_table": "comunas_enriquecidas",
-            "sqlite_table": "comunas_enriquecidas",
-            "excel_sheet": "ComunasEnriquecidas",
-        },
-        "documentation": "docs/datasets/comunas_enriquecidas.md",
-    },
-    "indicadores": {
-        "description": "Serie de indicadores economicos diarios de referencia para analisis y software.",
-        "join_keys": ["fecha", "codigo_indicador"],
-        "confidence_tier": "Tier A/B",
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "Reproducción libre con citación (BCCh / INE)",
-            "license_url": "https://www.bcentral.cl/web/banco-central/terminos-y-condiciones",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Datos del Banco Central de Chile (BCCh) e INE. Libre reproducción con citación. Acceso vía mindicador.cl (API pública de la comunidad).",
-        },
-        "freshness_policy": {
-            "max_age_hours": 72,
-            "label": "diaria",
-        },
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('indicadores')",
-            "duckdb": "SELECT *\nFROM 'data/normalized/indicadores.parquet'\nORDER BY fecha DESC, codigo_indicador;",
-            "cli": "chile-hub show indicadores",
-        },
-        "outputs": {
-            "parquet": "data/normalized/indicadores.parquet",
-            "json": "data/normalized/indicadores_hoy.json",
-            "duckdb_table": "indicadores",
-            "sqlite_table": "indicadores",
-            "excel_sheet": "Indicadores Diarios",
-        },
-        "documentation": "docs/datasets/indicadores.md",
-    },
-    "censo_comunal": {
-        "description": "Perfil demografico comunal del Censo 2024 con sexo y grandes grupos de edad.",
-        "join_keys": ["codigo_comuna", "codigo_region"],
-        "confidence_tier": "Tier A",
-        "expected_record_count": 346,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC BY 4.0",
-            "license_url": "https://www.ine.gob.cl/terminos-de-uso",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Resultados oficiales del Censo 2024 publicados por el INE.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 365 * 10, "label": "decenal"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('censo_comunal')",
-            "duckdb": "SELECT * FROM 'data/normalized/censo_comunal.parquet' ORDER BY poblacion_censada DESC;",
-            "cli": "chile-hub show censo_comunal",
-        },
-        "outputs": {
-            "parquet": "data/normalized/censo_comunal.parquet",
-            "json": "data/normalized/censo_comunal.json",
-            "duckdb_table": "censo_comunal",
-            "sqlite_table": "censo_comunal",
-            "excel_sheet": "Censo Comunal",
-        },
-        "documentation": "docs/datasets/censo_comunal.md",
-    },
-    "censo_hogares_viviendas": {
-        "description": "Viviendas y hogares censados por comuna, ocupacion y tamano medio del hogar.",
-        "join_keys": ["codigo_comuna", "codigo_region"],
-        "confidence_tier": "Tier A",
-        "expected_record_count": 346,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC BY 4.0",
-            "license_url": "https://www.ine.gob.cl/terminos-de-uso",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Resultados oficiales del Censo 2024 publicados por el INE.",
-        },
-        "freshness_policy": {"max_age_hours": 87600, "label": "decenal"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('censo_hogares_viviendas')",
-            "duckdb": "SELECT * FROM 'data/normalized/censo_hogares_viviendas.parquet';",
-            "cli": "chile-hub show censo_hogares_viviendas",
-        },
-        "outputs": {
-            "parquet": "data/normalized/censo_hogares_viviendas.parquet",
-            "json": "data/normalized/censo_hogares_viviendas.json",
-        },
-        "documentation": "docs/datasets/censo_hogares_viviendas.md",
-    },
-    "establecimientos_salud": {
-        "description": "Directorio vigente de establecimientos de salud con tipo, dependencia, urgencia y ubicacion.",
-        "join_keys": ["codigo_establecimiento", "codigo_comuna"],
-        "confidence_tier": "Tier A",
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC0",
-            "license_url": "http://www.opendefinition.org/licenses/cc-zero",
-            "attribution_required": False,
-            "redistribution_ok": True,
-            "summary": "Directorio oficial MINSAL publicado en datos.gob.cl bajo CC0.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 45, "label": "mensual"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('establecimientos_salud')",
-            "duckdb": "SELECT codigo_comuna, count(*) FROM 'data/normalized/establecimientos_salud.parquet' GROUP BY 1;",
-            "cli": "chile-hub show establecimientos_salud",
-        },
-        "outputs": {
-            "parquet": "data/normalized/establecimientos_salud.parquet",
-            "json": "data/normalized/establecimientos_salud.json",
-            "duckdb_table": "establecimientos_salud",
-            "sqlite_table": "establecimientos_salud",
-            "excel_sheet": "Establecimientos Salud",
-        },
-        "documentation": "docs/datasets/establecimientos_salud.md",
-    },
-    "distritos_electorales": {
-        "description": "Asociación de comunas a distritos electorales (diputados) y circunscripciones senatoriales.",
-        "join_keys": ["codigo_comuna"],
-        "confidence_tier": "Tier A",
-        "expected_record_count": 346,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC0",
-            "license_url": "http://www.opendefinition.org/licenses/cc-zero",
-            "attribution_required": False,
-            "redistribution_ok": True,
-            "summary": "Asociación comunal a distritos y circunscripciones electorales basada en Ley N° 20.840.",
-        },
-        "freshness_policy": {"max_age_hours": 87600, "label": "estable"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('distritos_electorales')",
-            "duckdb": "SELECT * FROM 'data/normalized/distritos_electorales.parquet';",
-            "cli": "chile-hub show distritos_electorales",
-        },
-        "outputs": {
-            "parquet": "data/normalized/distritos_electorales.parquet",
-            "json": "data/normalized/distritos_electorales.json",
-        },
-        "documentation": "docs/datasets/distritos_electorales.md",
-    },
-    "establecimientos_educacionales": {
-        "description": "Directorio oficial del Ministerio de Educación (MINEDUC) con Rol Base de Datos (RBD), ubicación y dependencia administrativa.",
-        "join_keys": ["codigo_comuna"],
-        "confidence_tier": "Tier A",
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC-BY-3.0",
-            "license_url": "https://creativecommons.org/licenses/by/3.0/cl/",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Directorio oficial MINEDUC publicado por el Centro de Estudios del Ministerio de Educación de Chile bajo licencia CC BY.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\n\nhub = ChileHub()\ndf = hub.load_polars('establecimientos_educacionales')",
-            "duckdb": "SELECT nombre_establecimiento, dependencia_administrativa FROM 'data/normalized/establecimientos_educacionales.parquet' LIMIT 10;",
-            "cli": "chile-hub show establecimientos_educacionales",
-        },
-        "outputs": {
-            "parquet": "data/normalized/establecimientos_educacionales.parquet",
-            "json": "data/normalized/establecimientos_educacionales.json",
-            "duckdb_table": "establecimientos_educacionales",
-            "sqlite_table": "establecimientos_educacionales",
-            "excel_sheet": "Establecimientos Educacionales",
-        },
-        "documentation": "docs/datasets/establecimientos_educacionales.md",
-    },
-    "finanzas_municipales": {
-        "description": "Indicadores financieros municipales anuales desde SINIM/SUBDERE.",
-        "join_keys": ["anio", "codigo_comuna"],
-        "confidence_tier": "Tier B",
-        "reuse_policy": {
-            "status": "public-api-review-terms",
-            "license": "Datos públicos municipales; términos de reutilización sujetos a revisión",
-            "license_url": "https://datos.sinim.gov.cl/",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Información municipal pública publicada por SINIM/SUBDERE; citar fuente oficial.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('finanzas_municipales')",
-            "duckdb": "SELECT * FROM 'data/normalized/finanzas_municipales.parquet' WHERE codigo_comuna = '13101';",
-            "cli": "chile-hub show finanzas_municipales",
-        },
-        "outputs": {
-            "parquet": "data/normalized/finanzas_municipales.parquet",
-            "json": "data/normalized/finanzas_municipales.json",
-            "duckdb_table": "finanzas_municipales",
-            "sqlite_table": "finanzas_municipales",
-            "excel_sheet": "Finanzas Municipales",
-        },
-        "documentation": "docs/datasets/finanzas_municipales.md",
-    },
-    "resultados_educacionales": {
-        "description": "Resultados educacionales agregados por comuna y año, sin registros personales.",
-        "join_keys": ["anio", "codigo_comuna"],
-        "confidence_tier": "Tier B",
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC-BY-3.0",
-            "license_url": "https://creativecommons.org/licenses/by/3.0/cl/",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Datos agregados desde publicaciones del Centro de Estudios MINEDUC; citar fuente oficial.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('resultados_educacionales')",
-            "duckdb": "SELECT anio, codigo_comuna, matricula_total FROM 'data/normalized/resultados_educacionales.parquet';",
-            "cli": "chile-hub show resultados_educacionales",
-        },
-        "outputs": {
-            "parquet": "data/normalized/resultados_educacionales.parquet",
-            "json": "data/normalized/resultados_educacionales.json",
-            "duckdb_table": "resultados_educacionales",
-            "sqlite_table": "resultados_educacionales",
-            "excel_sheet": "Resultados Educacionales",
-        },
-        "documentation": "docs/datasets/resultados_educacionales.md",
-    },
-    "indicadores_urbanos_siedu": {
-        "description": "Indicadores urbanos SIEDU en formato largo con cobertura comunal parcial esperada.",
-        "join_keys": ["anio", "codigo_comuna", "codigo_indicador"],
-        "confidence_tier": "Tier B",
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "Licencia de Datos Abiertos INE",
-            "license_url": "https://www.ine.gob.cl/terminos-de-uso",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Indicadores urbanos SIEDU publicados por INE para comunas urbanas seleccionadas.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 365, "label": "anual"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('indicadores_urbanos_siedu')",
-            "duckdb": "SELECT * FROM 'data/normalized/indicadores_urbanos_siedu.parquet' WHERE codigo_indicador = 'siedu_acceso_areas_verdes';",
-            "cli": "chile-hub show indicadores_urbanos_siedu",
-        },
-        "outputs": {
-            "parquet": "data/normalized/indicadores_urbanos_siedu.parquet",
-            "json": "data/normalized/indicadores_urbanos_siedu.json",
-            "duckdb_table": "indicadores_urbanos_siedu",
-            "sqlite_table": "indicadores_urbanos_siedu",
-            "excel_sheet": "SIEDU",
-        },
-        "documentation": "docs/datasets/indicadores_urbanos_siedu.md",
-    },
-    "perfil_territorial_comunal": {
-        "description": "Perfil comunal curado que consolida DPA, censo, salud, educación, finanzas, SIEDU y distritos.",
-        "join_keys": ["codigo_comuna"],
-        "confidence_tier": "Tier B",
-        "expected_record_count": 346,
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "Derivada de fuentes abiertas con atribución",
-            "license_url": "https://github.com/cortega26/chile-hub",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": "Capa derivada a partir de datasets validados de chile-hub.",
-        },
-        "freshness_policy": {"max_age_hours": 24 * 45, "label": "derivada"},
-        "usage_examples": {
-            "python": "from chile_hub import ChileHub\nhub = ChileHub()\ndf = hub.load_polars('perfil_territorial_comunal')",
-            "duckdb": "SELECT codigo_comuna, nombre_comuna, establecimientos_salud_total FROM 'data/normalized/perfil_territorial_comunal.parquet';",
-            "cli": "chile-hub show perfil_territorial_comunal",
-        },
-        "outputs": {
-            "parquet": "data/normalized/perfil_territorial_comunal.parquet",
-            "json": "data/normalized/perfil_territorial_comunal.json",
-            "duckdb_table": "perfil_territorial_comunal",
-            "sqlite_table": "perfil_territorial_comunal",
-            "excel_sheet": "Perfil Territorial",
-        },
-        "documentation": "docs/datasets/perfil_territorial_comunal.md",
-    },
-    "empresas": {
-        "description": (
-            "Registro de Empresas y Sociedades (RES) con RUT, razon social, "
-            "tipo societario, capital, fecha de constitucion y comuna de domicilio."
-        ),
-        "join_keys": ["rut"],
-        "confidence_tier": "Tier B",
-        "reuse_policy": {
-            "status": "open-attribution",
-            "license": "CC-BY",
-            "license_url": "https://creativecommons.org/licenses/by/3.0/cl/",
-            "attribution_required": True,
-            "redistribution_ok": True,
-            "summary": (
-                "Registro de Empresas y Sociedades (RES) del Ministerio de Economia, "
-                "publicado en datos.gob.cl bajo CC-BY. "
-                "Solo incluye constituciones bajo Ley 20.659 (regimen simplificado) desde 2013."
-            ),
-        },
-        "freshness_policy": {"max_age_hours": 24 * 45, "label": "mensual"},
-        "usage_examples": {
-            "python": (
-                "from chile_hub import ChileHub\n\nhub = ChileHub()\n"
-                "df = hub.load_polars('empresas')\n"
-                "# Empresas por comuna\n"
-                "df.group_by('comuna_tributaria').len().sort('len', descending=True)"
-            ),
-            "duckdb": (
-                "SELECT comuna_tributaria, count(*) AS n\n"
-                "FROM 'data/normalized/empresas.parquet'\n"
-                "GROUP BY 1 ORDER BY n DESC LIMIT 10;"
-            ),
-            "cli": "chile-hub show empresas",
-        },
-        "outputs": {
-            "parquet": "data/normalized/empresas.parquet",
-            "duckdb_table": "empresas",
-            "excel_sheet": "Empresas RES",
-        },
-        "documentation": "docs/datasets/empresas.md",
-        "_notes": "JSON y SQLite omitidos: >1.5M registros. Usa Parquet o DuckDB.",
-    },
-}
+
+def _load_catalog_config() -> dict:
+    path = os.path.join(ROOT_DIR, "data", "dataset_catalog_config.json")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+DATASET_CATALOG_CONFIG = _load_catalog_config()
 
 
 def build_freshness(refreshed_at_utc, max_age_hours):
@@ -875,6 +436,7 @@ def write_dataset_catalog(pipeline_metadata):
             {
                 "dataset": dataset_name,
                 "description": config.get("description", ""),
+                "alias_for": config.get("alias_for"),
                 "source_name": dataset_metadata.get("source_name"),
                 "source_url": dataset_metadata.get("source_url"),
                 "source_mode": dataset_metadata.get("source_mode"),
@@ -2177,7 +1739,7 @@ def build_duckdb(
         con.execute("CREATE TABLE regiones AS SELECT * FROM df_regiones_view")
         con.execute("CREATE TABLE provincias AS SELECT * FROM df_provincias_view")
         con.execute("CREATE TABLE comunas AS SELECT * FROM df_comunas_view")
-        con.execute("CREATE TABLE comunas_enriquecidas AS SELECT * FROM df_comunas_view")
+        con.execute("CREATE VIEW comunas_enriquecidas AS SELECT * FROM comunas")
         con.execute("CREATE TABLE indicadores AS SELECT * FROM df_indicadores_view")
         con.execute("CREATE TABLE censo_comunal AS SELECT * FROM df_censo_view")
         con.execute("CREATE TABLE establecimientos_salud AS SELECT * FROM df_salud_view")
@@ -2246,7 +1808,7 @@ def build_sqlite(
         df_regiones_pd.to_sql("regiones", conn, index=False, if_exists="replace")
         df_provincias_pd.to_sql("provincias", conn, index=False, if_exists="replace")
         df_comunas_pd.to_sql("comunas", conn, index=False, if_exists="replace")
-        df_comunas_pd.to_sql("comunas_enriquecidas", conn, index=False, if_exists="replace")
+        conn.execute("CREATE VIEW comunas_enriquecidas AS SELECT * FROM comunas")
         df_indicadores_pd.to_sql("indicadores", conn, index=False, if_exists="replace")
         df_censo_pd.to_sql("censo_comunal", conn, index=False, if_exists="replace")
         df_salud_pd.to_sql("establecimientos_salud", conn, index=False, if_exists="replace")
@@ -2339,7 +1901,6 @@ def build_excel(
         df_regiones_pd.to_excel(writer, sheet_name="Regiones", index=False)
         df_provincias_pd.to_excel(writer, sheet_name="Provincias", index=False)
         df_comunas_pd.to_excel(writer, sheet_name="Comunas y Regiones", index=False)
-        df_comunas_pd.to_excel(writer, sheet_name="ComunasEnriquecidas", index=False)
         df_indicadores_pd.to_excel(writer, sheet_name="Indicadores Diarios", index=False)
         df_censo_pd.to_excel(writer, sheet_name="Censo Comunal", index=False)
         df_salud_pd.to_excel(writer, sheet_name="Establecimientos Salud", index=False)
@@ -2452,13 +2013,11 @@ def build_flat_files(
     regiones_parquet = os.path.join(NORMALIZED_DIR, "regiones.parquet")
     provincias_parquet = os.path.join(NORMALIZED_DIR, "provincias.parquet")
     comunas_parquet = os.path.join(NORMALIZED_DIR, "comunas.parquet")
-    comunas_enriquecidas_parquet = os.path.join(NORMALIZED_DIR, "comunas_enriquecidas.parquet")
     indicadores_parquet = os.path.join(NORMALIZED_DIR, "indicadores.parquet")
 
     write_parquet_atomic(df_regiones, regiones_parquet)
     write_parquet_atomic(df_provincias, provincias_parquet)
     write_parquet_atomic(df_comunas, comunas_parquet)
-    write_parquet_atomic(df_comunas, comunas_enriquecidas_parquet)
     write_parquet_atomic(df_indicadores, indicadores_parquet)
     write_parquet_atomic(df_censo, os.path.join(NORMALIZED_DIR, "censo_comunal.parquet"))
     write_parquet_atomic(df_salud, os.path.join(NORMALIZED_DIR, "establecimientos_salud.parquet"))
@@ -2473,7 +2032,6 @@ def build_flat_files(
     regiones_json = os.path.join(NORMALIZED_DIR, "regiones.json")
     provincias_json = os.path.join(NORMALIZED_DIR, "provincias.json")
     comunas_json = os.path.join(NORMALIZED_DIR, "comunas.json")
-    comunas_enriquecidas_json = os.path.join(NORMALIZED_DIR, "comunas_enriquecidas.json")
     indicadores_json = os.path.join(NORMALIZED_DIR, "indicadores_hoy.json")
 
     # Para JSON estáticos orientados a frontend, exportamos como lista de diccionarios
@@ -2483,9 +2041,6 @@ def build_flat_files(
     write_json_atomic(df_regiones.to_dicts(), regiones_json, ensure_ascii=False, indent=2)
     write_json_atomic(df_provincias.to_dicts(), provincias_json, ensure_ascii=False, indent=2)
     write_json_atomic(df_comunas.to_dicts(), comunas_json, ensure_ascii=False, indent=2)
-    write_json_atomic(
-        df_comunas.to_dicts(), comunas_enriquecidas_json, ensure_ascii=False, indent=2
-    )
     write_json_atomic(
         df_indicadores_serializable.to_dicts(), indicadores_json, ensure_ascii=False, indent=2
     )
