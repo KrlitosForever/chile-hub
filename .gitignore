@@ -3,6 +3,7 @@
 # de `data/normalized` que sirven para publicar el estado real del hub.
 data/*
 !data/source_registry.json
+!data/dataset_catalog_config.json
 !data/normalized/
 data/normalized/*
 !data/normalized/*.json

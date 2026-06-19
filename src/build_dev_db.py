@@ -71,6 +71,13 @@ PUBLISHABLE_BUNDLE_SHA256_NAME = "chile-hub-publishable-bundle.zip.sha256"
 
 def _load_catalog_config() -> dict:
     path = os.path.join(ROOT_DIR, "data", "dataset_catalog_config.json")
+    if not os.path.isfile(path):
+        raise FileNotFoundError(
+            f"Archivo de configuración de catálogo no encontrado: {path}\n"
+            "Este archivo es la fuente de verdad para los metadatos de datasets.\n"
+            "Asegúrate de que existe en el repositorio (debe estar tracked en git).\n"
+            "Si acabas de clonar, verifica que el archivo no esté en .gitignore."
+        )
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
