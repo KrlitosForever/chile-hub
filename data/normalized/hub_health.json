@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-19T17:57:28.414867+00:00",
+  "generated_at_utc": "2026-06-19T20:38:29.341802+00:00",
   "overall_status": "warn",
   "dataset_count": 15,
   "ok_count": 12,
@@ -297,7 +297,7 @@
       "coverage_status": "not_applicable",
       "coverage_ratio": null,
       "drift_status": "healthy",
-      "source_detail": "curated_fallback_comuna_year_aggregation",
+      "source_detail": "mineduc_rendimiento_2024_rar_agregado_por_comuna",
       "diagnostic_summary": "Sin degradación operativa detectada en este build.",
       "recommended_action": "Ninguna."
     }

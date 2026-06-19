@@ -1,6 +1,6 @@
 {
-  "generated_at_utc": "2026-06-19T17:57:28.414867+00:00",
-  "previous_generated_at_utc": "2026-06-19T11:37:54.243876+00:00",
+  "generated_at_utc": "2026-06-19T20:38:29.341802+00:00",
+  "previous_generated_at_utc": "2026-06-19T17:57:28.414867+00:00",
   "dataset_count": 15,
   "datasets": [
     {
@@ -185,9 +185,9 @@
     },
     {
       "dataset": "indicadores",
-      "previous_record_count": 434,
+      "previous_record_count": 432,
       "current_record_count": 432,
-      "record_count_delta": -2,
+      "record_count_delta": 0,
       "added_fields": [],
       "removed_fields": [],
       "previous_source_mode": "live",
@@ -196,7 +196,7 @@
       "current_freshness_status": "fresh",
       "previous_validation_status": "ok",
       "current_validation_status": "ok",
-      "change_severity": "patch",
+      "change_severity": "none",
       "breaking_changes": [],
       "new_columns": [],
       "removed_columns": [],
@@ -286,8 +286,8 @@
     {
       "dataset": "resultados_educacionales",
       "previous_record_count": 3,
-      "current_record_count": 3,
-      "record_count_delta": 0,
+      "current_record_count": 345,
+      "record_count_delta": 342,
       "added_fields": [],
       "removed_fields": [],
       "previous_source_mode": "live",
@@ -296,7 +296,7 @@
       "current_freshness_status": "fresh",
       "previous_validation_status": "ok",
       "current_validation_status": "ok",
-      "change_severity": "none",
+      "change_severity": "patch",
       "breaking_changes": [],
       "new_columns": [],
       "removed_columns": [],

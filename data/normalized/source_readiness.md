@@ -1,12 +1,12 @@
 # chile-hub — Madurez de fuente
 
-- `generated_at_utc`: `2026-06-19T17:57:28.414867+00:00`
-- `stable_count`: `11`
-- `candidate_count`: `4`
+- `generated_at_utc`: `2026-06-19T20:38:29.341802+00:00`
+- `stable_count`: `12`
+- `candidate_count`: `3`
 - `experimental_count`: `0`
 - `deprecated_count`: `0`
-- `live_ready_count`: `11`
-- `fallback_only_count`: `3`
+- `live_ready_count`: `12`
+- `fallback_only_count`: `2`
 - `publish_blocking_count`: `15`
 
 | Dataset | Madurez | Source ID | Modo | Live Ready | Fallback | Bloquea Pub | Extractor | Estancado | Próxima acción |
@@ -21,8 +21,8 @@
 | `establecimientos_salud` | `stable` | `minsal_establecimientos_salud` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Monitor monthly source freshness and geocoding coverage. |
 | `distritos_electorales` | `stable` | `bcn_servel_distritos` | `live` | `✓` | `no` | `✓` | `implemented` | `—` | Update only when electoral district law changes. |
 | `establecimientos_educacionales` | `stable` | `mineduc_establecimientos` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Monitor annual source package and RAR extraction dependency. |
-| `finanzas_municipales` | `candidate` | `sinim_finanzas_municipales` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Configure stable direct SINIM export and replace curated fallback rows. |
-| `resultados_educacionales` | `candidate` | `mineduc_resultados_educacionales` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace curated fallback with stable official aggregate export. |
+| `finanzas_municipales` | `candidate` | `sinim_finanzas_municipales` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Buscar fuente alternativa: SUBDERE directa, Portal de Transparencia, o datos.gob.cl. Ver docs/datasets/finanzas_municipales-degradacion.md. |
+| `resultados_educacionales` | `stable` | `mineduc_resultados_educacionales` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Actualizar URL anualmente (año en nombre de archivo). Verificar columnas SIT_FIN_R si MINEDUC cambia metodología. |
 | `indicadores_urbanos_siedu` | `candidate` | `ine_siedu_indicadores` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace partial fallback with stable official SIEDU export. |
 | `perfil_territorial_comunal` | `candidate` | `chile_hub_perfil_territorial` | `live` | `✗` | `permitido` | `✓` | `derived` | `—` | Track readiness inherited from upstream component datasets. |
 | `empresas` | `stable` | `ministerio_economia_res` | `live` | `✓` | `no` | `✓` | `implemented` | `—` | Keep large-output behavior documented and verify Parquet-first consumption. |
