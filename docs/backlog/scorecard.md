@@ -1,6 +1,6 @@
 # Scorecard de Mejoras Estratégicas — ChileHub
 
-**Ultima actualizacion:** 2026-06-18
+**Ultima actualizacion:** 2026-06-19
 **Revision semanal:** viernes
 **Version del proyecto:** v1.5.0 (Alpha)
 **Estado general:** En desarrollo activo
@@ -30,6 +30,8 @@ Las 5 mejoras que siguen atacan estos puntos en orden de impacto estrategico.
 | 3 | Constantes de datasets como enum (`Dataset`) | Medio | Medio | Bajo | Pendiente | Q3 2026 | — |
 | 4 | Estabilizacion de datasets en modo fallback | Alto | Alto | Medio | Pendiente | Q3 2026 | Acceso a fuentes origen (URLs externas) |
 | 5 | Dashboard publico de salud operativa del hub | Medio | Medio | Bajo | Pendiente | Q4 2026 | #4 completado (para no mostrar falsos positivos) |
+| 6 | Robustecer manejo de errores en API publica | Medio | Bajo | Bajo | Completado | 2026-06-19 | — |
+| 7 | Nuevas capacidades de API (cruces, validacion, busqueda) | Medio | Medio | Bajo | Pendiente | Futuro | #6 completado |
 
 ---
 
@@ -42,8 +44,10 @@ Las 5 mejoras que siguen atacan estos puntos en orden de impacto estrategico.
 | 3 | Constantes datasets | 0% | 0% | 0% | 0% | 0% | 0% |
 | 4 | Estabilizacion fallbacks | 0% | 0% | 0% | 0% | 0% | 0% |
 | 5 | Dashboard salud | 0% | 0% | 0% | 0% | 0% | 0% |
+| 6 | API error handling | 100% | 100% | 100% | 100% | 100% | 100% |
+| 7 | API capacidades | 100% | 0% | 0% | 0% | 0% | 0% |
 
-**Progreso total:** 0% (5/5 mejoras sin iniciar)
+**Progreso total:** 14% (1/7 completadas — #6; #7 tiene plan de diseño completo)
 
 ---
 
@@ -68,3 +72,5 @@ Las 5 mejoras que siguen atacan estos puntos en orden de impacto estrategico.
 | 3 | `docs/backlog/03-constantes-de-datasets.md` |
 | 4 | `docs/backlog/04-estabilizacion-fallbacks.md` |
 | 5 | `docs/backlog/05-dashboard-publico-salud.md` |
+| 6 | `docs/backlog/06-api-error-handling.md` |
+| 7 | `docs/backlog/07-api-capabilities.md` |

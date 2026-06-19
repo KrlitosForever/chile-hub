@@ -6,10 +6,17 @@ Planes de implementación generados por auditoría `/improve deep` en commits `b
 
 | # | Plan | Prioridad | Esfuerzo | Riesgo | Depende de | Estado |
 |---|------|----------|----------|--------|-----------|--------|
-| 011 | [Robustecer manejo de errores en API pública](011-harden-api-error-handling.md) | P1 | S | LOW | — | TODO |
-| 012 | [Hardening de seguridad — TOCTOU, integridad binario y paths](012-security-hardening.md) | P2 | S | LOW | — | TODO |
+| 012 | [Hardening de seguridad — TOCTOU, integridad binario y paths](012-security-hardening.md) | P2 | S | LOW | — | DONE |
 | 014 | [Limpieza de arquitectura — catálogo externo, imports, alias](014-architecture-cleanup.md) | P2 | M | MED | — | TODO |
-| 017 | [Nuevas capacidades de API — cruces, validación, exit codes, búsqueda](017-new-api-capabilities.md) | P3 | M | LOW | 011 | TODO |
+
+## Planes en backlog (API pública — capa premium futura)
+
+| # | Plan | Prioridad | Esfuerzo | Riesgo | Depende de | Estado |
+|---|------|----------|----------|--------|-----------|--------|
+| 011 | [Robustecer manejo de errores en API pública](011-harden-api-error-handling.md) | P1 | S | LOW | — | DONE |
+| 017 | [Nuevas capacidades de API — cruces, validación, exit codes, búsqueda](017-new-api-capabilities.md) | P3 | M | LOW | 011 | BACKLOG |
+
+→ Ver también [`docs/backlog/06-api-error-handling.md`](../docs/backlog/06-api-error-handling.md) y [`docs/backlog/07-api-capabilities.md`](../docs/backlog/07-api-capabilities.md)
 
 ## Planes archivados (auditoría 2026-06-19, ejecutados)
 
@@ -37,17 +44,14 @@ Planes de implementación generados por auditoría `/improve deep` en commits `b
 ## Grafo de dependencias (planes activos)
 
 ```
-011 (independiente) ──► 017
 012 (independiente)
-014 (independiente)   ← dependencia 010 ya satisfecha
-017 ── depende de 011
+014 (independiente)
 ```
 
 ## Orden de ejecución recomendado
 
-1. **Primero**: 011, 012 (independientes, esfuerzo S, máximo leverage)
-2. **Segundo**: 014 (dependencia 010 ya está DONE)
-3. **Tercero**: 017 (depende de 011)
+1. **012** — esfuerzo S, máximo leverage en seguridad
+2. **014** — esfuerzo M, limpieza de arquitectura
 
 ## Hallazgos considerados y rechazados (2026-06-19)
 
@@ -83,4 +87,5 @@ Planes de implementación generados por auditoría `/improve deep` en commits `b
 - `IN PROGRESS` — en ejecución activa
 - `DONE` — completado
 - `BLOCKED` — bloqueado (indicar por qué)
+- `BACKLOG` — diferido a backlog (ver `docs/backlog/`)
 - `SKIP` — descartado después de análisis adicional
