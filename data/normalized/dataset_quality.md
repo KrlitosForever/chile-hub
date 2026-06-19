@@ -1,6 +1,6 @@
 # chile-hub — Calidad de datasets
 
-- `generated_at_utc`: `2026-06-19T11:37:54.243876+00:00`
+- `generated_at_utc`: `2026-06-19T17:57:28.414867+00:00`
 - `dataset_count`: `15`
 - `average_score`: `92.1`
 - `grade_distribution`: A=12, B=3, C=0, D=0, F=0
