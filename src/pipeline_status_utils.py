@@ -1,7 +1,38 @@
+"""Constructores de reportes operativos y utilidades del pipeline de chile-hub.
+
+CANONICAL SOURCE — este archivo y src/pipeline_status_utils.py deben ser
+IDÉNTICOS. La raíz del proyecto se detecta con _find_root() (busca
+pyproject.toml como sentinel) para que el mismo código funcione desde
+src/ y desde src/chile_hub/ sin divergencia.
+
+Si editas este archivo, copia el resultado idéntico a la otra ubicación
+y confirma que ambos tests (test_chile_hub y test_pipeline_logic) pasan.
+"""
+
 import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+
+
+def _find_root() -> Path:
+    """Localiza la raíz del proyecto buscando pyproject.toml como sentinel.
+
+    Funciona desde src/chile_hub/ (wheel empaquetado o checkout) y desde
+    src/ (importaciones de build_dev_db.py).  En un entorno instalado sin
+    pyproject.toml, devuelve un fallback razonable.
+    """
+    current = Path(__file__).resolve().parent
+    for _ in range(6):
+        if (current / "pyproject.toml").exists():
+            return current
+        current = current.parent
+    # Fallback para rueda instalada: parents[2] desde src/chile_hub/ da
+    # site-packages/, que no es la raíz real pero es inocuo porque en
+    # ese contexto solo se usan compute_freshness/compute_top_issue/
+    # format_top_issue_summary (ninguna depende de paths en disco).
+    return Path(__file__).resolve().parents[2]
+
 
 UTC = timezone.utc
 
@@ -13,7 +44,7 @@ def write_text_atomic(content, path):
     os.replace(str(tmp_path), str(path_obj))
 
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
+ROOT_DIR = _find_root()
 NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
 PIPELINE_METADATA_PATH = NORMALIZED_DIR / "pipeline_metadata.json"
 STATUS_MARKDOWN_PATH = NORMALIZED_DIR / "pipeline_status.md"

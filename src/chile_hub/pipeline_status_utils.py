@@ -1,7 +1,38 @@
+"""Constructores de reportes operativos y utilidades del pipeline de chile-hub.
+
+CANONICAL SOURCE — este archivo y src/pipeline_status_utils.py deben ser
+IDÉNTICOS. La raíz del proyecto se detecta con _find_root() (busca
+pyproject.toml como sentinel) para que el mismo código funcione desde
+src/ y desde src/chile_hub/ sin divergencia.
+
+Si editas este archivo, copia el resultado idéntico a la otra ubicación
+y confirma que ambos tests (test_chile_hub y test_pipeline_logic) pasan.
+"""
+
 import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+
+
+def _find_root() -> Path:
+    """Localiza la raíz del proyecto buscando pyproject.toml como sentinel.
+
+    Funciona desde src/chile_hub/ (wheel empaquetado o checkout) y desde
+    src/ (importaciones de build_dev_db.py).  En un entorno instalado sin
+    pyproject.toml, devuelve un fallback razonable.
+    """
+    current = Path(__file__).resolve().parent
+    for _ in range(6):
+        if (current / "pyproject.toml").exists():
+            return current
+        current = current.parent
+    # Fallback para rueda instalada: parents[2] desde src/chile_hub/ da
+    # site-packages/, que no es la raíz real pero es inocuo porque en
+    # ese contexto solo se usan compute_freshness/compute_top_issue/
+    # format_top_issue_summary (ninguna depende de paths en disco).
+    return Path(__file__).resolve().parents[2]
+
 
 UTC = timezone.utc
 
@@ -13,7 +44,7 @@ def write_text_atomic(content, path):
     os.replace(str(tmp_path), str(path_obj))
 
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
+ROOT_DIR = _find_root()
 NORMALIZED_DIR = ROOT_DIR / "data" / "normalized"
 PIPELINE_METADATA_PATH = NORMALIZED_DIR / "pipeline_metadata.json"
 STATUS_MARKDOWN_PATH = NORMALIZED_DIR / "pipeline_status.md"
@@ -23,6 +54,7 @@ REDISTRIBUTION_REPORT_MARKDOWN_PATH = NORMALIZED_DIR / "redistribution_report.md
 PROVENANCE_REPORT_MARKDOWN_PATH = NORMALIZED_DIR / "provenance_report.md"
 DRIFT_REPORT_MARKDOWN_PATH = NORMALIZED_DIR / "drift_report.md"
 OVERVIEW_MARKDOWN_PATH = NORMALIZED_DIR / "overview.md"
+SOURCE_READINESS_MARKDOWN_PATH = NORMALIZED_DIR / "source_readiness.md"
 
 
 def load_json(path):
@@ -764,3 +796,91 @@ def build_dataset_catalog_markdown(catalog):
 
 def write_dataset_catalog_markdown_file(catalog, path=DATASET_CATALOG_MARKDOWN_PATH):
     write_text_atomic(build_dataset_catalog_markdown(catalog), path)
+
+
+def build_source_readiness_markdown(readiness):
+    """Genera reporte Markdown de madurez de fuente por dataset."""
+    lines = [
+        "# chile-hub — Madurez de fuente",
+        "",
+        f"- `generated_at_utc`: `{readiness.get('generated_at_utc', 'unknown')}`",
+        f"- `stable_count`: `{readiness.get('stable_count', 0)}`",
+        f"- `candidate_count`: `{readiness.get('candidate_count', 0)}`",
+        f"- `experimental_count`: `{readiness.get('experimental_count', 0)}`",
+        f"- `deprecated_count`: `{readiness.get('deprecated_count', 0)}`",
+        f"- `live_ready_count`: `{readiness.get('live_ready_count', 0)}`",
+        f"- `fallback_only_count`: `{readiness.get('fallback_only_count', 0)}`",
+        f"- `publish_blocking_count`: `{readiness.get('publish_blocking_count', 0)}`",
+        "",
+        "| Dataset | Madurez | Source ID | Modo | Live Ready | Fallback | Bloquea Pub | Extractor | Estancado | Próxima acción |",
+        "| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |",
+    ]
+
+    for entry in readiness.get("datasets", []):
+        lines.append(
+            "| "
+            f"`{entry.get('dataset', 'unknown')}` | "
+            f"`{entry.get('maturity_status', 'unknown')}` | "
+            f"`{entry.get('source_id', 'unknown')}` | "
+            f"`{entry.get('source_mode', 'unknown')}` | "
+            f"`{'✓' if entry.get('live_ready') else '✗'}` | "
+            f"`{'permitido' if entry.get('fallback_allowed') else 'no'}` | "
+            f"`{'✓' if entry.get('publish_blocking') else '—'}` | "
+            f"`{entry.get('live_extractor_status', 'unknown')}` | "
+            f"`{'⚠' if entry.get('stalled') else '—'}` | "
+            f"{entry.get('next_action', '—')} |"
+        )
+
+    lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_source_readiness_markdown_file(readiness, path=SOURCE_READINESS_MARKDOWN_PATH):
+    write_text_atomic(build_source_readiness_markdown(readiness), path)
+
+
+DATASET_QUALITY_MARKDOWN_PATH = NORMALIZED_DIR / "dataset_quality.md"
+
+
+def build_dataset_quality_markdown(quality):
+    """Genera reporte Markdown de calidad multidimensional por dataset."""
+    lines = [
+        "# chile-hub — Calidad de datasets",
+        "",
+        f"- `generated_at_utc`: `{quality.get('generated_at_utc', 'unknown')}`",
+        f"- `dataset_count`: `{quality.get('dataset_count', 0)}`",
+        f"- `average_score`: `{quality.get('average_score', 0)}`",
+        f"- `grade_distribution`: "
+        f"A={quality.get('grade_distribution', {}).get('A', 0)}, "
+        f"B={quality.get('grade_distribution', {}).get('B', 0)}, "
+        f"C={quality.get('grade_distribution', {}).get('C', 0)}, "
+        f"D={quality.get('grade_distribution', {}).get('D', 0)}, "
+        f"F={quality.get('grade_distribution', {}).get('F', 0)}",
+        "",
+        "| Dataset | Nota | Valid | Contrato | Madurez | Frescura | Cobert | Reúso | Bloqueadores |",
+        "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |",
+    ]
+
+    for entry in quality.get("datasets", []):
+        dims = entry.get("dimensions", {})
+        blockers = entry.get("blocking_reasons", [])
+        blocker_text = "; ".join(blockers) if blockers else "—"
+        lines.append(
+            "| "
+            f"`{entry.get('dataset', 'unknown')}` | "
+            f"**{entry.get('grade', '?')}** ({entry.get('overall_score', 0)}) | "
+            f"{dims.get('validation', 0)} | "
+            f"{dims.get('schema_contract', 0)} | "
+            f"{dims.get('source_readiness', 0)} | "
+            f"{dims.get('freshness', 0)} | "
+            f"{dims.get('coverage', 0)} | "
+            f"{dims.get('reuse_policy', 0)} | "
+            f"{blocker_text} |"
+        )
+
+    lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_dataset_quality_markdown_file(quality, path=DATASET_QUALITY_MARKDOWN_PATH):
+    write_text_atomic(build_dataset_quality_markdown(quality), path)

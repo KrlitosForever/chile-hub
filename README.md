@@ -129,23 +129,27 @@ Pipeline determinista en GitHub Actions: extracción → build → verificación
 
 ## Las 15 capas de datos
 
-| # | Capa | Registros | Fuente | Licencia | Actualización |
-|:--:|:---|:---|:---|:---|:--:|
-| 1 | **Regiones** | 16 | BCN ArcGIS | CC BY | — |
-| 2 | **Provincias** | 56 | BCN ArcGIS | CC BY | — |
-| 3 | **Comunas** | 346 | BCN ArcGIS | CC BY | — |
-| 4 | **Comunas Enriquecidas** | 346 | BCN + INE | CC BY | — |
-| 5 | **Indicadores Económicos** | Serie histórica | BCCh / mindicador.cl | Libre c/cita | Diaria |
-| 6 | **Censo Comunal 2024** | 346 | INE | CC BY 4.0 | Decenal |
-| 7 | **Censo Hogares y Viviendas** | 346 | INE | CC BY 4.0 | Decenal |
-| 8 | **Establecimientos de Salud** | ~5 600 | MINSAL / datos.gob.cl | CC0 | Mensual |
-| 9 | **Distritos Electorales** | 346 | BCN / Ley 20.840 | CC0 | — |
-| 10 | **Establecimientos Educacionales** | ~12 900 | MINEDUC | CC BY 3.0 CL | Anual |
-| 11 | **Finanzas Municipales** | fallback curado | SINIM / SUBDERE | Revisión términos | Anual |
-| 12 | **Resultados Educacionales** | fallback curado | MINEDUC | CC BY 3.0 CL | Anual |
-| 13 | **Indicadores Urbanos SIEDU** | cobertura parcial | INE / SIEDU | Datos abiertos INE | Anual |
-| 14 | **Perfil Territorial Comunal** | 346 | chile-hub derivado | Fuentes abiertas | Derivada |
-| 15 | **Empresas (RES)** | ~1 570 000 | Min. Economía / datos.gob.cl | CC-BY 3.0 CL | Mensual |
+| # | Capa | Registros | Modo | Fuente | Licencia | Actualización |
+|:--:|:---|:---|:--:|:---|:---|:--:|
+| 1 | **Regiones** | 16 | 🟢 live | BCN ArcGIS | CC BY | — |
+| 2 | **Provincias** | 56 | 🟢 live | BCN ArcGIS | CC BY | — |
+| 3 | **Comunas** | 346 | 🟢 live | BCN ArcGIS | CC BY | — |
+| 4 | **Comunas Enriquecidas** | 346 | 🟢 live | BCN + INE | CC BY | — |
+| 5 | **Indicadores Económicos** | Serie histórica | 🟢 live | BCCh / mindicador.cl | Libre c/cita | Diaria |
+| 6 | **Censo Comunal 2024** | 346 | 🟢 live | INE | CC BY 4.0 | Decenal |
+| 7 | **Censo Hogares y Viviendas** | 346 | 🟢 live | INE | CC BY 4.0 | Decenal |
+| 8 | **Establecimientos de Salud** | ~5 600 | 🟢 live | MINSAL / datos.gob.cl | CC0 | Mensual |
+| 9 | **Distritos Electorales** | 346 | 🟢 live | BCN / Ley 20.840 | CC0 | — |
+| 10 | **Establecimientos Educacionales** | ~12 900 | 🟢 live | MINEDUC | CC BY 3.0 CL | Anual |
+| 11 | **Finanzas Municipales** | fallback curado | 🟡 fallback | SINIM / SUBDERE | Revisión términos | Anual |
+| 12 | **Resultados Educacionales** | fallback curado | 🟡 fallback | MINEDUC | CC BY 3.0 CL | Anual |
+| 13 | **Indicadores Urbanos SIEDU** | cobertura parcial | 🟡 fallback | INE / SIEDU | Datos abiertos INE | Anual |
+| 14 | **Perfil Territorial Comunal** | 346 | 🟡 fallback | chile-hub derivado | Fuentes abiertas | Derivada |
+| 15 | **Empresas (RES)** | ~1 570 000 | 🟢 live | Min. Economía / datos.gob.cl | CC-BY 3.0 CL | Mensual |
+
+> **🟢 live**: datos extraídos directamente desde la fuente oficial en cada ejecución del pipeline.
+> **🟡 fallback**: datos servidos desde un respaldo curado mientras se completa la extracción en vivo.
+> Para auditar el estado exacto de cada capa: `chile-hub provenance` y `chile-hub health`.
 
 > **Todas las capas se vinculan por `codigo_comuna`**, el Código Único Territorial de 5 caracteres definido por SUBDERE.
 

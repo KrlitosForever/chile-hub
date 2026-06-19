@@ -43,9 +43,15 @@ Thumbs.db
 # Gestores de paquetes alternativos
 uv.lock
 
+# Python build artifacts
+dist/
+
 
 # CodeGraph
 .codegraph/daemon.pid
+
+# Auditoría privada y recordatorios
+.audit/
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
