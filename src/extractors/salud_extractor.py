@@ -54,7 +54,7 @@ def fetch_csv() -> tuple[Path, str, str]:
         target = Path(RAW_DIR) / f"minsal_establecimientos_salud_{stamp}.csv"
         target.write_bytes(response.content)
         return target, "live", resource["url"]
-    except Exception:
+    except (requests.RequestException, OSError):
         snapshots = sorted(Path(RAW_DIR).glob("minsal_establecimientos_salud_*.csv"))
         if not snapshots:
             raise

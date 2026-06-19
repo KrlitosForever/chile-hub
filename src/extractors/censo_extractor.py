@@ -70,7 +70,7 @@ def fetch_workbook() -> tuple[Path, str]:
         response.raise_for_status()
         target.write_bytes(response.content)
         return target, "live"
-    except Exception:
+    except (requests.RequestException, OSError):
         snapshots = sorted(Path(RAW_DIR).glob("ine_censo2024_comunal_*.xlsx"))
         if not snapshots:
             raise
