@@ -39,13 +39,14 @@ def fetch_url_snapshot(
         - note: Nota descriptiva para incluir en los metadatos.
     """
     try:
-        response = requests.get(url, timeout=timeout)
-        response.raise_for_status()
+        with requests.get(url, timeout=timeout) as response:
+            response.raise_for_status()
+            content = response.content
         stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         raw_path = raw_dir / f"{raw_prefix}_{stamp}.html"
         raw_path.parent.mkdir(parents=True, exist_ok=True)
-        raw_path.write_bytes(response.content)
-        return True, response.content, "official_landing_snapshot_saved"
+        raw_path.write_bytes(content)
+        return True, content, "official_landing_snapshot_saved"
     except Exception as exc:
         return False, None, f"official_landing_unavailable: {exc}"
 

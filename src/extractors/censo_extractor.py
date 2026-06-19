@@ -66,9 +66,9 @@ def fetch_workbook() -> tuple[Path, str]:
     ensure_staging_directories()
     target = _snapshot_path()
     try:
-        response = requests.get(CENSO_URL, timeout=60)
-        response.raise_for_status()
-        target.write_bytes(response.content)
+        with requests.get(CENSO_URL, timeout=60) as response:
+            response.raise_for_status()
+            target.write_bytes(response.content)
         return target, "live"
     except (requests.RequestException, OSError):
         snapshots = sorted(Path(RAW_DIR).glob("ine_censo2024_comunal_*.xlsx"))

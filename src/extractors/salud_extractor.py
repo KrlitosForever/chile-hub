@@ -44,15 +44,15 @@ REUSE_POLICY = {
 def fetch_csv() -> tuple[Path, str, str]:
     ensure_staging_directories()
     try:
-        package = requests.get(PACKAGE_API_URL, timeout=30)
-        package.raise_for_status()
-        payload = package.json()["result"]
+        with requests.get(PACKAGE_API_URL, timeout=30) as package:
+            package.raise_for_status()
+            payload = package.json()["result"]
         resource = next(item for item in payload["resources"] if item["format"].lower() == "csv")
-        response = requests.get(resource["url"], timeout=60)
-        response.raise_for_status()
-        stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        target = Path(RAW_DIR) / f"minsal_establecimientos_salud_{stamp}.csv"
-        target.write_bytes(response.content)
+        with requests.get(resource["url"], timeout=60) as response:
+            response.raise_for_status()
+            stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+            target = Path(RAW_DIR) / f"minsal_establecimientos_salud_{stamp}.csv"
+            target.write_bytes(response.content)
         return target, "live", resource["url"]
     except (requests.RequestException, OSError):
         snapshots = sorted(Path(RAW_DIR).glob("minsal_establecimientos_salud_*.csv"))

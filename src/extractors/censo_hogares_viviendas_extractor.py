@@ -72,9 +72,9 @@ def fetch_workbook():
         / f"ine_censo2024_hogares_viviendas_{datetime.datetime.now(UTC):%Y%m%dT%H%M%SZ}.xlsx"
     )
     try:
-        response = requests.get(SOURCE_URL, timeout=60)
-        response.raise_for_status()
-        target.write_bytes(response.content)
+        with requests.get(SOURCE_URL, timeout=60) as response:
+            response.raise_for_status()
+            target.write_bytes(response.content)
         return target, "live"
     except (requests.RequestException, OSError):
         snapshots = sorted(RAW_DIR.glob("ine_censo2024_hogares_viviendas_*.xlsx"))

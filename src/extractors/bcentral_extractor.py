@@ -129,9 +129,9 @@ def fetch_indicator_year(codigo: str, year: int) -> list:
     Retorna una lista de dicts con claves: fecha, codigo_indicador, valor.
     """
     url = f"{MINDICADOR_BASE}/{codigo}/{year}"
-    response = requests.get(url, timeout=15)
-    response.raise_for_status()
-    payload = response.json()
+    with requests.get(url, timeout=15) as response:
+        response.raise_for_status()
+        payload = response.json()
     save_raw_snapshot(payload, codigo, year)
     return parse_indicator_payload(payload, codigo)
 

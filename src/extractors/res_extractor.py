@@ -104,9 +104,9 @@ def fetch_resources() -> tuple[list[bytes], str, str]:
     """
     ensure_staging_directories()
 
-    package = requests.get(PACKAGE_API_URL, timeout=30)
-    package.raise_for_status()
-    payload = package.json()["result"]
+    with requests.get(PACKAGE_API_URL, timeout=30) as package:
+        package.raise_for_status()
+        payload = package.json()["result"]
 
     csv_resources = [r for r in payload["resources"] if r.get("format", "").lower() == "csv"]
 
@@ -121,10 +121,10 @@ def fetch_resources() -> tuple[list[bytes], str, str]:
         raw_path = Path(RAW_DIR) / f"res_{resource_name}_{stamp}.csv"
 
         try:
-            response = requests.get(resource["url"], timeout=120)
-            response.raise_for_status()
-            raw_path.write_bytes(response.content)
-            contents.append(response.content)
+            with requests.get(resource["url"], timeout=120) as response:
+                response.raise_for_status()
+                raw_path.write_bytes(response.content)
+                contents.append(response.content)
         except Exception as exc:
             # Si falla la descarga live, intentar recuperar snapshots raw previos
             snapshots = sorted(Path(RAW_DIR).glob(f"res_{resource_name}_*.csv"))

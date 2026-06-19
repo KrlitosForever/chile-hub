@@ -453,16 +453,16 @@ def download_subdere_file():
     target_path = os.path.join(RAW_DIR, "cut_2018.xls")
     print(f"Intentando descargar base territorial de SUBDERE: {SUBDERE_DPA_URL}")
     try:
-        response = requests.get(SUBDERE_DPA_URL, timeout=10)
-        if response.status_code == 200:
-            with open(target_path, "wb") as f:
-                f.write(response.content)
-            print("Descarga completada y almacenada en raw/cut_2018.xls")
-            return target_path
-        else:
-            print(
-                f"Error de descarga HTTP: Código {response.status_code}. Se utilizará el fallback local."
-            )
+        with requests.get(SUBDERE_DPA_URL, timeout=10) as response:
+            if response.status_code == 200:
+                with open(target_path, "wb") as f:
+                    f.write(response.content)
+                print("Descarga completada y almacenada en raw/cut_2018.xls")
+                return target_path
+            else:
+                print(
+                    f"Error de descarga HTTP: Código {response.status_code}. Se utilizará el fallback local."
+                )
     except Exception as e:
         print(f"Error al descargar la base territorial: {e}. Se utilizará el fallback local.")
     return None

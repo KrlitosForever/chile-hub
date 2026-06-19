@@ -56,9 +56,9 @@ def fetch_data() -> tuple[Path, str, str]:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
         }
-        r = requests.get(DOWNLOAD_URL, headers=headers, timeout=60)
-        r.raise_for_status()
-        rar_path.write_bytes(r.content)
+        with requests.get(DOWNLOAD_URL, headers=headers, timeout=60) as r:
+            r.raise_for_status()
+            rar_path.write_bytes(r.content)
         print("Descarga completada.")
 
         # Intentar extraer usando unrar local
