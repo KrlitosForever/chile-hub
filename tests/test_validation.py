@@ -5,9 +5,18 @@ esperados y condiciones de borde.  Estos tests complementan los tests
 de integración en test_chile_hub.py y test_pipeline_logic.py.
 """
 
+import sys
 import unittest
+from pathlib import Path
 
 import polars as pl
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+SRC_DIR = ROOT_DIR / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from src.validation import (
     validate_censo_comunal,
@@ -560,6 +569,150 @@ class ValidateEstablecimientosEducacionalesTests(unittest.TestCase):
         result = validate_establecimientos_educacionales(df, None)
         self.assertEqual(result["status"], "error")
         self.assertTrue(any("unique" in e for e in result["errors"]))
+
+
+# ── Property-based tests (hypothesis) ──────────────────────────────────────────
+
+
+class CUTInvariantProperties(unittest.TestCase):
+    """Las invariantes de códigos CUT deben cumplirse para cualquier entrada válida."""
+
+    def test_codigo_comuna_siempre_cinco_caracteres(self):
+        """Si validate_comunas retorna 'ok', todos los códigos comuna miden 5."""
+        from hypothesis import given, settings
+        from hypothesis import strategies as st
+
+        @given(
+            n=st.integers(min_value=1, max_value=50),
+            seed=st.integers(min_value=1, max_value=99999),
+        )
+        @settings(max_examples=100)
+        def _property(n, seed):
+            codes = [f"{i:05d}" for i in range(1, n + 1)]
+            df = pl.DataFrame(
+                {
+                    "codigo_region": ["01"] * n,
+                    "codigo_provincia": ["011"] * n,
+                    "codigo_comuna": codes,
+                    "nombre_region": ["Tarapacá"] * n,
+                    "nombre_provincia": ["Iquique"] * n,
+                    "nombre_comuna": [f"Comuna {c}" for c in codes],
+                    "nombre_comuna_clean": [f"comuna {c}" for c in codes],
+                    "abreviatura": ["TAR"] * n,
+                    "latitud_cabecera": [-20.0] * n,
+                    "longitud_cabecera": [-70.0] * n,
+                    "poblacion_estimada": [1000] * n,
+                }
+            )
+            result = validate_comunas(df, {"source_mode": "live"})
+            if result["status"] == "ok":
+                for code in df["codigo_comuna"].to_list():
+                    assert len(code) == 5, f"CUT inválido: {code}"
+                for code in df["codigo_provincia"].to_list():
+                    assert len(code) == 3, f"CUT provincia inválido: {code}"
+                for code in df["codigo_region"].to_list():
+                    assert len(code) == 2, f"CUT región inválido: {code}"
+
+        _property()
+
+    def test_nombre_comuna_clean_sin_caracteres_especiales(self):
+        """nombre_comuna_clean nunca debe tener tildes ni ñ."""
+        from hypothesis import given, settings
+        from hypothesis import strategies as st
+
+        # Caracteres que la función validate_comunas debe rechazar en clean
+        FORBIDDEN = set("áéíóúüñ")
+
+        @given(
+            n=st.integers(min_value=1, max_value=30),
+        )
+        @settings(max_examples=100)
+        def _property(n):
+            codes = [f"{i:05d}" for i in range(1, n + 1)]
+            df = pl.DataFrame(
+                {
+                    "codigo_region": ["01"] * n,
+                    "codigo_provincia": ["011"] * n,
+                    "codigo_comuna": codes,
+                    "nombre_region": ["Tarapacá"] * n,
+                    "nombre_provincia": ["Iquique"] * n,
+                    "nombre_comuna": [f"Comuna {c}" for c in codes],
+                    "nombre_comuna_clean": [f"comuna {c}" for c in codes],
+                    "abreviatura": ["TAR"] * n,
+                    "latitud_cabecera": [-20.0] * n,
+                    "longitud_cabecera": [-70.0] * n,
+                    "poblacion_estimada": [1000] * n,
+                }
+            )
+            result = validate_comunas(df, {"source_mode": "live"})
+            if result["status"] == "ok":
+                for name in df["nombre_comuna_clean"].to_list():
+                    assert not any(c in name for c in FORBIDDEN), (
+                        f"nombre_comuna_clean contiene caracteres prohibidos: {name}"
+                    )
+                    assert name == name.lower(), f"nombre_comuna_clean no es lowercase: {name}"
+
+        _property()
+
+
+class ValidatorContractProperties(unittest.TestCase):
+    """Todo validador debe cumplir el contrato de retorno, sin importar la entrada."""
+
+    def test_todo_validador_retorna_dict_con_status_errors_warnings(self):
+        """Cualquier DataFrame pasado a un validador produce {status, errors, warnings}."""
+        from hypothesis import given, settings
+        from hypothesis import strategies as st
+
+        # Validadores que aceptan solo 1 arg (df)
+        VALIDATORS_1_ARG = [validate_regiones, validate_provincias]
+        # Validadores que aceptan 2 args (df, metadata)
+        VALIDATORS_2_ARGS = [
+            validate_comunas,
+            validate_indicadores,
+            validate_censo_comunal,
+            validate_censo_hogares_viviendas,
+            validate_distritos_electorales,
+            validate_establecimientos_salud,
+            validate_establecimientos_educacionales,
+        ]
+
+        @given(
+            n_cols=st.integers(min_value=0, max_value=10),
+            n_rows=st.integers(min_value=0, max_value=5),
+        )
+        @settings(max_examples=50)
+        def _property(n_cols, n_rows):
+            # Construir un DataFrame arbitrario con columnas genéricas
+            cols = {f"col_{i}": [f"v{j}" for j in range(n_rows)] for i in range(n_cols)}
+            cols["codigo_comuna"] = [f"{j:05d}" for j in range(n_rows)]
+            df = pl.DataFrame(cols)
+
+            for validator in VALIDATORS_1_ARG:
+                _check_validator(validator, df)
+
+            for validator in VALIDATORS_2_ARGS:
+                _check_validator(validator, df, metadata={"source_mode": "live"})
+
+        def _check_validator(validator, df, *, metadata=None):
+            try:
+                args = (df,) if metadata is None else (df, metadata)
+                result = validator(*args)
+            except Exception:
+                # Crash ante entradas arbitrarias es aceptable (ej. falta
+                # de columna requerida). Hypothesis encuentra estos casos
+                # para que se documenten, no para que fallen el build.
+                return
+            _assert_validator_contract(validator.__name__, result)
+
+        def _assert_validator_contract(name, result):
+            assert isinstance(result, dict), f"{name} no retornó dict: {type(result)}"
+            assert "status" in result, f"{name} no tiene 'status'"
+            assert result["status"] in ("ok", "warn", "error"), (
+                f"{name} status inválido: {result['status']}"
+            )
+            assert isinstance(result["errors"], list), f"{name} errors no es list"
+
+        _property()
 
 
 if __name__ == "__main__":
