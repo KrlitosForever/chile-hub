@@ -1,6 +1,7 @@
 from typing import Any
 
 import polars as pl
+from rutificador import calcular_digito_verificador
 
 EXPECTED_INDICATOR_CODES = {"uf", "dolar", "euro", "utm", "ipc"}
 FALLBACK_COMUNAS_COUNT = 18
@@ -41,6 +42,45 @@ def _percentage_out_of_bounds_count(df: pl.DataFrame, columns: list[str]) -> int
             pl.col(column).is_not_null() & ((pl.col(column) < 0) | (pl.col(column) > 100))
         ).height
     return count
+
+
+def _validate_ruts_column(rut_series: pl.Series) -> tuple[int, int]:
+    """Valida formato y dígito verificador de RUTs usando rutificador.
+
+    Retorna (format_bad_count, dv_bad_count):
+    - format_bad_count: RUTs que no cumplen el formato XX.XXX.XXX-X
+    - dv_bad_count: RUTs con formato válido pero dígito verificador incorrecto
+    """
+    # Limpiar: rellenar nulos con cadena vacía, eliminar puntos, recortar espacios
+    filled = rut_series.fill_null("")
+    cleaned = filled.str.replace_all(r"\.", "").str.strip_chars()
+
+    # Fase 1: verificar formato básico (Polars vectorizado)
+    # Los nulos se excluyen aquí: ya son reportados como error por validate_empresas
+    has_valid_format = cleaned.str.contains(r"^\d{7,8}-[\dkK]$")
+    is_not_null = rut_series.is_not_null()
+    format_bad = (~has_valid_format) & is_not_null
+    format_bad_count = int(format_bad.sum())
+
+    # Fase 2: validar dígito verificador solo para RUTs con buen formato
+    valid_ruts = cleaned.filter(has_valid_format)
+    if valid_ruts.len() == 0:
+        return format_bad_count, 0
+
+    # Extraer base numérica y DV declarado
+    bases = valid_ruts.str.replace(r"-[\dkK]$", "")
+    declared_dvs = valid_ruts.str.replace(r"^\d{7,8}-", "").str.to_lowercase()
+
+    # Calcular DV esperado para cada base usando rutificador
+    expected_dvs = bases.map_elements(
+        calcular_digito_verificador,
+        return_dtype=pl.String,
+    )
+
+    dv_bad = declared_dvs != expected_dvs
+    dv_bad_count = int(dv_bad.sum())
+
+    return format_bad_count, dv_bad_count
 
 
 def validate_comunas(df_comunas: pl.DataFrame, metadata: dict[str, Any] | None) -> dict[str, Any]:
@@ -554,12 +594,12 @@ def validate_empresas(
     if null_ruts:
         errors.append(f"found {null_ruts} null RUT values")
 
-    # RUT con formato comun: XX.XXX.XXX-X o XXXXXXXX-X
-    rut_clean = df["rut"].str.replace_all(r"\.", "").str.strip_chars()
-    invalid_ruts = rut_clean.filter(~rut_clean.str.contains(r"^\d{7,8}-[\dkK]$")).len()
-    if invalid_ruts > 0:
-        # El SII a veces usa formatos sin puntos; contar solo los gravemente malos
-        warnings.append(f"found {invalid_ruts} RUTs with non-standard format (not validated)")
+    # RUT: validación de formato y dígito verificador con rutificador
+    format_bad, dv_bad = _validate_ruts_column(df["rut"])
+    if format_bad > 0:
+        warnings.append(f"found {format_bad} RUTs with invalid format")
+    if dv_bad > 0:
+        warnings.append(f"found {dv_bad} RUTs with invalid check digit")
 
     # Duplicados exactos (mismo RUT + misma razon social + misma fecha)
     dup_keys = df.select(["rut", "razon_social", "fecha_registro"])

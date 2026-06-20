@@ -23,6 +23,7 @@ from src.validation import (
     validate_censo_hogares_viviendas,
     validate_comunas,
     validate_distritos_electorales,
+    validate_empresas,
     validate_establecimientos_educacionales,
     validate_establecimientos_salud,
     validate_indicadores,
@@ -569,6 +570,187 @@ class ValidateEstablecimientosEducacionalesTests(unittest.TestCase):
         result = validate_establecimientos_educacionales(df, None)
         self.assertEqual(result["status"], "error")
         self.assertTrue(any("unique" in e for e in result["errors"]))
+
+
+class ValidateEmpresasTests(unittest.TestCase):
+    """Tests para el validador del dataset de empresas (Registro de Empresas y Sociedades)."""
+
+    def test_accepts_valid_data(self):
+        """DataFrame con columnas requeridas y RUTs con DV correcto pasa la validación."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K", "76086428-5", "12345678-5"],
+                "razon_social": ["Empresa Uno SpA", "Empresa Dos EIRL", "Empresa Tres SRL"],
+                "codigo_sociedad": ["SPA", "EIRL", "SRL"],
+                "tipo_actuacion": ["CONSTITUCION", "CONSTITUCION", "CONSTITUCION"],
+                "capital": [7000000, 25000000, 5000000],
+                "fecha_registro": [None, None, None],
+                "anio": [2022, 2023, 2024],
+                "mes": ["Mayo", "Junio", "Julio"],
+                "comuna_tributaria": ["Providencia", "Las Condes", "Valparaiso"],
+                "region_tributaria": ["13", "13", "05"],
+                "comuna_social": ["Providencia", "Las Condes", "Valparaiso"],
+                "region_social": ["13", "13", "05"],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["record_count"], 3)
+        # Debe tener al menos el warning de cobertura limitada al régimen simplificado
+        self.assertGreater(len(result["warnings"]), 0)
+
+    def test_rejects_empty(self):
+        """DataFrame vacío es rechazado."""
+        df = pl.DataFrame()
+        result = validate_empresas(df, None)
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("empty" in e for e in result["errors"]))
+
+    def test_rejects_negative_capital(self):
+        """Capital negativo es rechazado."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K"],
+                "razon_social": ["Test SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2022],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [-1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("negative capital" in e for e in result["errors"]))
+
+    def test_rejects_anio_before_2013(self):
+        """Año anterior a 2013 (inicio del RES) es rechazado."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K"],
+                "razon_social": ["Antigua SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2010],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "error")
+        self.assertTrue(any("anio < 2013" in e for e in result["errors"]))
+
+    def test_warns_unknown_sociedad(self):
+        """Código de sociedad desconocido genera warning."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-K"],
+                "razon_social": ["Misteriosa Ltda"],
+                "codigo_sociedad": ["XYZ"],
+                "fecha_registro": [None],
+                "anio": [2024],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(any("XYZ" in str(w) for w in result["warnings"]))
+
+    def test_warns_invalid_rut_format(self):
+        """RUT con formato inválido (sin guion, caracteres no numéricos) genera warning."""
+        df = pl.DataFrame(
+            {
+                "rut": ["abc", "1234", "12.345.678-5"],
+                "razon_social": ["A", "B", "C"],
+                "codigo_sociedad": ["SPA", "SPA", "SPA"],
+                "fecha_registro": [None, None, None],
+                "anio": [2024, 2024, 2024],
+                "comuna_tributaria": ["Santiago", "Santiago", "Santiago"],
+                "region_tributaria": ["13", "13", "13"],
+                "capital": [1000, 1000, 1000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        self.assertTrue(any("invalid format" in w for w in result["warnings"]))
+
+    def test_warns_invalid_rut_dv(self):
+        """RUT con formato correcto pero dígito verificador incorrecto genera warning."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76086428-0"],  # DV incorrecto: base 76086428 → DV real es 5
+                "razon_social": ["Test SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2024],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")  # DV malo es warning, no error
+        self.assertTrue(any("invalid check digit" in w for w in result["warnings"]))
+
+    def test_rut_with_dots_accepted(self):
+        """RUT con puntos (formato chileno estándar) es aceptado."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76.086.428-5"],  # con puntos → debe limpiarse y validar
+                "razon_social": ["Empresa Puntos SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2024],
+                "comuna_tributaria": ["Las Condes"],
+                "region_tributaria": ["13"],
+                "capital": [5000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        # No debe haber warning de formato (los puntos se limpian)
+        self.assertFalse(any("invalid format" in w for w in result["warnings"]))
+
+    def test_rut_with_lowercase_k_accepted(self):
+        """RUT con dígito verificador 'k' minúscula es aceptado."""
+        df = pl.DataFrame(
+            {
+                "rut": ["76286049-k"],  # 'k' minúscula es válida
+                "razon_social": ["Empresa K SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2024],
+                "comuna_tributaria": ["Providencia"],
+                "region_tributaria": ["13"],
+                "capital": [3000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertEqual(result["status"], "ok")
+        # No debe haber warning de formato ni de DV incorrecto
+        self.assertFalse(any("invalid format" in w for w in result["warnings"]))
+        self.assertFalse(any("invalid check digit" in w for w in result["warnings"]))
+
+    def test_null_rut_error(self):
+        """RUT nulo genera error."""
+        df = pl.DataFrame(
+            {
+                "rut": [None],
+                "razon_social": ["Sin RUT SpA"],
+                "codigo_sociedad": ["SPA"],
+                "fecha_registro": [None],
+                "anio": [2024],
+                "comuna_tributaria": ["Santiago"],
+                "region_tributaria": ["13"],
+                "capital": [1000000],
+            }
+        )
+        result = validate_empresas(df, {"source_mode": "live"})
+        self.assertTrue(any("null RUT" in e for e in result["errors"]))
 
 
 # ── Property-based tests (hypothesis) ──────────────────────────────────────────

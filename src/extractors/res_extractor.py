@@ -172,7 +172,7 @@ def parse_resources(contents: list[bytes]) -> pl.DataFrame:
     # ── Normalización ─────────────────────────────────────────────────────
 
     # RUT: limpiar espacios, conservar guion y digito verificador
-    df = df.with_columns(pl.col("rut").str.strip_chars().alias("rut"))
+    df = df.with_columns(pl.col("rut").str.strip_chars().str.replace_all(r"\.", "").alias("rut"))
 
     # razon_social: titulo (primera letra mayuscula de cada palabra)
     df = df.with_columns(
