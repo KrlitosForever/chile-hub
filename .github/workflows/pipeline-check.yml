@@ -155,12 +155,16 @@ jobs:
         run: python -m pytest -v --cov=src/chile_hub --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage to Codecov
+        if: false  # Deshabilitado: migrado a badge autogenerado (coverage_badge.json)
         uses: codecov/codecov-action@v5
         with:
           files: coverage.xml
           flags: unittests
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Generate coverage badge
+        run: python scripts/generate_coverage_badge.py
 
       - name: Generate pipeline status
         run: python scripts/pipeline_status.py

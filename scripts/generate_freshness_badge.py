@@ -22,15 +22,18 @@ def build_badge(health: dict) -> dict:
     warn = health.get("warn_count", 0)
     error = health.get("error_count", 0)
 
-    if overall == "ok" and stale == 0 and error == 0:
+    if overall == "ok" and stale == 0 and error == 0 and warn == 0:
         message = "fresh"
         color = "green"
     elif error > 0:
         message = "error"
         color = "red"
-    elif stale > 0 or warn > 0:
-        message = f"{stale} stale" if stale else "stale"
+    elif stale > 0:
+        message = f"{stale} stale"
         color = "orange"
+    elif warn > 0:
+        message = f"{warn} warn"
+        color = "yellow"
     else:
         message = overall
         color = "lightgrey"

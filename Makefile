@@ -18,6 +18,8 @@ help:
 	@printf "  make verify-landing   Corre smoke check de la landing en navegador\n"
 	@printf "  make test             Corre smoke tests\n"
 	@printf "  make coverage         Corre tests con reporte de cobertura\n"
+	@printf "  make freshness-badge  Genera el badge de frescura de datos\n"
+	@printf "  make coverage-badge   Genera el badge de cobertura desde coverage.xml\n"
 	@printf "  make package          Construye wheel + sdist\n"
 	@printf "  make package-check    Valida dist/* con twine\n"
 	@printf "  make package-smoke    Instala wheel local y prueba import + CLI\n"
@@ -152,6 +154,9 @@ check: build verify test verify-landing lint format-check
 
 freshness-badge:
 	$(PYTHON) scripts/generate_freshness_badge.py
+
+coverage-badge:
+	$(PYTHON) scripts/generate_coverage_badge.py
 
 refresh: extract build verify test verify-landing lint format-check freshness-badge
 

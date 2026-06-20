@@ -7,7 +7,7 @@
 [![CI/CD](https://github.com/cortega26/chile-hub/actions/workflows/pipeline-check.yml/badge.svg)](https://github.com/cortega26/chile-hub/actions)
 [![PyPI version](https://img.shields.io/pypi/v/chile-hub.svg)](https://pypi.org/project/chile-hub/)
 [![PyPI downloads](https://img.shields.io/pypi/dm/chile-hub.svg)](https://pypi.org/project/chile-hub/)
-[![Coverage](https://img.shields.io/codecov/c/github/cortega26/chile-hub)](https://app.codecov.io/gh/cortega26/chile-hub)
+[![Coverage](https://img.shields.io/endpoint?url=https://tooltician.com/chile-hub/data/normalized/coverage_badge.json)](https://tooltician.com/chile-hub/data/normalized/hub_status.json)
 [![Data](https://img.shields.io/endpoint?url=https://tooltician.com/chile-hub/data/normalized/freshness_badge.json)](https://tooltician.com/chile-hub/data/normalized/hub_health.json)
 [![License: MIT](https://img.shields.io/badge/Code%20License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB.svg?style=flat&logo=python&logoColor=white)]()
