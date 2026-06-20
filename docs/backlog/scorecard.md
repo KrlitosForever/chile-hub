@@ -1,9 +1,9 @@
 # Scorecard de Mejoras Estratégicas — ChileHub
 
-**Ultima actualizacion:** 2026-06-19 (Issue #6 cerrado)
+**Ultima actualizacion:** 2026-06-19 (Issues #4, #6, #7 cerrados)
 **Revision semanal:** viernes
 **Version del proyecto:** ver `pyproject.toml` (fuente unica de verdad) · etapa Alpha
-**Estado general:** En desarrollo activo · Progreso total: 29% (2/7 completadas, 1/7 en progreso)
+**Estado general:** En desarrollo activo · Progreso total: 43% (3/7 completadas)
 
 ---
 
@@ -28,7 +28,7 @@ Las 5 mejoras que siguen atacan estos puntos en orden de impacto estrategico.
 | 1 | Refactorizar `build_dev_db.py` en modulos `src/builders/` | Alto | Alto | Medio | Pendiente | Q3 2026 | Tests de validacion existentes (`tests/test_pipeline_logic.py`) |
 | 2 | Validacion de contratos JSON Schema en runtime | Alto | Medio | Bajo | Pendiente | Q3 2026 | Quick win tests (`tests/test_validation.py`) |
 | 3 | Constantes de datasets como enum (`Dataset`) | Medio | Medio | Bajo | Pendiente | Q3 2026 | — |
-| 4 | Estabilizacion de datasets en modo fallback | Alto | Alto | Medio | En progreso | Q3 2026 | Acceso a fuentes origen (URLs externas) |
+| 4 | Estabilizacion de datasets en modo fallback | Alto | Alto | Medio | Completado | 2026-06-19 | Acceso a fuentes origen (URLs externas) |
 | 5 | Dashboard publico de salud operativa del hub | Medio | Medio | Bajo | Pendiente | Q4 2026 | #4 completado (para no mostrar falsos positivos) |
 | 6 | Robustecer manejo de errores en API publica | Medio | Bajo | Bajo | Completado | 2026-06-19 | — |
 | 7 | Nuevas capacidades de API (cruces, validacion, busqueda) | Medio | Medio | Bajo | Pendiente | Futuro | #6 completado |
@@ -42,12 +42,12 @@ Las 5 mejoras que siguen atacan estos puntos en orden de impacto estrategico.
 | 1 | Refactor `build_dev_db.py` | 0% | 0% | 0% | 0% | 0% | 0% |
 | 2 | Validacion contratos runtime | 0% | 0% | 0% | 0% | 0% | 0% |
 | 3 | Constantes datasets | 0% | 0% | 0% | 0% | 0% | 0% |
-| 4 | Estabilizacion fallbacks | 100% | 100% | 80% | 100% | 80% | 80% |
+| 4 | Estabilizacion fallbacks | 100% | 100% | 100% | 100% | 100% | 100% |
 | 5 | Dashboard salud | 0% | 0% | 0% | 0% | 0% | 0% |
 | 6 | API error handling | 100% | 100% | 100% | 100% | 100% | 100% |
 | 7 | API capacidades | 100% | 0% | 0% | 0% | 0% | 0% |
 
-**Progreso total:** 29% (2/7 completadas — #6 y #4 MINEDUC; #4 en curso: SIEDU pendiente, `perfil_territorial` derivado live; #7 tiene plan de diseno completo)
+**Progreso total:** 43% (3/7 completadas — #6 MINEDUC, #4 Estabilizacion fallbacks, #7 API error handling; #7 API capacidades tiene plan completo)
 
 ---
 
@@ -69,9 +69,15 @@ Las 5 mejoras que siguen atacan estos puntos en orden de impacto estrategico.
 - **#4 MINEDUC completado — Issue #6 cerrado:**
   - Extractor live implementado: `Rendimiento_2024.rar` (42MB) → CSV 3.5M filas → 345 registros por comuna
   - `source_mode: "live"`, todos los campos del contrato cubiertos desde una sola fuente RAR
-  - `hub_health.json`: `fallback_count=0`, `live_count=15`
   - `resultados_educacionales` promovido a `stable_publishable` en `source_registry.json`
+- **#4 SIEDU completado — Issue #7 cerrado:**
+  - Extractor live implementado: `matriz-siedu-publicacion.xlsm` (504 KB, INE) → 5 hojas → 6.701 registros
+  - 117 comunas urbanas, 68 indicadores, deduplicado por año más reciente
+  - `indicadores_urbanos_siedu` promovido a `stable_publishable` en `source_registry.json`
+  - `hub_health.json`: `fallback_count=0`, `live_count=15` — todos los datasets en modo live
+  - Bundle público: 13 datasets (antes 12), 2 candidatos restantes
   - 410 tests pasan sin regresiones
+- **#4 Issue paraguas cerrado** — todos los datasets estabilizados
 - Proxima revision: 2026-06-26
 
 ### Semana 3 — (placeholder)

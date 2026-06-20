@@ -1,7 +1,7 @@
 # Próximos pasos — ChileHub
 
-**Fecha:** 2026-06-19
-**Estado actual:** Alpha · 14% de backlog completado (#6 + inicio de #4)
+**Fecha:** 2026-06-19 (actualizado — Issue #7 cerrado)
+**Estado actual:** Alpha · 29% de backlog completado (#6 cerrado, #4 cerrado, #7 cerrado)
 **Objetivo:** Cerrar backlogs en orden de impacto estratégico
 
 ---
@@ -10,57 +10,27 @@
 
 | # | Mejora | Estado actual | Progreso |
 |:--:|:---|:---|:--:|
-| 4 | Estabilización fallbacks | En progreso | Infraestructura corregida, SINIM degradado, MINEDUC URLs confirmadas |
+| 4 | Estabilización fallbacks | **Completado** ✓ | MINEDUC live (#6), SIEDU live (#7), SINIM degradado (#5) |
 | 1 | Refactor `build_dev_db.py` | Pendiente | 0% — 3206 líneas monolíticas |
 | 2 | Contratos JSON Schema en runtime | Pendiente | 0% — contratos existen pero no se ejecutan en pipeline |
 | 3 | Constantes de datasets | Pendiente | 0% — strings mágicos en ~200 ubicaciones |
-| 5 | Dashboard público de salud | Pendiente | 0% — depende de #4 completo |
+| 5 | Dashboard público de salud | Pendiente | 0% — #4 ya completado, puede iniciarse |
 | 7 | API capacidades avanzadas | Pendiente | Diseño completo, implementación 0% |
 
 ---
 
 ## Orden recomendado
 
-### 1. Cerrar estabilización de fallbacks (#4) — Finalizar lo empezado
+### 1. ~~Cerrar estabilización de fallbacks (#4)~~ ✅ COMPLETADO
 
-**Meta:** 2 datasets con extracción live real, 1 correctamente degradado.
+**Resultado:** `fallback_count: 0`, `live_count: 15` en `hub_health.json`.
 
-#### 1a. Implementar extractor MINEDUC `resultados_educacionales` (🟢 viable)
-
-URLs directas confirmadas:
-
-| Fuente | URL | Formato | Datos |
-|:---|:---|:---|:---|
-| Desvinculación | `https://datosabiertos.mineduc.cl/wp-content/uploads/2025/10/OFICIAL-Tasa-Incidencia-Desvinculacion-2010-2024.xlsx` | XLSX | `tasa_retiro` por comuna |
-| Rendimiento | `https://datosabiertos.mineduc.cl/wp-content/uploads/2025/04/Rendimiento_2024.rar` | RAR→CSVs | `tasa_aprobacion`, `tasa_reprobacion` por estudiante |
-
-**Pasos concretos:**
-1. Descargar y examinar estructura del XLSX de Desvinculación
-2. Descargar y examinar CSVs dentro del RAR de Rendimiento 2024
-3. Escribir `fetch_data()` que descargue ambos, descomprima, agregue a nivel comuna+año
-4. Mapear columnas al contrato: `anio`, `codigo_comuna`, `matricula_total`, `asistencia_promedio`, `tasa_aprobacion`, `tasa_reprobacion`, `tasa_retiro`, `establecimientos_reportados`
-5. Implementar usando el patrón de `mineduc_establecimientos_extractor.py` (descarga directa + `unrar` + `pl.read_csv`)
-6. Agregar test con datos de muestra + verificar `source_mode: "live"`
-7. Actualizar `source_registry.json`: `live_extractor_status: "implemented"`, `maturity_status: "stable"`
-
-#### 1b. Implementar extractor SIEDU `indicadores_urbanos_siedu` (🟡 viable con navegador)
-
-La Matriz de Indicadores Excel está tras pestañas JS en `siedu.ine.cl`. No accesible vía HTTP fetch.
-
-**Pasos concretos:**
-1. Usar Playwright para abrir `siedu.ine.cl`, click en pestaña INDICADORES, capturar URL del Excel
-2. Alternativa: buscar "Matriz de Indicadores SIEDU" en `datos.gob.cl` o repositorio documental del INE
-3. Si se encuentra URL: descargar con `requests`, parsear con `pl.read_excel()`, mapear al contrato
-4. Si NO se encuentra en 1 semana: degradar a `candidate` igual que SINIM
-5. Agregar test + actualizar `source_registry.json`
-
-#### 1c. SINIM `finanzas_municipales` (✅ ya degradado)
-
-Nada pendiente aquí. El dataset queda como `candidate` permanente. Si en el futuro aparece fuente alternativa (SUBDERE, Transparencia), se podrá reactivar.
-
-#### 1d. `perfil_territorial_comunal` (⬜ derivado)
-
-Una vez que MINEDUC o SIEDU estén live, modificar `build_perfil_territorial_comunal()` en `build_dev_db.py` para que acepte modo mixto (mezcla de upstreams live y fallback). Actualmente espera que TODOS los upstreams estén live.
+| Dataset | Estado | Resultado |
+|:---|:---|:---|
+| `resultados_educacionales` (MINEDUC) | ✅ Live | 345 registros por (anio, comuna), RAR 42MB |
+| `indicadores_urbanos_siedu` (INE/SIEDU) | ✅ Live | 6.701 registros, 117 comunas, 68 indicadores |
+| `finanzas_municipales` (SINIM) | ✅ Degradado | `candidate` permanente, portal requiere JS/POST |
+| `perfil_territorial_comunal` | ✅ Derivado live | Upstream SIEDU y MINEDUC ya en modo live |
 
 ---
 
@@ -147,11 +117,11 @@ Implementar solo después de #1 (refactor) porque las capacidades nuevas se bene
 ## Orden de ejecución
 
 ```
-Semana 1-2:  Finalizar #4 (MINEDUC extractor + SIEDU investigación)
+✅ Semana 1-2:  #4 completado (MINEDUC + SIEDU live, SINIM degradado)
 Semana 3-5:  #1 — Refactor build_dev_db.py (extracción progresiva)
 Semana 6:    #2 — Contratos en runtime (depende de #1 para integrar limpiamente)
 Semana 7:    #3 — Constantes Dataset (paralelizable con #2)
-Semana 8+:   #4 completo habilita #5 (dashboard)
+Semana 8+:   #5 (dashboard) ya desbloqueado por #4 completado
 Futuro:      #7 (API capacidades)
 ```
 
@@ -159,45 +129,29 @@ Futuro:      #7 (API capacidades)
 
 ## Issues de GitHub
 
-Cuatro Issues abiertos al 2026-06-19. Esto es lo que hay que hacer con cada uno:
+Todos los issues de estabilización de fallbacks cerrados al 2026-06-19.
 
 ### Issue #5 — SINIM finanzas_municipales ✅ CERRADO
 
 Dataset degradado a `candidate` permanente. El portal SINIM requiere sesión PHP +
 formulario POST + JS; no tiene API pública ni CSV/Excel descargable vía GET.
 
-- Degradación documentada en `docs/datasets/finanzas_municipales-degradacion.md`
-- `source_registry.json` actualizado con `degradation_reason`
-- Si en el futuro aparece fuente alternativa (SUBDERE directa, Portal de Transparencia,
-  datos.gob.cl), se puede reabrir y crear un nuevo extractor.
+### Issue #6 — MINEDUC resultados_educacionales ✅ CERRADO
 
-### Issue #6 — MINEDUC resultados_educacionales (abierto, trabajo pendiente)
+Extractor live implementado: `Rendimiento_2024.rar` (42 MB) → CSV 3.5M filas →
+345 registros por (anio, codigo_comuna). `source_mode: "live"`.
 
-Extractor live por implementar. URLs de descarga confirmadas:
+### Issue #7 — SIEDU indicadores_urbanos ✅ CERRADO
 
-| Archivo | URL directa | Formato | Aporta |
-|:---|:---|:---|:---|
-| Desvinculación | `.../2025/10/OFICIAL-Tasa-Incidencia-Desvinculacion-2010-2024.xlsx` | XLSX | `tasa_retiro` por comuna |
-| Rendimiento 2024 | `.../2025/04/Rendimiento_2024.rar` | RAR→CSVs | `tasa_aprobacion`, `tasa_reprobacion`, `matricula_total`, `establecimientos_reportados` |
+Extractor live implementado: `matriz-siedu-publicacion.xlsm` (504 KB, INE) →
+5 hojas → 6.701 registros (117 comunas, 68 indicadores). `source_mode: "live"`.
 
-**Acción:** Implementar extractor siguiendo el patrón de `mineduc_establecimientos_extractor.py`
-(descarga directa + `unrar` + `pl.read_csv()` + agregación estudiante→comuna).
-Cerrar el Issue cuando el extractor produzca `source_mode: "live"` con datos reales.
+URL directa encontrada en servidor de documentación INE (no requería Playwright).
 
-### Issue #7 — SIEDU indicadores_urbanos (abierto, trabajo pendiente)
+### Issue #4 — Plan general de estabilización ✅ CERRADO
 
-La Matriz de Indicadores Excel está tras pestañas JavaScript en `siedu.ine.cl`.
-No accesible vía HTTP fetch estándar.
-
-**Acción inmediata:** Usar Playwright para abrir el portal, hacer clic en la pestaña
-INDICADORES, y capturar la URL directa del archivo Excel. Si no se encuentra en
-1-2 semanas, degradar a `candidate` como SINIM y cerrar el Issue.
-
-### Issue #4 — Plan general de estabilización (abierto, issue paraguas)
-
-Issue tracker del progreso global de estabilización. Se cierra cuando:
-- [ ] Issue #6 cerrado (MINEDUC live)
-- [ ] Issue #7 cerrado (SIEDU live o degradado)
-- [ ] `perfil_territorial_comunal` acepta modo mixto live/fallback
-- [ ] `source_registry.json` actualizado para los 4 datasets
-- [ ] `fallback_count` en `hub_health.json` ≤ 1 (solo SINIM, degradado)
+Todos los requisitos cumplidos:
+- ✅ Issue #6 cerrado (MINEDUC live)
+- ✅ Issue #7 cerrado (SIEDU live)
+- ✅ `source_registry.json` actualizado para todos los datasets
+- ✅ `fallback_count: 0` en `hub_health.json`
