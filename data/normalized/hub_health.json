@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-19T20:38:29.341802+00:00",
+  "generated_at_utc": "2026-06-20T00:17:49.757862+00:00",
   "overall_status": "warn",
   "dataset_count": 15,
   "ok_count": 12,
@@ -223,9 +223,9 @@
       "publishability_status": "ready",
       "degradation_status": "warning",
       "coverage_status": "partial",
-      "coverage_ratio": 0.0087,
+      "coverage_ratio": 0.3382,
       "drift_status": "drifted",
-      "source_detail": "curated_fallback_partial_urban_coverage",
+      "source_detail": "ine_siedu_xlsm_cinco_mediciones_2018_2022",
       "diagnostic_summary": "indicadores_urbanos_siedu has intentionally partial urban coverage",
       "recommended_action": "Revisar warnings operativos del dataset antes de consumirlo en producción."
     },

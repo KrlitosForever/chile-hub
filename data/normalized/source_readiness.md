@@ -1,12 +1,12 @@
 # chile-hub — Madurez de fuente
 
-- `generated_at_utc`: `2026-06-19T20:38:29.341802+00:00`
-- `stable_count`: `12`
-- `candidate_count`: `3`
+- `generated_at_utc`: `2026-06-20T00:17:49.757862+00:00`
+- `stable_count`: `13`
+- `candidate_count`: `2`
 - `experimental_count`: `0`
 - `deprecated_count`: `0`
-- `live_ready_count`: `12`
-- `fallback_only_count`: `2`
+- `live_ready_count`: `13`
+- `fallback_only_count`: `1`
 - `publish_blocking_count`: `15`
 
 | Dataset | Madurez | Source ID | Modo | Live Ready | Fallback | Bloquea Pub | Extractor | Estancado | Próxima acción |
@@ -23,6 +23,6 @@
 | `establecimientos_educacionales` | `stable` | `mineduc_establecimientos` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Monitor annual source package and RAR extraction dependency. |
 | `finanzas_municipales` | `candidate` | `sinim_finanzas_municipales` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Buscar fuente alternativa: SUBDERE directa, Portal de Transparencia, o datos.gob.cl. Ver docs/datasets/finanzas_municipales-degradacion.md. |
 | `resultados_educacionales` | `stable` | `mineduc_resultados_educacionales` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Actualizar URL anualmente (año en nombre de archivo). Verificar columnas SIT_FIN_R si MINEDUC cambia metodología. |
-| `indicadores_urbanos_siedu` | `candidate` | `ine_siedu_indicadores` | `live` | `✗` | `permitido` | `✓` | `fallback_only` | `—` | Replace partial fallback with stable official SIEDU export. |
+| `indicadores_urbanos_siedu` | `stable` | `ine_siedu_indicadores` | `live` | `✓` | `permitido` | `✓` | `implemented` | `—` | Monitorear si INE publica una 6ta medición (post-2022) y actualizar URL y SHEET_YEARS. |
 | `perfil_territorial_comunal` | `candidate` | `chile_hub_perfil_territorial` | `live` | `✗` | `permitido` | `✓` | `derived` | `—` | Track readiness inherited from upstream component datasets. |
 | `empresas` | `stable` | `ministerio_economia_res` | `live` | `✓` | `no` | `✓` | `implemented` | `—` | Keep large-output behavior documented and verify Parquet-first consumption. |

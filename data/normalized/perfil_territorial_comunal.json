@@ -40,8 +40,8 @@
     "tasa_reprobacion": 2.192848076333873,
     "tasa_retiro": 3.0616711165579726,
     "establecimientos_reportados": 86,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 942.2580431263729
   },
   {
     "codigo_region": "01",
@@ -84,8 +84,8 @@
     "tasa_reprobacion": 2.6880499574226513,
     "tasa_retiro": 4.016463241555493,
     "establecimientos_reportados": 45,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 528.2896434552772
   },
   {
     "codigo_region": "01",
@@ -348,8 +348,8 @@
     "tasa_reprobacion": 2.423451435005694,
     "tasa_retiro": 2.701111921487339,
     "establecimientos_reportados": 111,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 66,
+    "valor_promedio_siedu": 1290.1218379824252
   },
   {
     "codigo_region": "02",
@@ -524,8 +524,8 @@
     "tasa_reprobacion": 0.9018835798659146,
     "tasa_retiro": 2.3012663616047675,
     "establecimientos_reportados": 49,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 52,
+    "valor_promedio_siedu": 875.945176559024
   },
   {
     "codigo_region": "02",
@@ -744,8 +744,8 @@
     "tasa_reprobacion": 2.605690717052643,
     "tasa_retiro": 2.3771702477496306,
     "establecimientos_reportados": 59,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 61,
+    "valor_promedio_siedu": 440.23855450629213
   },
   {
     "codigo_region": "03",
@@ -832,8 +832,8 @@
     "tasa_reprobacion": 1.3836477987421383,
     "tasa_retiro": 2.138364779874214,
     "establecimientos_reportados": 12,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 1149.5932299859649
   },
   {
     "codigo_region": "03",
@@ -964,8 +964,8 @@
     "tasa_reprobacion": 1.5939185875429132,
     "tasa_retiro": 2.157920549288867,
     "establecimientos_reportados": 35,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 204.18116653166578
   },
   {
     "codigo_region": "03",
@@ -1140,8 +1140,8 @@
     "tasa_reprobacion": 2.2655047013727354,
     "tasa_retiro": 2.0869508239688104,
     "establecimientos_reportados": 162,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 400.21294007031406
   },
   {
     "codigo_region": "04",
@@ -1184,8 +1184,8 @@
     "tasa_reprobacion": 2.1190490716450086,
     "tasa_retiro": 2.1515872531673885,
     "establecimientos_reportados": 131,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 406.017123616253
   },
   {
     "codigo_region": "04",
@@ -1580,8 +1580,8 @@
     "tasa_reprobacion": 1.9075510527148962,
     "tasa_retiro": 1.4563875257242362,
     "establecimientos_reportados": 106,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 51,
+    "valor_promedio_siedu": 208.88621833137395
   },
   {
     "codigo_region": "04",
@@ -1800,8 +1800,8 @@
     "tasa_reprobacion": 3.417064795461332,
     "tasa_retiro": 3.0848760824126606,
     "establecimientos_reportados": 150,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 66,
+    "valor_promedio_siedu": 539.1104020866575
   },
   {
     "codigo_region": "05",
@@ -1844,8 +1844,8 @@
     "tasa_reprobacion": 1.9681810726586846,
     "tasa_retiro": 2.6242414302115793,
     "establecimientos_reportados": 19,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 41,
+    "valor_promedio_siedu": 169.89753306415116
   },
   {
     "codigo_region": "05",
@@ -1888,8 +1888,8 @@
     "tasa_reprobacion": 1.1119847242502527,
     "tasa_retiro": 1.7971470290913176,
     "establecimientos_reportados": 18,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 176.08906453791064
   },
   {
     "codigo_region": "05",
@@ -1976,8 +1976,8 @@
     "tasa_reprobacion": 3.409403354412978,
     "tasa_retiro": 5.251580973329667,
     "establecimientos_reportados": 15,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 45,
+    "valor_promedio_siedu": 248.60152178794326
   },
   {
     "codigo_region": "05",
@@ -2020,8 +2020,8 @@
     "tasa_reprobacion": 4.119790841388053,
     "tasa_retiro": 2.4401838060529233,
     "establecimientos_reportados": 15,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 249.37749850006892
   },
   {
     "codigo_region": "05",
@@ -2064,8 +2064,8 @@
     "tasa_reprobacion": 2.221204876477271,
     "tasa_retiro": 2.2178137239940994,
     "establecimientos_reportados": 167,
-    "indicadores_siedu_total": 2,
-    "valor_promedio_siedu": 50.9
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 594.4420196073148
   },
   {
     "codigo_region": "05",
@@ -2152,8 +2152,8 @@
     "tasa_reprobacion": 2.5857359635811834,
     "tasa_retiro": 1.9484066767830046,
     "establecimientos_reportados": 41,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 49,
+    "valor_promedio_siedu": 275.4183237166119
   },
   {
     "codigo_region": "05",
@@ -2284,8 +2284,8 @@
     "tasa_reprobacion": 0.8368200836820083,
     "tasa_retiro": 3.2426778242677825,
     "establecimientos_reportados": 13,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 43,
+    "valor_promedio_siedu": 261.2072943099843
   },
   {
     "codigo_region": "05",
@@ -2548,8 +2548,8 @@
     "tasa_reprobacion": 2.93515965489638,
     "tasa_retiro": 2.530463399448546,
     "establecimientos_reportados": 57,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 246.75896698655924
   },
   {
     "codigo_region": "05",
@@ -2592,8 +2592,8 @@
     "tasa_reprobacion": 2.387497054896725,
     "tasa_retiro": 2.8901280138223515,
     "establecimientos_reportados": 39,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 48,
+    "valor_promedio_siedu": 217.17170770040704
   },
   {
     "codigo_region": "05",
@@ -2636,8 +2636,8 @@
     "tasa_reprobacion": 0.45013850415512463,
     "tasa_retiro": 2.3545706371191137,
     "establecimientos_reportados": 12,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 281.2950043323525
   },
   {
     "codigo_region": "05",
@@ -2680,8 +2680,8 @@
     "tasa_reprobacion": 1.7452830188679245,
     "tasa_retiro": 3.8679245283018866,
     "establecimientos_reportados": 10,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 43,
+    "valor_promedio_siedu": 333.75273353897217
   },
   {
     "codigo_region": "05",
@@ -2768,8 +2768,8 @@
     "tasa_reprobacion": 1.0959783555738982,
     "tasa_retiro": 2.6917962122254324,
     "establecimientos_reportados": 65,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 57,
+    "valor_promedio_siedu": 271.29476221256374
   },
   {
     "codigo_region": "05",
@@ -2856,8 +2856,8 @@
     "tasa_reprobacion": 1.3248204309656824,
     "tasa_retiro": 5.666400638467677,
     "establecimientos_reportados": 15,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 313.8271286363445
   },
   {
     "codigo_region": "05",
@@ -2988,8 +2988,8 @@
     "tasa_reprobacion": 0.11235955056179775,
     "tasa_retiro": 0.599250936329588,
     "establecimientos_reportados": 10,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 44,
+    "valor_promedio_siedu": 286.1078678129149
   },
   {
     "codigo_region": "05",
@@ -3032,8 +3032,8 @@
     "tasa_reprobacion": 1.9230769230769231,
     "tasa_retiro": 3.051282051282051,
     "establecimientos_reportados": 53,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 49,
+    "valor_promedio_siedu": 265.04489594260383
   },
   {
     "codigo_region": "05",
@@ -3296,8 +3296,8 @@
     "tasa_reprobacion": 2.081174694336718,
     "tasa_retiro": 2.2025518813463987,
     "establecimientos_reportados": 103,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 228.83811076698095
   },
   {
     "codigo_region": "05",
@@ -3340,8 +3340,8 @@
     "tasa_reprobacion": 4.133530608470501,
     "tasa_retiro": 5.243203255039763,
     "establecimientos_reportados": 33,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 568.3013273928939
   },
   {
     "codigo_region": "05",
@@ -3384,8 +3384,8 @@
     "tasa_reprobacion": 1.3904982618771726,
     "tasa_retiro": 1.544998068752414,
     "establecimientos_reportados": 12,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 46,
+    "valor_promedio_siedu": 731.062963661167
   },
   {
     "codigo_region": "05",
@@ -3428,8 +3428,8 @@
     "tasa_reprobacion": 1.184584178498986,
     "tasa_retiro": 1.5740365111561867,
     "establecimientos_reportados": 66,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 209.2972245533512
   },
   {
     "codigo_region": "06",
@@ -3472,8 +3472,8 @@
     "tasa_reprobacion": 2.282990015291895,
     "tasa_retiro": 2.5402536655572545,
     "establecimientos_reportados": 126,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 55,
+    "valor_promedio_siedu": 491.1891303194297
   },
   {
     "codigo_region": "06",
@@ -3780,8 +3780,8 @@
     "tasa_reprobacion": 1.2189995796553175,
     "tasa_retiro": 1.185372005044136,
     "establecimientos_reportados": 26,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 54,
+    "valor_promedio_siedu": 296.17189865375144
   },
   {
     "codigo_region": "06",
@@ -4088,8 +4088,8 @@
     "tasa_reprobacion": 1.1935271289448635,
     "tasa_retiro": 2.6140440799589952,
     "establecimientos_reportados": 39,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 46,
+    "valor_promedio_siedu": 228.35464020350204
   },
   {
     "codigo_region": "06",
@@ -4484,8 +4484,8 @@
     "tasa_reprobacion": 3.7112968511801503,
     "tasa_retiro": 2.265678389318194,
     "establecimientos_reportados": 51,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 221.45165177958629
   },
   {
     "codigo_region": "06",
@@ -4924,8 +4924,8 @@
     "tasa_reprobacion": 2.927885358854963,
     "tasa_retiro": 2.515507139297926,
     "establecimientos_reportados": 130,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 51,
+    "valor_promedio_siedu": 516.4971263337537
   },
   {
     "codigo_region": "07",
@@ -4968,8 +4968,8 @@
     "tasa_reprobacion": 3.8206504578465426,
     "tasa_retiro": 1.3156509841069361,
     "establecimientos_reportados": 31,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 198.1188570721408
   },
   {
     "codigo_region": "07",
@@ -5100,8 +5100,8 @@
     "tasa_reprobacion": 1.4173228346456692,
     "tasa_retiro": 1.242344706911636,
     "establecimientos_reportados": 26,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 49,
+    "valor_promedio_siedu": 240.7175945163406
   },
   {
     "codigo_region": "07",
@@ -5496,8 +5496,8 @@
     "tasa_reprobacion": 2.033842253210605,
     "tasa_retiro": 2.27911591247313,
     "establecimientos_reportados": 92,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 52,
+    "valor_promedio_siedu": 463.80873726122906
   },
   {
     "codigo_region": "07",
@@ -5672,8 +5672,8 @@
     "tasa_reprobacion": 0.9124087591240876,
     "tasa_retiro": 1.0036496350364963,
     "establecimientos_reportados": 8,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 44,
+    "valor_promedio_siedu": 211.1998993452538
   },
   {
     "codigo_region": "07",
@@ -5716,8 +5716,8 @@
     "tasa_reprobacion": 1.3024013024013024,
     "tasa_retiro": 1.7908017908017908,
     "establecimientos_reportados": 11,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 48,
+    "valor_promedio_siedu": 233.3650187304365
   },
   {
     "codigo_region": "07",
@@ -5892,8 +5892,8 @@
     "tasa_reprobacion": 2.3819136051675414,
     "tasa_retiro": 1.7561566410981024,
     "establecimientos_reportados": 69,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 55,
+    "valor_promedio_siedu": 186.72821895592625
   },
   {
     "codigo_region": "07",
@@ -6244,8 +6244,8 @@
     "tasa_reprobacion": 2.585659226631655,
     "tasa_retiro": 2.3527169539621364,
     "establecimientos_reportados": 113,
-    "indicadores_siedu_total": 2,
-    "valor_promedio_siedu": 48.15
+    "indicadores_siedu_total": 58,
+    "valor_promedio_siedu": 531.0638211306987
   },
   {
     "codigo_region": "08",
@@ -6288,8 +6288,8 @@
     "tasa_reprobacion": 1.9631854885002487,
     "tasa_retiro": 2.166009720255635,
     "establecimientos_reportados": 74,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 197.6067947578758
   },
   {
     "codigo_region": "08",
@@ -6332,8 +6332,8 @@
     "tasa_reprobacion": 1.751302491996736,
     "tasa_retiro": 1.795241981043249,
     "establecimientos_reportados": 40,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 60,
+    "valor_promedio_siedu": 387.5598821268526
   },
   {
     "codigo_region": "08",
@@ -6420,8 +6420,8 @@
     "tasa_reprobacion": 1.2332439678284182,
     "tasa_retiro": 1.3941018766756033,
     "establecimientos_reportados": 22,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 55,
+    "valor_promedio_siedu": 124.37288228741028
   },
   {
     "codigo_region": "08",
@@ -6464,8 +6464,8 @@
     "tasa_reprobacion": 3.2620554222125246,
     "tasa_retiro": 1.6255727689286494,
     "establecimientos_reportados": 26,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 59,
+    "valor_promedio_siedu": 186.56171781425314
   },
   {
     "codigo_region": "08",
@@ -6508,8 +6508,8 @@
     "tasa_reprobacion": 1.0718599033816425,
     "tasa_retiro": 1.4643719806763285,
     "establecimientos_reportados": 25,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 58,
+    "valor_promedio_siedu": 416.97077468527334
   },
   {
     "codigo_region": "08",
@@ -6552,8 +6552,8 @@
     "tasa_reprobacion": 1.6415244898734658,
     "tasa_retiro": 1.7593190713227191,
     "establecimientos_reportados": 57,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 60,
+    "valor_promedio_siedu": 275.63244344383355
   },
   {
     "codigo_region": "08",
@@ -6596,8 +6596,8 @@
     "tasa_reprobacion": 1.3456090651558075,
     "tasa_retiro": 1.4872521246458923,
     "establecimientos_reportados": 17,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 46,
+    "valor_promedio_siedu": 216.3477169147416
   },
   {
     "codigo_region": "08",
@@ -6640,8 +6640,8 @@
     "tasa_reprobacion": 2.185770750988142,
     "tasa_retiro": 1.8893280632411067,
     "establecimientos_reportados": 65,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 61,
+    "valor_promedio_siedu": 218.18422565234897
   },
   {
     "codigo_region": "08",
@@ -6684,8 +6684,8 @@
     "tasa_reprobacion": 1.6428354122299968,
     "tasa_retiro": 1.1155055268228375,
     "establecimientos_reportados": 42,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 57,
+    "valor_promedio_siedu": 161.58912652515025
   },
   {
     "codigo_region": "08",
@@ -6728,8 +6728,8 @@
     "tasa_reprobacion": 1.8323987046836743,
     "tasa_retiro": 1.6349419477134508,
     "establecimientos_reportados": 35,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 60,
+    "valor_promedio_siedu": 147.7684723522996
   },
   {
     "codigo_region": "08",
@@ -7080,8 +7080,8 @@
     "tasa_reprobacion": 1.687912635469003,
     "tasa_retiro": 1.6629987958310841,
     "establecimientos_reportados": 124,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 48,
+    "valor_promedio_siedu": 210.52591453402223
   },
   {
     "codigo_region": "08",
@@ -7300,8 +7300,8 @@
     "tasa_reprobacion": 0.9589770911028237,
     "tasa_retiro": 0.9057005860415557,
     "establecimientos_reportados": 22,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 46,
+    "valor_promedio_siedu": 203.74671021905084
   },
   {
     "codigo_region": "08",
@@ -7696,8 +7696,8 @@
     "tasa_reprobacion": 3.2398964644979116,
     "tasa_retiro": 1.9309959409377022,
     "establecimientos_reportados": 160,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 430.9986639484553
   },
   {
     "codigo_region": "09",
@@ -8180,8 +8180,8 @@
     "tasa_reprobacion": 4.21359695324528,
     "tasa_retiro": 1.3045944412932502,
     "establecimientos_reportados": 76,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 187.7554154593774
   },
   {
     "codigo_region": "09",
@@ -8532,8 +8532,8 @@
     "tasa_reprobacion": 1.787255022802909,
     "tasa_retiro": 1.7502773326759522,
     "establecimientos_reportados": 64,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 48,
+    "valor_promedio_siedu": 220.40585100203566
   },
   {
     "codigo_region": "09",
@@ -8620,8 +8620,8 @@
     "tasa_reprobacion": 2.109426499670402,
     "tasa_retiro": 1.5491100856954516,
     "establecimientos_reportados": 34,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 45,
+    "valor_promedio_siedu": 243.0312020192922
   },
   {
     "codigo_region": "09",
@@ -9104,8 +9104,8 @@
     "tasa_reprobacion": 2.2364549073913795,
     "tasa_retiro": 2.9253938030119437,
     "establecimientos_reportados": 159,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 466.1387325952764
   },
   {
     "codigo_region": "10",
@@ -9456,8 +9456,8 @@
     "tasa_reprobacion": 1.4978921876401472,
     "tasa_retiro": 1.587586330612611,
     "establecimientos_reportados": 36,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 52,
+    "valor_promedio_siedu": 229.29847291297253
   },
   {
     "codigo_region": "10",
@@ -9500,8 +9500,8 @@
     "tasa_reprobacion": 2.983567428623887,
     "tasa_retiro": 2.2950518681722207,
     "establecimientos_reportados": 41,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 50,
+    "valor_promedio_siedu": 361.19268218322554
   },
   {
     "codigo_region": "10",
@@ -9940,8 +9940,8 @@
     "tasa_reprobacion": 4.124756762682599,
     "tasa_retiro": 2.3104119275358346,
     "establecimientos_reportados": 109,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 227.35894756704892
   },
   {
     "codigo_region": "10",
@@ -10424,8 +10424,8 @@
     "tasa_reprobacion": 4.726125178450673,
     "tasa_retiro": 2.727477646705237,
     "establecimientos_reportados": 41,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 48,
+    "valor_promedio_siedu": 249.40824818714955
   },
   {
     "codigo_region": "11",
@@ -10864,8 +10864,8 @@
     "tasa_reprobacion": 1.8035906345660626,
     "tasa_retiro": 2.2999917266484653,
     "establecimientos_reportados": 61,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 54,
+    "valor_promedio_siedu": 261.55571230310915
   },
   {
     "codigo_region": "12",
@@ -11348,8 +11348,8 @@
     "tasa_reprobacion": 2.5677428830196067,
     "tasa_retiro": 4.34851785670575,
     "establecimientos_reportados": 123,
-    "indicadores_siedu_total": 2,
-    "valor_promedio_siedu": 56.7
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 3642.8363736402484
   },
   {
     "codigo_region": "13",
@@ -11392,8 +11392,8 @@
     "tasa_reprobacion": 2.3198458574181116,
     "tasa_retiro": 2.897880539499037,
     "establecimientos_reportados": 31,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 178.60548951132222
   },
   {
     "codigo_region": "13",
@@ -11436,8 +11436,8 @@
     "tasa_reprobacion": 3.0407616780720024,
     "tasa_retiro": 3.588217792323713,
     "establecimientos_reportados": 49,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 360.2568629949166
   },
   {
     "codigo_region": "13",
@@ -11480,8 +11480,8 @@
     "tasa_reprobacion": 3.6937541974479515,
     "tasa_retiro": 3.286002110716684,
     "establecimientos_reportados": 56,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 518.5007751900933
   },
   {
     "codigo_region": "13",
@@ -11524,8 +11524,8 @@
     "tasa_reprobacion": 3.0622755491216838,
     "tasa_retiro": 2.992678377550736,
     "establecimientos_reportados": 89,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 186.57755607740236
   },
   {
     "codigo_region": "13",
@@ -11568,8 +11568,8 @@
     "tasa_reprobacion": 1.6700066800267201,
     "tasa_retiro": 4.389170497858462,
     "establecimientos_reportados": 50,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 1023.4574073862249
   },
   {
     "codigo_region": "13",
@@ -11612,8 +11612,8 @@
     "tasa_reprobacion": 1.4756517461878997,
     "tasa_retiro": 2.1080739231255707,
     "establecimientos_reportados": 27,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 241.7834718561836
   },
   {
     "codigo_region": "13",
@@ -11656,8 +11656,8 @@
     "tasa_reprobacion": 1.3612511040681665,
     "tasa_retiro": 3.5641918221021456,
     "establecimientos_reportados": 35,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 1078.6671388298398
   },
   {
     "codigo_region": "13",
@@ -11700,8 +11700,8 @@
     "tasa_reprobacion": 2.0393299344501092,
     "tasa_retiro": 2.4217042971595046,
     "establecimientos_reportados": 60,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 358.59411109318984
   },
   {
     "codigo_region": "13",
@@ -11744,8 +11744,8 @@
     "tasa_reprobacion": 1.8852412541815502,
     "tasa_retiro": 2.0397459885468052,
     "establecimientos_reportados": 169,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 661.0890110183462
   },
   {
     "codigo_region": "13",
@@ -11788,8 +11788,8 @@
     "tasa_reprobacion": 2.5629243886251083,
     "tasa_retiro": 3.5891152294889466,
     "establecimientos_reportados": 51,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 172.66036666516143
   },
   {
     "codigo_region": "13",
@@ -11832,8 +11832,8 @@
     "tasa_reprobacion": 3.1287747105441475,
     "tasa_retiro": 2.530713254573844,
     "establecimientos_reportados": 68,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 201.78912755383487
   },
   {
     "codigo_region": "13",
@@ -11876,8 +11876,8 @@
     "tasa_reprobacion": 0.9952117172096516,
     "tasa_retiro": 1.1876819078020844,
     "establecimientos_reportados": 41,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 185.10391379550137
   },
   {
     "codigo_region": "13",
@@ -11920,8 +11920,8 @@
     "tasa_reprobacion": 0.76416951611232,
     "tasa_retiro": 1.1475494767381618,
     "establecimientos_reportados": 57,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 952.4165657165283
   },
   {
     "codigo_region": "13",
@@ -11964,8 +11964,8 @@
     "tasa_reprobacion": 1.897668724174871,
     "tasa_retiro": 1.0916696424016732,
     "establecimientos_reportados": 29,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 515.7089754318858
   },
   {
     "codigo_region": "13",
@@ -12008,8 +12008,8 @@
     "tasa_reprobacion": 2.8401122019635343,
     "tasa_retiro": 4.16374474053296,
     "establecimientos_reportados": 34,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 158.12209894528002
   },
   {
     "codigo_region": "13",
@@ -12052,8 +12052,8 @@
     "tasa_reprobacion": 2.845428454284543,
     "tasa_retiro": 3.1734317343173433,
     "establecimientos_reportados": 30,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 323.3898306842184
   },
   {
     "codigo_region": "13",
@@ -12096,8 +12096,8 @@
     "tasa_reprobacion": 2.3728813559322033,
     "tasa_retiro": 2.48161176846818,
     "establecimientos_reportados": 36,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 394.0350642165694
   },
   {
     "codigo_region": "13",
@@ -12140,8 +12140,8 @@
     "tasa_reprobacion": 2.08901681953902,
     "tasa_retiro": 1.8033209460185164,
     "establecimientos_reportados": 181,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 613.710615804933
   },
   {
     "codigo_region": "13",
@@ -12184,8 +12184,8 @@
     "tasa_reprobacion": 1.6205501834837812,
     "tasa_retiro": 1.6232287788283823,
     "establecimientos_reportados": 75,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 66,
+    "valor_promedio_siedu": 642.4124037158756
   },
   {
     "codigo_region": "13",
@@ -12228,8 +12228,8 @@
     "tasa_reprobacion": 1.985582395345896,
     "tasa_retiro": 3.3830782850638674,
     "establecimientos_reportados": 47,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 66,
+    "valor_promedio_siedu": 151.66894214380156
   },
   {
     "codigo_region": "13",
@@ -12272,8 +12272,8 @@
     "tasa_reprobacion": 1.8283916121856605,
     "tasa_retiro": 2.224452703252584,
     "establecimientos_reportados": 69,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 463.054174813214
   },
   {
     "codigo_region": "13",
@@ -12316,8 +12316,8 @@
     "tasa_reprobacion": 1.289801196056247,
     "tasa_retiro": 1.2994989494100533,
     "establecimientos_reportados": 42,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 654.4175530781249
   },
   {
     "codigo_region": "13",
@@ -12360,8 +12360,8 @@
     "tasa_reprobacion": 1.8661580034970593,
     "tasa_retiro": 2.505166110316325,
     "establecimientos_reportados": 62,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 388.6149700217064
   },
   {
     "codigo_region": "13",
@@ -12404,8 +12404,8 @@
     "tasa_reprobacion": 2.3367730504944095,
     "tasa_retiro": 2.1859362654727414,
     "establecimientos_reportados": 58,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 640.9082610649825
   },
   {
     "codigo_region": "13",
@@ -12448,8 +12448,8 @@
     "tasa_reprobacion": 1.7005803276280027,
     "tasa_retiro": 3.779475501358995,
     "establecimientos_reportados": 68,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 621.8749127071209
   },
   {
     "codigo_region": "13",
@@ -12492,8 +12492,8 @@
     "tasa_reprobacion": 2.3199130766745957,
     "tasa_retiro": 3.2331953131882654,
     "establecimientos_reportados": 66,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 774.970219641994
   },
   {
     "codigo_region": "13",
@@ -12536,8 +12536,8 @@
     "tasa_reprobacion": 2.2156454967205246,
     "tasa_retiro": 2.6195808670612704,
     "establecimientos_reportados": 55,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 195.55782343646428
   },
   {
     "codigo_region": "13",
@@ -12580,8 +12580,8 @@
     "tasa_reprobacion": 4.024193548387097,
     "tasa_retiro": 5.653225806451613,
     "establecimientos_reportados": 36,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 352.77881913183853
   },
   {
     "codigo_region": "13",
@@ -12624,8 +12624,8 @@
     "tasa_reprobacion": 1.4484185634052615,
     "tasa_retiro": 3.7651492757907183,
     "establecimientos_reportados": 61,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 547.2371270002733
   },
   {
     "codigo_region": "13",
@@ -12668,8 +12668,8 @@
     "tasa_reprobacion": 2.354725941560583,
     "tasa_retiro": 3.2055932985950797,
     "establecimientos_reportados": 38,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 63,
+    "valor_promedio_siedu": 169.08578496899142
   },
   {
     "codigo_region": "13",
@@ -12712,8 +12712,8 @@
     "tasa_reprobacion": 0.4018026823043927,
     "tasa_retiro": 0.49953846989194767,
     "establecimientos_reportados": 19,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 433.21670991951044
   },
   {
     "codigo_region": "13",
@@ -12756,8 +12756,8 @@
     "tasa_reprobacion": 2.5745179930201956,
     "tasa_retiro": 2.462955546655987,
     "establecimientos_reportados": 183,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 632.7376410438724
   },
   {
     "codigo_region": "13",
@@ -12800,8 +12800,8 @@
     "tasa_reprobacion": 1.3057403301305741,
     "tasa_retiro": 1.5028332101502833,
     "establecimientos_reportados": 12,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 60,
+    "valor_promedio_siedu": 226.6213881520589
   },
   {
     "codigo_region": "13",
@@ -12844,8 +12844,8 @@
     "tasa_reprobacion": 2.690058479532164,
     "tasa_retiro": 2.690058479532164,
     "establecimientos_reportados": 12,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 49,
+    "valor_promedio_siedu": 313.3692216331074
   },
   {
     "codigo_region": "13",
@@ -12888,8 +12888,8 @@
     "tasa_reprobacion": 2.5503638363087577,
     "tasa_retiro": 3.4675589040454855,
     "establecimientos_reportados": 69,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 64,
+    "valor_promedio_siedu": 422.42760373467473
   },
   {
     "codigo_region": "13",
@@ -12932,8 +12932,8 @@
     "tasa_reprobacion": 1.8745933636955108,
     "tasa_retiro": 3.2164931685100844,
     "establecimientos_reportados": 56,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 268.223399606561
   },
   {
     "codigo_region": "13",
@@ -12976,8 +12976,8 @@
     "tasa_reprobacion": 0.8385744234800838,
     "tasa_retiro": 3.5406475658047984,
     "establecimientos_reportados": 19,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 48,
+    "valor_promedio_siedu": 140.22756973888804
   },
   {
     "codigo_region": "13",
@@ -13020,8 +13020,8 @@
     "tasa_reprobacion": 2.039086648718716,
     "tasa_retiro": 2.7952271745272044,
     "establecimientos_reportados": 130,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 551.2398484708754
   },
   {
     "codigo_region": "13",
@@ -13064,8 +13064,8 @@
     "tasa_reprobacion": 1.7619848612279225,
     "tasa_retiro": 3.019343986543314,
     "establecimientos_reportados": 49,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 56,
+    "valor_promedio_siedu": 203.07308484347587
   },
   {
     "codigo_region": "13",
@@ -13108,8 +13108,8 @@
     "tasa_reprobacion": 0.7639277063536426,
     "tasa_retiro": 1.9377678405068008,
     "establecimientos_reportados": 14,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 54,
+    "valor_promedio_siedu": 141.05609631356268
   },
   {
     "codigo_region": "13",
@@ -13152,8 +13152,8 @@
     "tasa_reprobacion": 2.054073033707865,
     "tasa_retiro": 2.551498127340824,
     "establecimientos_reportados": 38,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 47,
+    "valor_promedio_siedu": 179.52850765689584
   },
   {
     "codigo_region": "13",
@@ -13196,8 +13196,8 @@
     "tasa_reprobacion": 1.6251922270376067,
     "tasa_retiro": 2.41856563679575,
     "establecimientos_reportados": 66,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 58,
+    "valor_promedio_siedu": 387.7769254408284
   },
   {
     "codigo_region": "13",
@@ -13416,8 +13416,8 @@
     "tasa_reprobacion": 2.398767605633803,
     "tasa_retiro": 1.9190140845070423,
     "establecimientos_reportados": 51,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 58,
+    "valor_promedio_siedu": 200.9543097606677
   },
   {
     "codigo_region": "13",
@@ -13460,8 +13460,8 @@
     "tasa_reprobacion": 2.903752039151713,
     "tasa_retiro": 2.528548123980424,
     "establecimientos_reportados": 24,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 55,
+    "valor_promedio_siedu": 165.14909867978835
   },
   {
     "codigo_region": "13",
@@ -13504,8 +13504,8 @@
     "tasa_reprobacion": 1.1379215793803126,
     "tasa_retiro": 2.3169728544008774,
     "establecimientos_reportados": 17,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 55,
+    "valor_promedio_siedu": 157.54926142508216
   },
   {
     "codigo_region": "13",
@@ -13548,8 +13548,8 @@
     "tasa_reprobacion": 2.547411904612881,
     "tasa_retiro": 1.9402891656756587,
     "establecimientos_reportados": 34,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 62,
+    "valor_promedio_siedu": 236.94633652422343
   },
   {
     "codigo_region": "13",
@@ -13592,8 +13592,8 @@
     "tasa_reprobacion": 1.3268733138798656,
     "tasa_retiro": 1.7122722017287892,
     "establecimientos_reportados": 55,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 60,
+    "valor_promedio_siedu": 230.95437808581917
   },
   {
     "codigo_region": "14",
@@ -13636,8 +13636,8 @@
     "tasa_reprobacion": 2.6512788521522146,
     "tasa_retiro": 2.2613849033063005,
     "establecimientos_reportados": 99,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 65,
+    "valor_promedio_siedu": 243.15279287914495
   },
   {
     "codigo_region": "14",
@@ -14164,8 +14164,8 @@
     "tasa_reprobacion": 1.7146687021763818,
     "tasa_retiro": 3.272950682330162,
     "establecimientos_reportados": 108,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 67,
+    "valor_promedio_siedu": 672.3398628273645
   },
   {
     "codigo_region": "15",
@@ -14340,8 +14340,8 @@
     "tasa_reprobacion": 2.3566817144798797,
     "tasa_retiro": 1.6940925197805932,
     "establecimientos_reportados": 93,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 51,
+    "valor_promedio_siedu": 247.8736608086621
   },
   {
     "codigo_region": "16",
@@ -14428,8 +14428,8 @@
     "tasa_reprobacion": 1.368858469811782,
     "tasa_retiro": 2.2488389146907846,
     "establecimientos_reportados": 16,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 53,
+    "valor_promedio_siedu": 176.1314254332099
   },
   {
     "codigo_region": "16",
@@ -15044,8 +15044,8 @@
     "tasa_reprobacion": 1.8106764236795196,
     "tasa_retiro": 1.2665353222628764,
     "establecimientos_reportados": 39,
-    "indicadores_siedu_total": 0,
-    "valor_promedio_siedu": null
+    "indicadores_siedu_total": 45,
+    "valor_promedio_siedu": 181.7757418623337
   },
   {
     "codigo_region": "16",

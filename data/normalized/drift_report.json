@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-19T20:38:29.341802+00:00",
+  "generated_at_utc": "2026-06-20T00:17:49.757862+00:00",
   "dataset_count": 15,
   "drifted_count": 3,
   "healthy_count": 12,
@@ -192,7 +192,7 @@
       "drift_status": "drifted",
       "source_mode": "live",
       "coverage_status": "partial",
-      "coverage_ratio": 0.0087,
+      "coverage_ratio": 0.3382,
       "coverage_summary": "Comunas urbanas incluidas por SIEDU, no las 346 comunas del país.",
       "degradation_status": "warning",
       "degradation_impact": "indicadores_urbanos_siedu has intentionally partial urban coverage",

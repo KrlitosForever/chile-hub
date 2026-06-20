@@ -655,8 +655,8 @@ class ChileHubTests(unittest.TestCase):
         bundle = self.bundle
         self.assertEqual(bundle["overall_status"], self.health["overall_status"])
         self.assertEqual(bundle["dataset_count"], EXPECTED_DATASET_COUNT)
-        self.assertEqual(bundle["public_dataset_count"], 12)
-        self.assertEqual(bundle["candidate_dataset_count"], 3)
+        self.assertEqual(bundle["public_dataset_count"], 13)
+        self.assertEqual(bundle["candidate_dataset_count"], 2)
         self.assertEqual(len(bundle["datasets"]), bundle["public_dataset_count"])
         self.assertEqual(len(bundle["candidate_datasets"]), bundle["candidate_dataset_count"])
         # Verify candidate names
@@ -665,7 +665,6 @@ class ChileHubTests(unittest.TestCase):
             candidate_names,
             {
                 "finanzas_municipales",
-                "indicadores_urbanos_siedu",
                 "perfil_territorial_comunal",
             },
         )

@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-06-19T20:38:29.341802+00:00",
+  "generated_at_utc": "2026-06-20T00:17:49.757862+00:00",
   "dataset_count": 15,
   "datasets": [
     {
@@ -32,9 +32,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.13,
+        "age_hours": 29.78,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-19T20:38:29.339264+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756162+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -110,9 +110,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.13,
+        "age_hours": 29.78,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-19T20:38:29.339337+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756195+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -195,9 +195,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.13,
+        "age_hours": 29.78,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-19T20:38:29.339352+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756204+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -279,9 +279,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.13,
+        "age_hours": 29.78,
         "max_age_hours": 2160,
-        "checked_at_utc": "2026-06-19T20:38:29.339361+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756210+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 2160,
@@ -368,9 +368,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 72,
-        "checked_at_utc": "2026-06-19T20:38:29.339729+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756385+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 72,
@@ -458,9 +458,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-19T20:38:29.339752+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756398+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 87600,
@@ -545,9 +545,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-19T20:38:29.339764+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756405+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 1080,
@@ -624,9 +624,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-19T20:38:29.339776+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756411+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -707,9 +707,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-19T20:38:29.339789+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756417+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 87600,
@@ -778,9 +778,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 87600,
-        "checked_at_utc": "2026-06-19T20:38:29.339798+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756423+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 87600,
@@ -855,9 +855,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 29.78,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-19T20:38:29.339811+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756429+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -937,9 +937,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 0.15,
+        "age_hours": 3.8,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-19T20:38:29.339822+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756434+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -988,11 +988,11 @@
       "description": "Indicadores urbanos SIEDU en formato largo con cobertura comunal parcial esperada.",
       "alias_for": null,
       "source_name": "INE - Sistema de Indicadores y Estándares de Desarrollo Urbano",
-      "source_url": "https://www.ine.gob.cl/herramientas/portal-de-mapas/siedu",
+      "source_url": "https://www.ine.gob.cl/docs/default-source/sistema-de-indicadores-y-estandares-de-desarrollo-urbano/indicadores/actualizaci%C3%B3n-2019/matriz-siedu-publicacion.xlsm",
       "source_mode": "live",
-      "source_detail": "curated_fallback_partial_urban_coverage",
-      "refreshed_at_utc": "2026-06-18T18:31:22.673488+00:00",
-      "record_count": 6,
+      "source_detail": "ine_siedu_xlsm_cinco_mediciones_2018_2022",
+      "refreshed_at_utc": "2026-06-20T00:14:18.604878+00:00",
+      "record_count": 6701,
       "fields": [
         "anio",
         "codigo_comuna",
@@ -1022,9 +1022,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.12,
+        "age_hours": 0.06,
         "max_age_hours": 8760,
-        "checked_at_utc": "2026-06-19T20:38:29.339833+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756440+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 8760,
@@ -1033,8 +1033,8 @@
       "coverage": {
         "status": "partial",
         "expected_record_count": null,
-        "actual_record_count": 6,
-        "coverage_ratio": 0.0087,
+        "actual_record_count": 6701,
+        "coverage_ratio": 0.3382,
         "summary": "Comunas urbanas incluidas por SIEDU, no las 346 comunas del país."
       },
       "drift": {
@@ -1066,8 +1066,9 @@
       },
       "notes": [
         "partial_urban_coverage_expected",
-        "official_landing_snapshot_saved",
-        "fallback_curated_rows_used: until_download_matrix_is_configured"
+        "deduplicado_anno_mas_reciente_por_indicador_comuna",
+        "5_mediciones_2018_2022_consolidadas",
+        "live_data: xlsm parseado, 6701 registros, 117 comunas, 68 indicadores"
       ]
     },
     {
@@ -1078,7 +1079,7 @@
       "source_url": "https://github.com/cortega26/chile-hub",
       "source_mode": "live",
       "source_detail": "derived_from_validated_chile_hub_layers",
-      "refreshed_at_utc": "2026-06-19T20:38:29.339845+00:00",
+      "refreshed_at_utc": "2026-06-20T00:17:49.756448+00:00",
       "record_count": 346,
       "fields": [
         "codigo_region",
@@ -1142,7 +1143,7 @@
         "status": "fresh",
         "age_hours": 0.0,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-19T20:38:29.339864+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756458+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 1080,
@@ -1227,9 +1228,9 @@
       },
       "freshness": {
         "status": "fresh",
-        "age_hours": 26.03,
+        "age_hours": 29.68,
         "max_age_hours": 1080,
-        "checked_at_utc": "2026-06-19T20:38:29.339879+00:00"
+        "checked_at_utc": "2026-06-20T00:17:49.756466+00:00"
       },
       "freshness_policy": {
         "max_age_hours": 1080,
