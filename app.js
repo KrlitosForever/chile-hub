@@ -25,6 +25,22 @@ const catalogSearchInput = document.getElementById("catalog-search-input");
 const catalogCount = document.getElementById("catalog-count");
 const supportActions = document.getElementById("support-actions");
 const quickstartCopyButtons = document.querySelectorAll(".quickstart-copy");
+
+// Drawer Elements
+const drawer = document.getElementById("dataset-drawer");
+const drawerBackdrop = document.getElementById("drawer-backdrop");
+const drawerClose = document.getElementById("drawer-close");
+const drawerTitle = document.getElementById("drawer-title");
+const drawerDesc = document.getElementById("drawer-desc");
+const drawerTabFicha = document.getElementById("drawer-tab-ficha");
+const drawerTabPreview = document.getElementById("drawer-tab-preview");
+const drawerTabReceta = document.getElementById("drawer-tab-receta");
+const drawerPanelFicha = document.getElementById("drawer-panel-ficha");
+const drawerPanelPreview = document.getElementById("drawer-panel-preview");
+const drawerPanelReceta = document.getElementById("drawer-panel-receta");
+
+let currentCatalogDatasets = [];
+let currentActiveDatasetInDrawer = null;
 let artifactManifestByPath = {};
 let packageManifestByPath = {};
 const PUBLIC_DATA_BASE = "https://tooltician.com/chile-hub/data/normalized";
@@ -355,6 +371,13 @@ function filterCatalog() {
         card.hidden = !visible;
         if (visible) visibleCount += 1;
     });
+
+    const categories = [...catalogGrid.querySelectorAll(".catalog-category")];
+    categories.forEach(cat => {
+        const hasVisibleCards = [...cat.querySelectorAll(".dataset-card")].some(card => !card.hidden);
+        cat.hidden = !hasVisibleCards;
+    });
+
     catalogCount.textContent = `${visibleCount} ${visibleCount === 1 ? "capa" : "capas"}`;
 }
 
@@ -377,6 +400,214 @@ function fallbackCopyText(text) {
 
     document.body.removeChild(textarea);
     return copied;
+}
+
+// Drawer panel switching
+function setActiveDrawerTab(tabName) {
+    const tabs = {
+        ficha: { btn: drawerTabFicha, panel: drawerPanelFicha },
+        preview: { btn: drawerTabPreview, panel: drawerPanelPreview },
+        receta: { btn: drawerTabReceta, panel: drawerPanelReceta }
+    };
+
+    Object.entries(tabs).forEach(([name, els]) => {
+        if (!els.btn || !els.panel) return;
+        const isActive = name === tabName;
+        els.btn.classList.toggle("active", isActive);
+        els.btn.setAttribute("aria-selected", isActive ? "true" : "false");
+        els.panel.classList.toggle("active", isActive);
+    });
+
+    if (tabName === "preview" && currentActiveDatasetInDrawer) {
+        loadDrawerPreview(currentActiveDatasetInDrawer);
+    }
+}
+
+// Drawer Preview Table Loading
+async function loadDrawerPreview(dataset) {
+    const container = document.getElementById("drawer-panel-preview");
+    if (!container) return;
+
+    if (container.dataset.loadedFor === dataset.dataset) return; // already loaded
+
+    const jsonPath = dataset.outputs?.json;
+    if (!jsonPath) {
+        container.innerHTML = `<p class="dataset-preview-state" style="padding:1.5rem; text-align:center; color:var(--text-secondary);">Vista previa no disponible para este dataset (no tiene output JSON).</p>`;
+        return;
+    }
+
+    container.innerHTML = `<p class="dataset-preview-state" style="padding:1.5rem; text-align:center; color:var(--text-secondary);">Cargando muestra...</p>`;
+    try {
+        const response = await fetch(jsonPath);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const rows = await response.json();
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            container.innerHTML = `<p class="dataset-preview-state" style="padding:1.5rem; text-align:center; color:var(--text-secondary);">El archivo no contiene filas para mostrar.</p>`;
+            return;
+        }
+
+        const columns = Object.keys(rows[0]);
+        const visibleCols = columns.slice(0, 10);
+
+        container.innerHTML = `
+            <div class="drawer-preview-table-container">
+                <table class="drawer-preview-table dataset-preview-table">
+                    <thead><tr>${visibleCols.map(column => `<th>${escapeHtml(column)}</th>`).join("")}</tr></thead>
+                    <tbody>${rows.slice(0, 10).map(row => `
+                        <tr>${visibleCols.map(column => `<td>${escapeHtml(formatPreviewValue(row[column]))}</td>`).join("")}</tr>
+                    `).join("")}</tbody>
+                </table>
+            </div>
+            <p class="dataset-preview-note" style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-secondary);">
+                Primeras ${Math.min(rows.length, 10)} filas · ${visibleCols.length} de ${columns.length} columnas visibles.
+            </p>
+        `;
+        container.dataset.loadedFor = dataset.dataset;
+    } catch (error) {
+        console.error("No se pudo cargar la vista previa en drawer:", error);
+        container.innerHTML = `<p class="dataset-preview-state error" style="padding:1.5rem; text-align:center; color: #ef4444;">No se pudo cargar la muestra. El archivo JSON sigue disponible para descarga.</p>`;
+    }
+}
+
+// Open Drawer Details
+function showDatasetDrawer(dataset) {
+    const runtimeFreshness = computeRuntimeFreshness(dataset);
+    currentActiveDatasetInDrawer = dataset;
+
+    drawerTitle.textContent = dataset.dataset;
+    drawerDesc.textContent = dataset.description || "";
+
+    // Switch tabs to "Ficha Técnica" by default
+    setActiveDrawerTab("ficha");
+
+    // Populate Ficha Técnica
+    const parquetMeta = dataset.outputs?.parquet ? artifactManifestByPath[dataset.outputs.parquet] || packageManifestByPath[dataset.outputs.parquet] : null;
+    const parquetSize = parquetMeta?.size_bytes ? formatBytes(parquetMeta.size_bytes) : (dataset.outputs?.parquet ? "N/D" : "N/D");
+    const parquetHash = parquetMeta?.sha256 || dataset.outputs?.parquet?.sha256 || "N/D";
+
+    const jsonMeta = dataset.outputs?.json ? artifactManifestByPath[dataset.outputs.json] || packageManifestByPath[dataset.outputs.json] : null;
+    const jsonSize = jsonMeta?.size_bytes ? formatBytes(jsonMeta.size_bytes) : (dataset.outputs?.json ? "N/D" : "N/D");
+    const jsonHash = jsonMeta?.sha256 || dataset.outputs?.json?.sha256 || "N/D";
+
+    // Fields tags
+    const fieldsHtml = (dataset.fields || []).map(f => `<span class="dataset-tag" style="margin-bottom: 0.25rem; display: inline-block;">${escapeHtml(f)}</span>`).join(" ");
+
+    document.getElementById("drawer-panel-ficha").innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Facts block -->
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">Metadatos y Contrato</h4>
+                <div class="dataset-facts" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                    <div class="dataset-fact">
+                        <span class="dataset-fact-label">Join keys</span>
+                        <span class="dataset-fact-value">${escapeHtml((dataset.join_keys || []).join(", ") || "N/D")}</span>
+                    </div>
+                    <div class="dataset-fact">
+                        <span class="dataset-fact-label">Confianza</span>
+                        <span class="dataset-fact-value">${escapeHtml(dataset.confidence_tier || "N/D")}</span>
+                    </div>
+                    <div class="dataset-fact">
+                        <span class="dataset-fact-label">Reuso</span>
+                        <span class="dataset-fact-value">${escapeHtml(formatReusePolicy(dataset.reuse_policy))}</span>
+                    </div>
+                    <div class="dataset-fact">
+                        <span class="dataset-fact-label">Coverage</span>
+                        <span class="dataset-fact-value">${escapeHtml(formatCoverage(dataset.coverage))}</span>
+                    </div>
+                    <div class="dataset-fact">
+                        <span class="dataset-fact-label">Drift</span>
+                        <span class="dataset-fact-value">${escapeHtml(dataset.drift?.status || "N/D")}</span>
+                    </div>
+                    <div class="dataset-fact">
+                        <span class="dataset-fact-label">Degradación</span>
+                        <span class="dataset-fact-value">${escapeHtml(dataset.degradation?.status || "N/D")}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fields Dictionary -->
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">Diccionario de Columnas</h4>
+                <div>
+                    ${fieldsHtml || `<span style="font-size: 0.85rem; color: var(--text-secondary);">No hay información de columnas disponible.</span>`}
+                </div>
+            </div>
+
+            <!-- Procedencia block -->
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">Procedencia y Freshness</h4>
+                <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.4rem;">
+                    <div class="dataset-meta-line">Validación: <strong>${escapeHtml(dataset.validation_status || "N/D")}</strong> · Actualizado: ${escapeHtml(formatTimestamp(dataset.refreshed_at_utc))} · Requiere atribución: <strong>${dataset.reuse_policy?.attribution_required ? "sí" : "no"}</strong></div>
+                    <div class="dataset-meta-line">Procedencia técnica: <strong>${escapeHtml(dataset.source_detail || "N/D")}</strong> · Warnings: <strong>${escapeHtml(String(dataset.warning_count ?? 0))}</strong></div>
+                    <div class="dataset-meta-line">Freshness build: ${escapeHtml(formatFreshness(dataset.freshness))} · Freshness actual: ${escapeHtml(formatFreshness(runtimeFreshness))}</div>
+                    ${dataset.warning_count > 0 && (dataset.degradation?.recommended_action || dataset.drift?.recommended_action)
+                        ? `<div class="dataset-meta-line" style="background: #fffbeb; border: 1px solid #fef3c7; padding: 0.75rem; border-radius: 6px; color: #92400e; margin-top: 0.5rem;">
+                             <strong>Acción recomendada:</strong> ${escapeHtml(dataset.degradation?.recommended_action || dataset.drift?.recommended_action)}
+                           </div>`
+                        : ""}
+                </div>
+            </div>
+
+            <!-- Descargas block -->
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.75rem;">Artefactos y Descargas</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    ${dataset.outputs?.parquet ? `
+                        <div class="dataset-artifact-meta" style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                            <div>
+                                <strong style="color: var(--text-primary);">Formato Parquet</strong>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem;">tipo: parquet · sha256: ${parquetHash}</div>
+                            </div>
+                            <a class="btn btn-primary" href="${escapeHtml(dataset.outputs.parquet)}" download style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">Descargar</a>
+                        </div>
+                    ` : ""}
+                    ${dataset.outputs?.json ? `
+                        <div class="dataset-artifact-meta" style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem;">
+                            <div>
+                                <strong style="color: var(--text-primary);">Formato JSON</strong>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem;">tipo: json · sha256: ${jsonHash}</div>
+                            </div>
+                            <a class="btn btn-primary" href="${escapeHtml(dataset.outputs.json)}" download style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">Descargar</a>
+                        </div>
+                    ` : ""}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Populate Receta
+    document.getElementById("drawer-panel-receta").innerHTML = buildDatasetExample(dataset);
+    wireDatasetExampleInteractions();
+
+    // Show panel
+    drawer.classList.add("active");
+    drawerBackdrop.classList.add("active");
+    drawer.setAttribute("aria-hidden", "false");
+}
+
+function closeDrawer() {
+    drawer.classList.remove("active");
+    drawerBackdrop.classList.remove("active");
+    drawer.setAttribute("aria-hidden", "true");
+    currentActiveDatasetInDrawer = null;
+
+    // Clear preview loadedFor state so it can reload next time
+    drawerPanelPreview.removeAttribute("data-loaded-for");
+    drawerPanelPreview.innerHTML = "";
+}
+
+function handleHashChange() {
+    const hash = window.location.hash;
+    if (hash.startsWith("#dataset-")) {
+        const datasetName = hash.replace("#dataset-", "");
+        const dataset = currentCatalogDatasets.find(d => d.dataset === datasetName);
+        if (dataset) {
+            showDatasetDrawer(dataset);
+            return;
+        }
+    }
+    closeDrawer();
 }
 
 function loadCatalog() {
@@ -554,126 +785,99 @@ function renderCatalog(bundle) {
         ${activeTopIssueDatasetName ? `<a class="dataset-action muted" href="#dataset-${escapeHtml(activeTopIssueDatasetName)}">Ver top issue</a>` : ""}
     `;
 
-    catalogGrid.innerHTML = orderedDatasets.map(dataset => {
-        const runtimeFreshness = runtimeFreshnessByDataset[dataset.dataset] || { status: "unknown" };
-        const outputs = Object.keys(dataset.outputs || {}).map(key => `<span class="dataset-tag">${escapeHtml(key)}</span>`).join("");
-        const warnings = (dataset.warning_count && dataset.warning_count > 0)
-            ? `<span class="dataset-tag">${escapeHtml(`${dataset.warning_count} warnings`)}</span>`
-            : `<span class="dataset-tag">sin warnings</span>`;
-        const jsonPath = dataset.outputs?.json;
-        const parquetPath = dataset.outputs?.parquet;
-        const docsPath = dataset.documentation;
-        const sourceUrl = dataset.source_url;
-        const previewId = `dataset-preview-${dataset.dataset}`;
-        const recordCount = typeof dataset.record_count === "number"
-            ? formatNum.format(dataset.record_count)
-            : "N/D";
+    currentCatalogDatasets = orderedDatasets;
 
-        return `
-            <article class="dataset-card" id="dataset-${escapeHtml(dataset.dataset)}" data-search="${escapeHtml([dataset.dataset, dataset.description, dataset.source_name, ...(dataset.join_keys || []), ...Object.keys(dataset.outputs || {})].filter(Boolean).join(" "))}">
-                <div class="dataset-card-top">
-                    <div>
-                        <h3 class="dataset-name">${escapeHtml(dataset.dataset)}</h3>
-                        <div class="dataset-desc">${escapeHtml(dataset.description || "")}</div>
-                    </div>
-                    <div class="dataset-badges">
+    const CATEGORIES = {
+        territorio: {
+            title: "Core Territorial (DPA y derivados)",
+            datasets: ["regiones", "provincias", "comunas", "comunas_enriquecidas", "distritos_electorales", "perfil_territorial_comunal"]
+        },
+        demografia: {
+            title: "Demografía y Estadísticas",
+            datasets: ["censo_comunal", "censo_hogares_viviendas", "finanzas_municipales", "resultados_educacionales", "indicadores_urbanos_siedu"]
+        },
+        directorios: {
+            title: "Directorios Oficiales y Economía",
+            datasets: ["establecimientos_salud", "establecimientos_educacionales", "empresas", "indicadores"]
+        }
+    };
+
+    const categoriesHtml = Object.entries(CATEGORIES).map(([catKey, catMeta]) => {
+        const catDatasets = orderedDatasets.filter(d => catMeta.datasets.includes(d.dataset));
+        if (catDatasets.length === 0) return "";
+
+        const cardsHtml = catDatasets.map(dataset => {
+            const runtimeFreshness = runtimeFreshnessByDataset[dataset.dataset] || { status: "unknown" };
+            const recordCount = typeof dataset.record_count === "number"
+                ? formatNum.format(dataset.record_count)
+                : "N/D";
+            const parquetMeta = dataset.outputs?.parquet ? artifactManifestByPath[dataset.outputs.parquet] || packageManifestByPath[dataset.outputs.parquet] : null;
+            const sizeBytes = parquetMeta?.size_bytes ? formatBytes(parquetMeta.size_bytes) : "N/D";
+            const warningBadge = dataset.warning_count > 0
+                ? `<span class="dataset-tag warning">${dataset.warning_count} warnings</span>`
+                : "";
+
+            return `
+                <article class="dataset-card" id="dataset-${escapeHtml(dataset.dataset)}" data-search="${escapeHtml([dataset.dataset, dataset.description, dataset.source_name, ...(dataset.join_keys || []), ...Object.keys(dataset.outputs || {})].filter(Boolean).join(" "))}">
+                    <div class="dataset-card-top">
+                        <div>
+                            <h4 class="dataset-name">${escapeHtml(dataset.dataset)}</h4>
+                            <div class="dataset-desc">${escapeHtml(dataset.description || "")}</div>
+                        </div>
                         <span class="dataset-badge ${escapeHtml(dataset.source_mode || "fallback")}">${escapeHtml(dataset.source_mode || "unknown")}</span>
                     </div>
+
+                    <div class="dataset-facts-grid">
+                        <div class="dataset-fact-mini">
+                            <span class="dataset-fact-mini-label">Fuente</span>
+                            <span class="dataset-fact-mini-value" title="${escapeHtml(dataset.source_name)}">${escapeHtml(dataset.source_name || "N/D")}</span>
+                        </div>
+                        <div class="dataset-fact-mini">
+                            <span class="dataset-fact-mini-label">Registros</span>
+                            <span class="dataset-fact-mini-value">${escapeHtml(recordCount)}</span>
+                        </div>
+                        <div class="dataset-fact-mini">
+                            <span class="dataset-fact-mini-label">Freshness</span>
+                            <span class="dataset-fact-mini-value">${escapeHtml(formatFreshness(runtimeFreshness))}</span>
+                        </div>
+                        <div class="dataset-fact-mini">
+                            <span class="dataset-fact-mini-label">Tamaño</span>
+                            <span class="dataset-fact-mini-value">${escapeHtml(sizeBytes)}</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 0.75rem; display: flex; gap: 0.35rem; flex-wrap: wrap;">
+                        ${(dataset.join_keys || []).map(key => `<span class="dataset-tag key-tag">key: ${escapeHtml(key)}</span>`).join("")}
+                        ${warningBadge}
+                    </div>
+
+                    ${buildMonedarioBridge(dataset)}
+
+                    <div class="dataset-card-actions">
+                        <a href="#dataset-${escapeHtml(dataset.dataset)}" class="btn-card-action primary btn-details">Ver Ficha</a>
+                        ${dataset.outputs?.parquet ? `<a class="btn-card-action" href="${escapeHtml(dataset.outputs.parquet)}" download>Parquet</a>` : ""}
+                    </div>
+                </article>
+            `;
+        }).join("");
+
+        return `
+            <section class="catalog-category" id="cat-${catKey}">
+                <div class="catalog-category-header">
+                    <h3 class="catalog-category-title">
+                        ${escapeHtml(catMeta.title)}
+                        <span class="catalog-category-count">${catDatasets.length}</span>
+                    </h3>
                 </div>
-                <div class="dataset-facts dataset-facts-primary">
-                    <div class="dataset-fact">
-                        <span class="dataset-fact-label">Fuente</span>
-                        <span class="dataset-fact-value">${escapeHtml(dataset.source_name || "N/D")}</span>
-                    </div>
-                    <div class="dataset-fact">
-                        <span class="dataset-fact-label">Registros</span>
-                        <span class="dataset-fact-value">${escapeHtml(recordCount)}</span>
-                    </div>
-                    <div class="dataset-fact">
-                        <span class="dataset-fact-label">Freshness</span>
-                        <span class="dataset-fact-value">${escapeHtml(formatFreshness(runtimeFreshness))}</span>
-                    </div>
+                <div class="catalog-grid-sub">
+                    ${cardsHtml}
                 </div>
-                <div class="dataset-actions">
-                    ${buildArtifactLink(parquetPath, "Parquet")}
-                    ${buildArtifactLink(jsonPath, "JSON")}
-                    ${jsonPath ? `<button class="dataset-action muted" type="button" data-preview-target="${escapeHtml(previewId)}" data-preview-path="${escapeHtml(jsonPath)}" aria-expanded="false">Vista previa</button>` : ""}
-                    ${docsPath ? `<a class="dataset-action muted" href="${escapeHtml(docsPath)}" target="_blank" rel="noopener noreferrer">Ficha técnica</a>` : ""}
-                </div>
-                <div class="dataset-preview" id="${escapeHtml(previewId)}" hidden aria-live="polite"></div>
-                <details class="dataset-details">
-                    <summary>Contrato, procedencia y recetas</summary>
-                    <div class="dataset-details-body">
-                    <div class="dataset-detail-section">
-                        <div class="dataset-detail-heading">Contrato</div>
-                        <div class="dataset-facts">
-                            <div class="dataset-fact">
-                                <span class="dataset-fact-label">Join keys</span>
-                                <span class="dataset-fact-value">${escapeHtml((dataset.join_keys || []).join(", ") || "N/D")}</span>
-                            </div>
-                            <div class="dataset-fact">
-                                <span class="dataset-fact-label">Confianza</span>
-                                <span class="dataset-fact-value">${escapeHtml(dataset.confidence_tier || "N/D")}</span>
-                            </div>
-                            <div class="dataset-fact">
-                                <span class="dataset-fact-label">Reuso</span>
-                                <span class="dataset-fact-value">${escapeHtml(formatReusePolicy(dataset.reuse_policy))}</span>
-                            </div>
-                            <div class="dataset-fact">
-                                <span class="dataset-fact-label">Coverage</span>
-                                <span class="dataset-fact-value">${escapeHtml(formatCoverage(dataset.coverage))}</span>
-                            </div>
-                            <div class="dataset-fact">
-                                <span class="dataset-fact-label">Drift</span>
-                                <span class="dataset-fact-value">${escapeHtml(dataset.drift?.status || "N/D")}</span>
-                            </div>
-                            <div class="dataset-fact">
-                                <span class="dataset-fact-label">Degradación</span>
-                                <span class="dataset-fact-value">${escapeHtml(dataset.degradation?.status || "N/D")}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dataset-detail-section">
-                        <div class="dataset-detail-heading">Procedencia</div>
-                        <div class="dataset-meta-line">
-                            Validación: <strong>${escapeHtml(dataset.validation_status || "N/D")}</strong> ·
-                            Actualizado: ${escapeHtml(formatTimestamp(dataset.refreshed_at_utc))} ·
-                            Requiere atribución: <strong>${dataset.reuse_policy?.attribution_required ? "sí" : "no"}</strong>
-                        </div>
-                        <div class="dataset-meta-line">
-                            Procedencia técnica: <strong>${escapeHtml(dataset.source_detail || "N/D")}</strong> ·
-                            Warnings: <strong>${escapeHtml(String(dataset.warning_count ?? 0))}</strong>
-                        </div>
-                        <div class="dataset-meta-line">Freshness build: ${escapeHtml(formatFreshness(dataset.freshness))} · Freshness actual: ${escapeHtml(formatFreshness(runtimeFreshness))}</div>
-                        ${dataset.warning_count > 0 && (dataset.degradation?.recommended_action || dataset.drift?.recommended_action)
-                            ? `<div class="dataset-meta-line">Acción recomendada: ${escapeHtml(dataset.degradation?.recommended_action || dataset.drift?.recommended_action)}</div>`
-                            : ""}
-                    </div>
-                    <div class="dataset-detail-section">
-                        <div class="dataset-detail-heading">Artefactos</div>
-                        <div class="dataset-actions">
-                            ${sourceUrl ? `<a class="dataset-action muted" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Fuente</a>` : ""}
-                        </div>
-                        <div class="dataset-artifacts">
-                            ${buildArtifactMeta(parquetPath)}
-                            ${buildArtifactMeta(jsonPath)}
-                        </div>
-                    </div>
-                    <div class="dataset-detail-section wide">
-                        <div class="dataset-detail-heading">Receta</div>
-                        ${buildDatasetExample(dataset)}
-                    </div>
-                    </div>
-                ${buildMonedarioBridge(dataset)}
-                <div class="dataset-tags">${outputs}</div>
-                <div class="dataset-tags">${warnings}</div>
-                </details>
-            </article>
+            </section>
         `;
     }).join("");
 
-    wireDatasetExampleInteractions();
-    wireDatasetPreviewInteractions();
+    catalogGrid.innerHTML = categoriesHtml;
+
     filterCatalog();
 
     if (packageVerifyCopy && !packageVerifyCopy.dataset.wired) {
@@ -955,4 +1159,30 @@ window.addEventListener("DOMContentLoaded", () => {
     loadKPIs();
     loadCatalog();
     loadComunas();
+
+    // Drawer and Routing Init
+    window.addEventListener("hashchange", handleHashChange);
+
+    if (drawerTabFicha) drawerTabFicha.addEventListener("click", () => setActiveDrawerTab("ficha"));
+    if (drawerTabPreview) drawerTabPreview.addEventListener("click", () => setActiveDrawerTab("preview"));
+    if (drawerTabReceta) drawerTabReceta.addEventListener("click", () => setActiveDrawerTab("receta"));
+
+    if (drawerClose) {
+        drawerClose.addEventListener("click", () => {
+            window.location.hash = "";
+        });
+    }
+    if (drawerBackdrop) {
+        drawerBackdrop.addEventListener("click", () => {
+            window.location.hash = "";
+        });
+    }
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && drawer && drawer.classList.contains("active")) {
+            window.location.hash = "";
+        }
+    });
+
+    // Check hash on load
+    handleHashChange();
 });

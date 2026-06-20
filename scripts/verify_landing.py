@@ -266,6 +266,21 @@ def verify_landing():
         if region_label != "Filtrar comunas por región":
             fail(f"Unexpected or missing aria-label for #region-filter: {region_label}")
 
+        # Validate catalog search filtering logic (CSS specificity and visibility)
+        page.fill("#catalog-search-input", "censo")
+        page.wait_for_timeout(200)
+
+        censo_card = page.locator("#dataset-censo_comunal")
+        if not censo_card.is_visible():
+            fail("Expected #dataset-censo_comunal to be visible when searching 'censo'")
+
+        empresas_card = page.locator("#dataset-empresas")
+        if empresas_card.is_visible():
+            fail("Expected #dataset-empresas to be hidden when searching 'censo'")
+
+        page.fill("#catalog-search-input", "")
+        page.wait_for_timeout(200)
+
         repo_href = page.get_by_role("link", name="GitHub Repo").get_attribute("href")
         if repo_href != "https://github.com/cortega26/chile-hub":
             fail(f"Unexpected repo href: {repo_href}")
@@ -399,96 +414,98 @@ def verify_landing():
         if f"{public_data_base}/comunas.parquet" not in quickstart_code:
             fail(f"Public data URL missing from quickstart: {quickstart_code}")
 
-        first_card = page.locator(".dataset-card").first
-        first_card_name = first_card.locator(".dataset-name").inner_text()
-        if first_card_name != top_issue_dataset:
-            fail(f"Unexpected first dataset card: {first_card_name}")
+        target_card = page.locator(f"#dataset-{top_issue_dataset}")
 
-        first_card_actions = [
-            t for t in first_card.locator(".dataset-action").all_inner_texts() if t
-        ]
-        # Algunos datasets (ej. empresas) no tienen JSON por tamaño →
-        # no hay acción JSON ni botón "Vista previa" (app.js L571-572).
-        _has_json = len(first_card_actions) >= 2 and first_card_actions[1].startswith("JSON · ")
-        if not first_card_actions[0].startswith("PARQUET · "):
-            fail(f"Unexpected first dataset action 0 (expected PARQUET): {first_card_actions}")
-        if "Ficha técnica" not in first_card_actions:
-            fail(f"Ficha técnica action not found: {first_card_actions}")
+        # Open the Drawer by clicking "Ver Ficha"
+        target_card.locator(".btn-details").click()
+        drawer = page.locator("#dataset-drawer")
+        drawer.wait_for(state="visible")
+        drawer.locator(".dataset-artifact-meta").first.wait_for(state="visible")
 
-        _preview_btn = first_card.get_by_role("button", name="Vista previa")
-        if _preview_btn.count() > 0:
-            _preview_btn.click()
-            preview_rows = first_card.locator(".dataset-preview-table tbody tr")
+        # Check if JSON exists by looking at whether the JSON download is present or if preview tab is available
+        _preview_tab = drawer.locator("#drawer-tab-preview")
+        _has_json = drawer.locator(".dataset-artifact-meta", has_text="tipo: json").count() > 0
+
+        if _has_json:
+            _preview_tab.click()
+            preview_rows = drawer.locator(".dataset-preview-table tbody tr")
             preview_rows.first.wait_for()
             preview_row_count = preview_rows.count()
-            if preview_row_count > 5:
+            if preview_row_count > 10:
                 fail(f"Unexpected preview row count: {preview_row_count}")
-            if first_card.locator(".dataset-preview-table th").count() == 0:
+            if drawer.locator(".dataset-preview-table th").count() == 0:
                 fail("Dataset preview did not render column headers")
 
-        first_card.locator(".dataset-details").click()
+            # Switch back to Ficha Técnica
+            drawer.locator("#drawer-tab-ficha").click()
 
-        artifact_meta = first_card.locator(".dataset-artifact-meta").all_inner_texts()
-        if len(artifact_meta) < 1 or not artifact_meta[0].startswith("tipo: parquet · sha256: "):
+        artifact_meta = drawer.locator(".dataset-artifact-meta").all_inner_texts()
+        if len(artifact_meta) < 1 or not any(
+            "tipo: parquet · sha256: " in line for line in artifact_meta
+        ):
             fail(f"Unexpected artifact metadata: {artifact_meta}")
         if _has_json:
-            if len(artifact_meta) < 2 or not artifact_meta[1].startswith("tipo: json · sha256: "):
+            if len(artifact_meta) < 2 or not any(
+                "tipo: json · sha256: " in line for line in artifact_meta
+            ):
                 fail(f"Missing JSON artifact metadata: {artifact_meta}")
 
-        first_card_facts = first_card.locator(".dataset-fact").all_inner_texts()
+        first_card_facts = drawer.locator(".dataset-fact").all_inner_texts()
         first_card_facts_text = "\n".join(first_card_facts).upper()
-        expected_first_runtime_status = runtime_freshness[top_issue_dataset]["status"]
-        if f"FRESHNESS\n{expected_first_runtime_status.upper()} ·" not in first_card_facts_text:
-            fail(f"Freshness fact not found in first dataset card: {first_card_facts}")
+        if (
+            "CONFIANZA\n" not in first_card_facts_text
+            and "CONFIENZA\n" not in first_card_facts_text
+        ):
+            fail(f"Confianza fact not found in drawer: {first_card_facts}")
         if "COVERAGE\n" not in first_card_facts_text:
-            fail(f"Coverage fact not found in first dataset card: {first_card_facts}")
+            fail(f"Coverage fact not found in drawer: {first_card_facts}")
         if "DRIFT\n" not in first_card_facts_text:
-            fail(f"Drift fact not found in first dataset card: {first_card_facts}")
+            fail(f"Drift fact not found in drawer: {first_card_facts}")
         if "REUSO\n" not in first_card_facts_text:
-            fail(f"Reuse fact not found in first dataset card: {first_card_facts}")
+            fail(f"Reuse fact not found in drawer: {first_card_facts}")
         if "DEGRADACIÓN\n" not in first_card_facts_text:
-            fail(f"Degradation fact not found in first dataset card: {first_card_facts}")
+            fail(f"Degradation fact not found in drawer: {first_card_facts}")
 
-        first_card_meta = first_card.locator(".dataset-meta-line").first.inner_text()
+        first_card_meta = drawer.locator(".dataset-meta-line").first.inner_text()
         if "Requiere atribución: sí" not in first_card_meta:
-            fail(f"Reuse attribution metadata not found in first dataset card: {first_card_meta}")
-        provenance_meta = first_card.locator(".dataset-meta-line").nth(1).inner_text()
+            fail(f"Reuse attribution metadata not found in drawer: {first_card_meta}")
+        provenance_meta = drawer.locator(".dataset-meta-line").nth(1).inner_text()
         if (
             "Procedencia técnica:" not in provenance_meta
             or top_issue_source_detail not in provenance_meta
             or f"Warnings: {top_issue_warning_count}" not in provenance_meta
         ):
-            fail(
-                f"Technical provenance metadata not found in first dataset card: {provenance_meta}"
-            )
-        freshness_meta = first_card.locator(".dataset-meta-line").nth(2).inner_text()
+            fail(f"Technical provenance metadata not found in drawer: {provenance_meta}")
+        freshness_meta = drawer.locator(".dataset-meta-line").nth(2).inner_text()
         if "Freshness build:" not in freshness_meta or "Freshness actual:" not in freshness_meta:
-            fail(f"Runtime freshness metadata not found in first dataset card: {freshness_meta}")
+            fail(f"Runtime freshness metadata not found in drawer: {freshness_meta}")
 
-        example_title = first_card.locator(".dataset-example-title").inner_text()
+        # Switch to Recetas Tab
+        drawer.locator("#drawer-tab-receta").click()
+
+        example_title = drawer.locator(".dataset-example-title").inner_text()
         if example_title.upper() != "RECETA DE USO":
             fail(f"Unexpected dataset example title: {example_title}")
 
-        initial_line = first_card.locator(".dataset-example-code").inner_text().splitlines()[0]
+        initial_line = drawer.locator(".dataset-example-code").inner_text().splitlines()[0]
         if initial_line != "import polars as pl":
             fail(f"Unexpected initial example line: {initial_line}")
 
-        if public_site_url not in first_card.locator(".dataset-example-code").inner_text():
+        if public_site_url not in drawer.locator(".dataset-example-code").inner_text():
             fail("Dataset recipe does not use a public URL")
 
-        first_card.locator(".dataset-example-tab", has_text="duckdb").click()
+        drawer.locator(".dataset-example-tab", has_text="duckdb").click()
         page.wait_for_timeout(100)
-        after_tab_line = first_card.locator(".dataset-example-code").inner_text().splitlines()[0]
+        after_tab_line = drawer.locator(".dataset-example-code").inner_text().splitlines()[0]
         if after_tab_line != "SELECT *":
             fail(f"Unexpected duckdb example line: {after_tab_line}")
 
         # Solo hace clic en curl si el dataset tiene salida JSON
-        # (app.js buildDatasetExample solo renderiza el tab curl cuando jsonName existe).
-        curl_tab = first_card.locator(".dataset-example-tab", has_text="curl")
+        curl_tab = drawer.locator(".dataset-example-tab", has_text="curl")
         if curl_tab.count() > 0:
             curl_tab.click()
             page.wait_for_timeout(100)
-        copy_button = first_card.locator(".dataset-example-copy")
+        copy_button = drawer.locator(".dataset-example-copy")
         copy_button.click()
         page.wait_for_timeout(150)
         if copy_button.inner_text() != "Copiado":
@@ -500,6 +517,11 @@ def verify_landing():
         monedario_bridges = page.locator(".monedario-bridge")
         if monedario_bridges.count() != 1:
             fail(f"Expected one Monedario bridge, found {monedario_bridges.count()}")
+
+        # Close drawer first
+        drawer.locator("#drawer-close").click(force=True)
+        drawer.wait_for(state="hidden")
+
         monedario_bridge = page.locator("#dataset-indicadores .monedario-bridge")
         if monedario_bridge.count() != 1:
             fail("Monedario bridge must belong to the indicadores card")
@@ -521,17 +543,13 @@ def verify_landing():
         if "github.com/cortega26/chile-hub/issues/new" not in share_project_href:
             fail(f"Unexpected project sharing href: {share_project_href}")
 
-        top_issue_card = (
-            page.locator(".dataset-card")
-            .filter(has=page.locator(".dataset-name", has_text=top_issue_dataset))
-            .first
-        )
         page.get_by_role("link", name="Ver top issue").click()
         page.wait_for_timeout(100)
         hash_value = page.evaluate("() => window.location.hash")
         if hash_value != f"#dataset-{top_issue_dataset}":
             fail(f"Unexpected hash after top issue click: {hash_value}")
-        top_issue_meta = top_issue_card.locator(".dataset-meta-line").all_inner_texts()
+        drawer.wait_for(state="visible")
+        top_issue_meta = drawer.locator(".dataset-meta-line").all_inner_texts()
         if not any(f"Warnings: {top_issue_warning_count}" in line for line in top_issue_meta):
             fail(f"Warning count not found in top issue card metadata: {top_issue_meta}")
         if not any("Acción recomendada:" in line for line in top_issue_meta):

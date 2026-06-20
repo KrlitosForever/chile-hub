@@ -1,6 +1,6 @@
 # chile-hub overview
 
-- `generated_at_utc`: `2026-06-20T00:17:49.757862+00:00`
+- `generated_at_utc`: `2026-06-20T02:40:01.612344+00:00`
 - `overall_status`: `warn`
 - `dataset_count`: `15`
 - `live_count`: `15`
@@ -39,7 +39,7 @@
 
 - `path`: `data/normalized/chile-hub-publishable-bundle.zip`
 - `package_type`: `zip`
-- `size_bytes`: `29220679`
+- `size_bytes`: `29221220`
 - `checksum`: `sha256` via `data/normalized/chile-hub-publishable-bundle.zip.sha256`
 - `verification_command`: `shasum -a 256 -c data/normalized/chile-hub-publishable-bundle.zip.sha256`
 
