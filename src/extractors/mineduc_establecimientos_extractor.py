@@ -3,6 +3,7 @@
 import datetime
 import hashlib
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -40,14 +41,23 @@ def _verify_unrar_integrity(unrar_path: Path) -> bool:
     En primera ejecución, registra el hash como referencia (se asume que
     el bootstrap inicial es confiable). En ejecuciones posteriores, compara
     contra el hash registrado.
+
+    Si unrar_path es un nombre de comando simple (ej. "unrar"), lo resuelve
+    usando el PATH del sistema vía shutil.which().
     """
     global _UNRAR_EXPECTED_SHA256
 
+    # Si la ruta no apunta a un archivo existente, intenta resolverla como
+    # comando del PATH (cubre el caso en que unrar_bin es "unrar" a secas).
     if not unrar_path.exists():
-        return False
+        resolved = shutil.which(str(unrar_path))
+        if resolved:
+            unrar_path = Path(resolved)
+        else:
+            return False
 
-    # Si no es un archivo regular (ej. es un comando del PATH como "unrar"),
-    # se omite la verificación: no hay binario concreto que hashear.
+    # Si no es un archivo regular, se omite la verificación (no hay binario
+    # concreto que hashear, p.ej. podría ser un symlink extraño).
     if not unrar_path.is_file():
         return True
 
