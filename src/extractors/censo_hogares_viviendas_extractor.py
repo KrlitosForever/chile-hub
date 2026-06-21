@@ -15,6 +15,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from src.extractors.base import BaseExtractor, ensure_staging_directories, write_staging_metadata
+from src.extractors.http_utils import fetch_with_retry
 from src.validation import validate_censo_hogares_viviendas
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
@@ -72,7 +73,7 @@ def fetch_workbook():
         / f"ine_censo2024_hogares_viviendas_{datetime.datetime.now(UTC):%Y%m%dT%H%M%SZ}.xlsx"
     )
     try:
-        with requests.get(SOURCE_URL, timeout=60) as response:
+        with fetch_with_retry(SOURCE_URL, timeout=60) as response:
             response.raise_for_status()
             target.write_bytes(response.content)
         return target, "live"

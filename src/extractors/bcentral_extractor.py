@@ -19,7 +19,6 @@ import time
 from pathlib import Path
 
 import polars as pl
-import requests
 
 UTC = datetime.timezone.utc
 
@@ -31,6 +30,11 @@ try:
     )
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
+
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
 
 # ── Rutas ─────────────────────────────────────────────────────────────────────
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
@@ -129,7 +133,7 @@ def fetch_indicator_year(codigo: str, year: int) -> list:
     Retorna una lista de dicts con claves: fecha, codigo_indicador, valor.
     """
     url = f"{MINDICADOR_BASE}/{codigo}/{year}"
-    with requests.get(url, timeout=15) as response:
+    with fetch_with_retry(url, timeout=15) as response:
         response.raise_for_status()
         payload = response.json()
     save_raw_snapshot(payload, codigo, year)

@@ -23,6 +23,11 @@ try:
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
 
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
+
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 RAW_DIR = os.path.join(DATA_DIR, "raw")
 STAGING_DIR = os.path.join(DATA_DIR, "staging")
@@ -44,11 +49,11 @@ REUSE_POLICY = {
 def fetch_csv() -> tuple[Path, str, str]:
     ensure_staging_directories()
     try:
-        with requests.get(PACKAGE_API_URL, timeout=30) as package:
+        with fetch_with_retry(PACKAGE_API_URL, timeout=30) as package:
             package.raise_for_status()
             payload = package.json()["result"]
         resource = next(item for item in payload["resources"] if item["format"].lower() == "csv")
-        with requests.get(resource["url"], timeout=60) as response:
+        with fetch_with_retry(resource["url"], timeout=60) as response:
             response.raise_for_status()
             stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
             target = Path(RAW_DIR) / f"minsal_establecimientos_salud_{stamp}.csv"

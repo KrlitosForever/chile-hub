@@ -13,7 +13,10 @@ import datetime
 from pathlib import Path
 from typing import Any
 
-import requests
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
 
 UTC = datetime.timezone.utc
 
@@ -42,7 +45,7 @@ def fetch_url_snapshot(
           Solo cuando data_parsed=True se considera extracción live genuina.
     """
     try:
-        with requests.get(url, timeout=timeout) as response:
+        with fetch_with_retry(url, timeout=timeout) as response:
             response.raise_for_status()
             content = response.content
         stamp = datetime.datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")

@@ -242,8 +242,8 @@ class BCentralExtractorTests(unittest.TestCase):
             tempfile.TemporaryDirectory() as tmpdir,
             patch.object(bcentral_extractor, "RAW_DIR", tmpdir),
             patch.object(
-                bcentral_extractor.requests,
-                "get",
+                bcentral_extractor,
+                "fetch_with_retry",
                 return_value=mock_response(self._payload()),
             ),
         ):
@@ -255,7 +255,9 @@ class BCentralExtractorTests(unittest.TestCase):
 
     def test_fetch_indicator_year_raises_on_http_error(self):
         with (
-            patch.object(bcentral_extractor.requests, "get", return_value=mock_response({}, 503)),
+            patch.object(
+                bcentral_extractor, "fetch_with_retry", return_value=mock_response({}, 503)
+            ),
             self.assertRaises(HTTPError),
         ):
             bcentral_extractor.fetch_indicator_year("uf", 2026)
@@ -637,13 +639,11 @@ class SourceAdapterTests(unittest.TestCase):
         from src.extractors.source_adapter import fetch_url_snapshot
 
         mock_content = b"<html><body>datos</body></html>"
-        with patch("src.extractors.source_adapter.requests.get") as mock_get:
-            mock_resp = MagicMock()
-            mock_resp.status_code = 200
-            mock_resp.content = mock_content
-            mock_resp.__enter__.return_value = mock_resp
-            mock_get.return_value = mock_resp
-
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.content = mock_content
+        mock_resp.__enter__.return_value = mock_resp
+        with patch("src.extractors.source_adapter.fetch_with_retry", return_value=mock_resp):
             with tempfile.TemporaryDirectory() as tmp:
                 raw_dir = Path(tmp) / "raw"
                 success, content, note, data_parsed = fetch_url_snapshot(
@@ -658,11 +658,11 @@ class SourceAdapterTests(unittest.TestCase):
                 self.assertEqual(len(snapshots), 1)
 
     def test_fetch_url_snapshot_failure(self):
-        """fetch_url_snapshot ante ConnectionError retorna success=False."""
+        """fetch_url_snapshot ante error de red retorna success=False."""
         from src.extractors.source_adapter import fetch_url_snapshot
 
         with patch(
-            "src.extractors.source_adapter.requests.get",
+            "src.extractors.source_adapter.fetch_with_retry",
             side_effect=ConnectionError("timeout"),
         ):
             with tempfile.TemporaryDirectory() as tmp:
@@ -1207,6 +1207,123 @@ class SubdereExtractorExtendedTests(unittest.TestCase):
             self.assertTrue(output_csv.exists())
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             self.assertEqual(meta["dataset"], "comunas")
+
+
+class HttpUtilsRetryTests(unittest.TestCase):
+    """Tests de reintentos HTTP para http_utils.fetch_with_retry e _is_retryable."""
+
+    def test_succeeds_on_first_attempt(self):
+        """Sin fallos, retorna la respuesta directamente sin reintentar."""
+        from src.extractors.http_utils import fetch_with_retry
+
+        ok_resp = mock_response({"ok": True})
+        mock_get = MagicMock(return_value=ok_resp)
+        result = fetch_with_retry("https://example.com", get_fn=mock_get, timeout=5)
+        self.assertEqual(result.status_code, 200)
+        mock_get.assert_called_once_with("https://example.com", timeout=5)
+
+    @patch("tenacity.nap.sleep")
+    def test_retries_on_connection_error_and_succeeds(self, _sleep):
+        """Reintenta en ConnectionError transitorio y retorna respuesta al tercer intento."""
+        import requests as _req
+
+        from src.extractors.http_utils import fetch_with_retry
+
+        ok_resp = mock_response({"ok": True})
+        mock_get = MagicMock(
+            side_effect=[
+                _req.exceptions.ConnectionError("fallo transitorio 1"),
+                _req.exceptions.ConnectionError("fallo transitorio 2"),
+                ok_resp,
+            ]
+        )
+        result = fetch_with_retry("https://example.com", get_fn=mock_get, max_attempts=3, timeout=5)
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual(result.status_code, 200)
+
+    @patch("tenacity.nap.sleep")
+    def test_raises_after_max_attempts_exhausted(self, _sleep):
+        """Propaga ConnectionError tras agotar todos los reintentos (reraise=True)."""
+        import requests as _req
+
+        from src.extractors.http_utils import fetch_with_retry
+
+        mock_get = MagicMock(side_effect=_req.exceptions.ConnectionError("sin red"))
+        with self.assertRaises(_req.exceptions.ConnectionError):
+            fetch_with_retry("https://example.com", get_fn=mock_get, max_attempts=2, timeout=5)
+        self.assertEqual(mock_get.call_count, 2)
+
+    def test_does_not_retry_4xx(self):
+        """No reintenta errores del cliente (4xx) — los retorna tal cual."""
+        from src.extractors.http_utils import fetch_with_retry
+
+        not_found = mock_response(None, status_code=404)
+        mock_get = MagicMock(return_value=not_found)
+        result = fetch_with_retry("https://example.com", get_fn=mock_get, timeout=5)
+        self.assertEqual(result.status_code, 404)
+        mock_get.assert_called_once()
+
+    @patch("tenacity.nap.sleep")
+    def test_retries_on_5xx_and_succeeds(self, _sleep):
+        """Reintenta respuestas 5xx hasta recuperarse en el segundo intento."""
+        import requests as _req
+
+        from src.extractors.http_utils import fetch_with_retry
+
+        err_resp = MagicMock()
+        err_resp.status_code = 503
+        err_resp.raise_for_status.side_effect = _req.exceptions.HTTPError(
+            "503 Service Unavailable", response=err_resp
+        )
+        ok_resp = mock_response({"ok": True})
+        mock_get = MagicMock(side_effect=[err_resp, ok_resp])
+        result = fetch_with_retry("https://example.com", get_fn=mock_get, max_attempts=3, timeout=5)
+        self.assertEqual(mock_get.call_count, 2)
+        self.assertEqual(result.status_code, 200)
+
+    def test_is_retryable_connection_error(self):
+        """_is_retryable: True para requests.exceptions.ConnectionError."""
+        import requests as _req
+
+        from src.extractors.http_utils import _is_retryable
+
+        self.assertTrue(_is_retryable(_req.exceptions.ConnectionError()))
+
+    def test_is_retryable_timeout(self):
+        """_is_retryable: True para requests.exceptions.Timeout."""
+        import requests as _req
+
+        from src.extractors.http_utils import _is_retryable
+
+        self.assertTrue(_is_retryable(_req.exceptions.Timeout()))
+
+    def test_is_retryable_5xx(self):
+        """_is_retryable: True para HTTPError con status >= 500."""
+        import requests as _req
+
+        from src.extractors.http_utils import _is_retryable
+
+        resp = MagicMock()
+        resp.status_code = 503
+        exc = _req.exceptions.HTTPError(response=resp)
+        self.assertTrue(_is_retryable(exc))
+
+    def test_is_not_retryable_4xx(self):
+        """_is_retryable: False para HTTPError con status < 500."""
+        import requests as _req
+
+        from src.extractors.http_utils import _is_retryable
+
+        resp = MagicMock()
+        resp.status_code = 404
+        exc = _req.exceptions.HTTPError(response=resp)
+        self.assertFalse(_is_retryable(exc))
+
+    def test_is_not_retryable_generic_exception(self):
+        """_is_retryable: False para excepciones no HTTP."""
+        from src.extractors.http_utils import _is_retryable
+
+        self.assertFalse(_is_retryable(ValueError("algo inesperado")))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 import polars as pl
-import requests
 
 UTC = datetime.timezone.utc
 
@@ -25,6 +24,11 @@ try:
     )
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
+
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 RAW_DIR = os.path.join(DATA_DIR, "raw")
@@ -98,7 +102,7 @@ def fetch_data() -> tuple[Path, str, str]:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
         }
-        with requests.get(DOWNLOAD_URL, headers=headers, timeout=60) as r:
+        with fetch_with_retry(DOWNLOAD_URL, headers=headers, timeout=60) as r:
             r.raise_for_status()
             rar_path.write_bytes(r.content)
         print("Descarga completada.")

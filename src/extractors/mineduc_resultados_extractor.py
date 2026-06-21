@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any
 
 import polars as pl
-import requests
 
 UTC = datetime.timezone.utc
 
@@ -35,6 +34,11 @@ try:
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
     from source_adapter import build_standard_metadata
+
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 RAW_DIR = DATA_DIR / "raw"
@@ -199,7 +203,7 @@ def fetch_data(source_url: str = DOWNLOAD_URL) -> tuple[list[dict[str, Any]], st
                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
             )
         }
-        with requests.get(source_url, headers=headers, timeout=180) as r:
+        with fetch_with_retry(source_url, headers=headers, timeout=180) as r:
             r.raise_for_status()
             rar_path.write_bytes(r.content)
         size_mb = rar_path.stat().st_size // 1024 // 1024

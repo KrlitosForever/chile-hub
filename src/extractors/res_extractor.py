@@ -19,7 +19,6 @@ import sys
 from pathlib import Path
 
 import polars as pl
-import requests
 
 UTC = datetime.timezone.utc
 
@@ -35,6 +34,11 @@ try:
     )
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
+
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
 
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 RAW_DIR = os.path.join(DATA_DIR, "raw")
@@ -104,7 +108,7 @@ def fetch_resources() -> tuple[list[bytes], str, str]:
     """
     ensure_staging_directories()
 
-    with requests.get(PACKAGE_API_URL, timeout=30) as package:
+    with fetch_with_retry(PACKAGE_API_URL, timeout=30) as package:
         package.raise_for_status()
         payload = package.json()["result"]
 
@@ -121,7 +125,7 @@ def fetch_resources() -> tuple[list[bytes], str, str]:
         raw_path = Path(RAW_DIR) / f"res_{resource_name}_{stamp}.csv"
 
         try:
-            with requests.get(resource["url"], timeout=120) as response:
+            with fetch_with_retry(resource["url"], timeout=120) as response:
                 response.raise_for_status()
                 raw_path.write_bytes(response.content)
                 contents.append(response.content)

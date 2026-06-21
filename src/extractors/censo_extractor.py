@@ -24,6 +24,11 @@ try:
 except ModuleNotFoundError:
     from base import BaseExtractor, ensure_staging_directories, write_staging_metadata
 
+try:
+    from src.extractors.http_utils import fetch_with_retry
+except ModuleNotFoundError:
+    from http_utils import fetch_with_retry
+
 DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
 RAW_DIR = os.path.join(DATA_DIR, "raw")
 STAGING_DIR = os.path.join(DATA_DIR, "staging")
@@ -66,7 +71,7 @@ def fetch_workbook() -> tuple[Path, str]:
     ensure_staging_directories()
     target = _snapshot_path()
     try:
-        with requests.get(CENSO_URL, timeout=60) as response:
+        with fetch_with_retry(CENSO_URL, timeout=60) as response:
             response.raise_for_status()
             target.write_bytes(response.content)
         return target, "live"
