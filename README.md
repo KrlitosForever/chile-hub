@@ -1,6 +1,14 @@
 <div align="center">
 
-<h1>🇨🇱 chile-hub</h1>
+<h1>
+  <img 
+    src="https://rawcdn.githack.com/twitter/twemoji/v14.0.2/assets/svg/1f1e8-1f1f1.svg" 
+    alt="🇨🇱" 
+    width="39" 
+    align="absmiddle"
+  > 
+  chile-hub
+</h1>
 
 <p><strong>Datos públicos de Chile, curados y listos para análisis en una línea de código.</strong></p>
 
@@ -67,7 +75,7 @@ En la práctica, sirve para responder preguntas comunes sin rehacer limpieza bas
 
 ---
 
-## Por qué existe
+## ¿Por qué existe?
 
 Trabajar con datos públicos chilenos implica enfrentar los mismos obstáculos una y otra vez:
 
@@ -83,7 +91,7 @@ chile-hub empaqueta esas decisiones en una capa reproducible: extrae desde fuent
 
 ---
 
-## Qué entrega chile-hub
+## ¿Qué entrega chile-hub?
 
 <table>
 <tr><td>
@@ -769,6 +777,6 @@ Revisa [`AGENTS.md`](./AGENTS.md) para entender la arquitectura, las reglas no n
 
 <div align="center">
 
-**🇨🇱 Hecho con datos públicos chilenos, para quienes construyen sobre Chile.**
+**<img src="https://rawcdn.githack.com/twitter/twemoji/v14.0.2/assets/svg/1f1e8-1f1f1.svg" alt="🇨🇱" width="20" align="absmiddle">  Hecho con datos públicos chilenos, para quienes construyen sobre Chile.**
 
 </div>
