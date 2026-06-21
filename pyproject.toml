@@ -106,9 +106,18 @@ upload_to_vcs_release = true
 commit_message = "chore(release): {version} [skip ci]"
 
 [tool.semantic_release.changelog]
+mode = "update"
+template_dir = "templates"
 exclude_commit_patterns = [
     "^chore\\(data\\):",
+    "^chore\\(release\\):",
+    "^docs\\(backlog\\):",
+    "^docs\\(plans\\):",
+    "^data:",
 ]
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
 
 [tool.chile_hub]
 public_site_url = "https://tooltician.com/chile-hub/"

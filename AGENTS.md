@@ -328,6 +328,11 @@ Agregar el extractor al paso de extracción en `.github/workflows/pipeline-check
 Crear `docs/datasets/{nombre}.md` con: descripción, fuente, licencia, schema completo,
 ejemplos de uso en Python/DuckDB/SQL, notas sobre limitaciones y changelog.
 
+> **CHANGELOG:** `CHANGELOG.md` se actualiza automáticamente en cada release mediante
+> `python-semantic-release` (configurado con `mode = "update"`). No es necesario
+> editarlo manualmente; PSR lo hace en el commit de release. Ver `docs/release.md`
+> para los detalles del proceso y los filtros activos.
+
 ### Modificar, renombrar o deprecar un dataset existente
 
 **Modificar un extractor (actualizar endpoint, ajustar columnas):** seguir el mismo flujo

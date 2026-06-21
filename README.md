@@ -1,12 +1,12 @@
 <div align="center">
 
 <h1>
-  <img 
-    src="https://rawcdn.githack.com/twitter/twemoji/v14.0.2/assets/svg/1f1e8-1f1f1.svg" 
-    alt="🇨🇱" 
-    width="39" 
+  <img
+    src="https://rawcdn.githack.com/twitter/twemoji/v14.0.2/assets/svg/1f1e8-1f1f1.svg"
+    alt="🇨🇱"
+    width="39"
     align="absmiddle"
-  > 
+  >
   chile-hub
 </h1>
 
@@ -389,7 +389,7 @@ print(df.head())
 
 > **Versionado:** Para entornos productivos, fija la versión exacta en `requirements.txt`:
 > ```
-> chile-hub==1.4.0
+> chile-hub==1.15.0
 > ```
 > El bundle de datos se publica con cada release. La API del módulo `ChileHub` sigue
 > versionado semántico: cambios de interfaz pública solo en _major releases_.

@@ -1,0 +1,58 @@
+{#
+Modo actualización: inserta el contenido de la nueva versión en el marcador
+<!-- version list --> del archivo CHANGELOG.md existente.
+#}{%  set prev_changelog_contents = prev_changelog_file | read_file | safe
+%}{%  set changelog_parts = prev_changelog_contents.split(insertion_flag, maxsplit=1)
+%}{#
+#}{%  if changelog_parts | length < 2
+%}{#    # No se encontró el marcador de inserción
+#}{%    if prev_changelog_contents | length > 0
+%}{#      # El archivo tiene contenido pero no tiene marcador → no se actualiza
+#}{{      changelog_parts[0]
+}}{%    else
+%}{#      # Archivo vacío o inexistente → inicializar desde cero
+#}{%      include "changelog_init.md.j2"
+%}{%    endif
+%}{%  else
+%}{#
+   #    Encabezado del changelog anterior
+#}{%    set prev_changelog_top = changelog_parts[0] | trim
+%}{%    if prev_changelog_top | length > 0
+%}{{
+          "%s\n\n%s\n" | format(prev_changelog_top, insertion_flag | trim)
+
+}}{%    else
+%}{{
+          "%s\n" | format(insertion_flag | trim)
+
+}}{%    endif
+%}{#
+   #    Cambios no publicados (poco frecuente)
+#}{%    include "unreleased_changes.md.j2"
+-%}{#
+#}{%    if releases | length > 0
+%}{#      # Detalles de la nueva versión
+#}{%      set release = releases[0]
+%}{#
+#}{%      if releases | length == 1 and ctx.mask_initial_release
+%}{#        # Primera publicación detectada
+#}{{        "\n"
+}}{%-       include "first_release.md.j2"
+-%}{{       "\n"
+}}{#
+#}{%      elif "## " ~ release.version.as_semver_tag()[1:] ~ " - " not in changelog_parts[1]
+%}{#        # La versión aún no está en el changelog: agregar entrada
+#}{{        "\n"
+}}{%-       include "versioned_changes.md.j2"
+-%}{{       "\n"
+}}{#
+#}{%      endif
+%}{%    endif
+%}{#
+   #    Contenido previo del changelog (versiones anteriores)
+#}{%    set previous_changelog_bottom = changelog_parts[1] | trim
+%}{%    if previous_changelog_bottom | length > 0
+%}{{      "\n%s\n" | format(previous_changelog_bottom)
+}}{%    endif
+%}{%  endif
+%}

@@ -1,0 +1,21 @@
+{#
+Inicializa el changelog completo desde cero.
+#}{#
+   #    Encabezado
+#}{%    include "changelog_header.md.j2"
+-%}{#
+   #    Cambios no publicados (poco frecuente)
+#}{%    include "unreleased_changes.md.j2"
+-%}{#
+#}{%    if releases | length > 0
+%}{%      for release in releases
+%}{{        "\n"
+}}{%        if loop.last and ctx.mask_initial_release
+%}{%-         include "first_release.md.j2"
+-%}{%       else
+%}{%-         include "versioned_changes.md.j2"
+-%}{%       endif
+%}{{       "\n"
+}}{%      endfor
+%}{%    endif
+%}

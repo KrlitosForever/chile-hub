@@ -4,6 +4,23 @@
 como artefactos normalizados verificados. Estos son flujos relacionados pero
 intencionalmente separados.
 
+## CHANGELOG
+
+`CHANGELOG.md` se actualiza automáticamente en cada release mediante
+`python-semantic-release`. La configuración `[tool.semantic_release.changelog]`
+en `pyproject.toml` usa `mode = "update"`: PSR antepone la nueva sección al
+archivo en el mismo commit de release (`chore(release): X.Y.Z`).
+
+**Entradas auto-generadas:** los encabezados de sección siguen la convención de
+Conventional Commits (en inglés), pero el cuerpo de cada entrada reproduce el
+mensaje de commit tal como fue escrito. Las entradas manuales curadas que
+anteceden a la versión 1.15.0 se conservan sin cambios.
+
+**Filtros activos** (commits excluidos del changelog):
+- `chore(data):` — actualizaciones diarias de datos
+- `chore(release):` — commits del propio PSR
+- `docs(backlog):` y `docs(plans):` — documentación interna de backlog
+
 ## Versionado
 
 Usa Conventional Commits:

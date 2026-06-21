@@ -1,0 +1,14 @@
+{#  Genera la entrada de una versión con formato consistente con las entradas curadas:
+    ## X.Y.Z - YYYY-MM-DD
+#}{{
+"## %s - %s\n" | format(
+  release.version.as_semver_tag()[1:],
+  release.tagged_date.strftime("%Y-%m-%d")
+)
+}}{%  if license_name is defined and license_name
+%}{{    "\n_Publicado bajo la Licencia %s._\n" | format(license_name)
+}}{%  endif
+%}{#
+#}{%  set commit_objects = release["elements"] | dictsort
+%}{%  include "changes.md.j2"
+-%}

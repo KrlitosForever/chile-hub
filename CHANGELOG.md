@@ -1,10 +1,239 @@
 # Registro de cambios
 
-Este proyecto usa Conventional Commits y `python-semantic-release` para generar
-notas de lanzamiento para publicaciones en PyPI.
+Este proyecto usa Conventional Commits y `python-semantic-release` para versionar
+las publicaciones en PyPI. Los commits de actualización de datos
+(`chore(data): daily refresh [skip ci]`) no representan lanzamientos de software
+y se excluyen intencionalmente de estas notas.
 
-Los commits de actualización de datos, como `chore(data): daily refresh [skip ci]`, no
-representan lanzamientos de software y se excluyen intencionalmente de las notas de lanzamiento.
+<!-- version list -->
+
+---
+
+## 1.15.0 - 2026-06-21
+
+### Agregado
+
+- Reintentos HTTP con backoff exponencial (vía `tenacity`) en todos los extractores:
+  los fallos transitorios de red se reintentan automáticamente hasta 3 veces con espera
+  creciente entre intentos, eliminando errores espúreos de CI por cortes momentáneos.
+
+### Cambiado
+
+- Gestión de dependencias migrada a `uv` en todos los flujos de CI, reduciendo
+  significativamente el tiempo de instalación y garantizando resolución determinista
+  de versiones.
+
+---
+
+## 1.14.1 - 2026-06-21
+
+### Corregido
+
+- Uso de `shutil.which()` para resolver la ruta del binario `unrar` desde el `PATH`
+  del sistema en la verificación de integridad, evitando fallos cuando el binario
+  existe pero no está en la ubicación por defecto.
+
+---
+
+## 1.14.0 - 2026-06-20
+
+### Agregado
+
+- Integración de `rutificador` en `validate_empresas()` para verificar matemáticamente
+  el dígito verificador de cada RUT en el dataset de empresas, detectando valores
+  corruptos o generados incorrectamente.
+
+### Interno
+
+- Cobertura de pruebas incrementada de 88.1 % a 90.4 % sobre el código de librería.
+
+---
+
+## 1.13.1 - 2026-06-20
+
+### Cambiado
+
+- `build_dev_db.py` descompuesto en el paquete `src/builders/` con módulos
+  especializados (`_shared`, `io_utils`, `formats`, `metadata`, `reports`,
+  `artifacts`, `datasets`, `catalog`, `landing`). El orquestador delega en estos
+  módulos, reduciendo su tamaño y complejidad de forma significativa.
+
+### Interno
+
+- Incorporadas herramientas de calidad al entorno de desarrollo: `mypy` (tipado
+  estático), `pip-audit` (auditoría de dependencias), `interrogate` (cobertura de
+  docstrings), `bandit` (escaneo de seguridad estático), `pytest-xdist` (tests en
+  paralelo), `hypothesis` (property-based testing) y `structlog` (logging
+  estructurado del pipeline).
+- Corregida compatibilidad de `pytest-xdist` en CI removiendo `-n auto` de
+  `addopts`.
+- Reparadas insignias de Coverage y Data Freshness en el README.
+
+---
+
+## 1.13.0 - 2026-06-20
+
+### Cambiado
+
+- Rediseño de la landing page con cajón lateral deslizante (_slide-over drawer_)
+  para mostrar detalles de cada dataset, reemplazando el panel anterior. La
+  navegación es ahora más fluida y funciona correctamente en dispositivos móviles.
+
+---
+
+## 1.12.0 - 2026-06-20
+
+### Agregado
+
+- Extractor live para **SIEDU** (Sistema de Indicadores y Estándares de Desarrollo
+  Urbano del MINVU): descarga directa desde la API oficial, eliminando la
+  dependencia de snapshots locales.
+- Extractor live para **MINEDUC Resultados Educacionales**: obtención en vivo desde
+  la fuente oficial del Ministerio de Educación.
+- Ambos datasets pasan de modo `fallback` a modo `live`, cerrando los Issues #6 y #7.
+
+---
+
+## 1.11.1 - 2026-06-19
+
+### Corregido
+
+- Corregida metadata `source_mode` engañosa en varios extractores; URLs alineadas
+  con los endpoints reales de cada fuente.
+- Dataset SINIM degradado a carril `candidate` al confirmarse que su fuente requiere
+  revisión de redistribución.
+
+---
+
+## 1.11.0 - 2026-06-19
+
+### Agregado
+
+- `ChileHub.cross_view()`: cruza dos datasets por código CUT en una sola llamada.
+- `ChileHub.validate_user_data()`: valida un DataFrame externo contra el esquema
+  de un dataset del hub.
+- `ChileHub.search_datasets()`: búsqueda de datasets por palabras clave.
+- Flag `--exit-code` en la CLI para integración programática con scripts de CI y
+  orquestación.
+
+### Cambiado
+
+- Catálogo extraído como archivo externo `dataset_catalog_config.json`;
+  `build_dev_db.py` ya no lo embebe como código fuente, simplificando el
+  orquestador y corrigiendo `PYTHONPATH` en entornos de desarrollo.
+
+### Corregido
+
+- Eliminada ventana TOCTOU en la descarga del bundle: el hash SHA-256 se calcula
+  en tránsito, no sobre el archivo ya escrito en disco.
+- Verificación de integridad del binario `unrar` antes de invocarlo, evitando la
+  ejecución de binarios no confiables.
+- Mensajes de error en `build_dev_db.py` usan rutas relativas para no filtrar
+  rutas absolutas del sistema de archivos del servidor.
+- `_load_catalog` envuelve la carga con `try/except` para propagar
+  `ChileHubDataError` en lugar de excepciones genéricas.
+- `DataManager.clear()` valida la ruta antes de borrar para prevenir eliminaciones
+  fuera del directorio de caché.
+- Los datasets alias ya no sobrescriben los artefactos del dataset canónico en
+  `artifact_manifest`.
+- `dataset_catalog_config.json` rastreado en git para evitar `FileNotFoundError`
+  en CI.
+
+---
+
+## 1.10.0 - 2026-06-19
+
+### Mejorado
+
+- Caché en memoria para cargas de artefactos en la API pública: llamadas repetidas a
+  `load_polars()`, `load_duckdb()` y métodos relacionados retornan desde caché sin
+  releer disco.
+- Caché de datos de staging en los flujos diarios de CI para reducir tiempos de
+  ejecución en corridas sin cambios de código.
+
+### Corregido
+
+- Cierre correcto de respuestas HTTP mediante context manager en todos los extractores.
+- Tipado estricto de excepciones: `except Exception` reemplazado por tipos
+  específicos en extractores para evitar captura silenciosa de errores inesperados.
+- Añadida llamada `drop_nulls()` en `validate_censo_hogares_viviendas()` para
+  evitar errores al procesar filas con celdas vacías.
+- Corregido `TypeError` por celdas `None` en el extractor de `censo_hogares_viviendas`.
+- Libros Excel abiertos con context manager en `openpyxl` para garantizar cierre
+  del recurso.
+
+---
+
+## 1.9.0 - 2026-06-19
+
+### Agregado
+
+- Insignia dinámica de frescura de datos en el README que refleja la antigüedad del
+  último pipeline de extracción exitoso.
+
+---
+
+## 1.8.0 - 2026-06-19
+
+### Interno
+
+- Cobertura de pruebas alcanza el 89 % sobre el código de librería central
+  (`src/chile_hub`), con nuevas suites que cubren casos límite de `core.py`,
+  tablas de reportes y funciones puras de utilidades.
+
+---
+
+## 1.7.0 - 2026-06-19
+
+### Agregado
+
+- Implementación de mejoras prioritarias de la auditoría de calidad: context managers
+  en todos los recursos externos, tipado estricto de excepciones y eliminación de
+  condiciones de carrera en operaciones de archivo.
+- Backlog de mejoras estratégicas con roadmap priorizado documentado en
+  `docs/backlog/`.
+
+### Interno
+
+- Token Codecov configurado en CI y umbrales de cobertura ajustados al nivel real
+  alcanzado por la suite de pruebas.
+
+---
+
+## 1.6.0 - 2026-06-19
+
+### Agregado
+
+- Nuevo comando CLI `chile-hub export`: exporta un dataset a un archivo en el
+  formato especificado (CSV, JSON, Parquet, Excel).
+- Nuevo comando CLI `chile-hub check-sources`: verifica el estado de accesibilidad
+  de las fuentes upstream en vivo.
+- Rangos de versiones de dependencias flexibilizados en `pyproject.toml` para
+  mejorar la compatibilidad de instalación en distintos entornos.
+
+---
+
+## 1.5.0 - 2026-06-18
+
+### Agregado
+
+- Suite de pruebas de integración ampliada: cobertura de `pipeline_status_utils`,
+  valores límite de `core.py`, ocho extractores parcialmente cubiertos, todos los
+  validadores restantes, puntos de entrada de la CLI y `source_adapter.py`.
+- Carga del diagrama del pipeline en orientación vertical en la documentación.
+
+### Cambiado
+
+- Integración formal del Plan 009: la separación de pistas publicables y candidatas
+  ahora opera como política explícita en el motor del pipeline (no solo en el
+  registro de fuentes).
+
+### Interno
+
+- Corregida instalación del paquete `chile_hub` en el job de CI.
+- `codecov-action` anclado al tag estable `v5` en lugar de un SHA de commit.
+
+---
 
 ## 1.4.0 - 2026-06-18
 
